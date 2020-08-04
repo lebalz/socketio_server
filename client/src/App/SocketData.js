@@ -1,6 +1,6 @@
 import socketioClient from "socket.io-client";
 
-const WS_PORT = 5001
+const WS_PORT = process.env.NODE_ENV === 'production' ? '' : ':5001'
 
 const SocketEvents = {
 	Device: 'device',
@@ -60,7 +60,7 @@ export default class SocketData {
 
     constructor() {
         const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-        const ws_url = `${protocol}://${window.location.hostname}:${WS_PORT}`;
+        const ws_url = `${protocol}://${window.location.hostname}${WS_PORT}`;
         console.log(ws_url);
         this.socket = socketioClient(ws_url, { transports: ['websocket', 'polling'] });
         this.socket.on(SocketEvents.Devices, (data) => {

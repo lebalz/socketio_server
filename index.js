@@ -3,7 +3,6 @@ const path = require('path');
 const bodyParser = require("body-parser");
 var cors = require("cors");
 const http = require("http");
-const https = require("https");
 const morgan = require("morgan");
 const socketIo = require("socket.io");
 
@@ -39,7 +38,7 @@ const app = express();
 /**
  * CREATE A SERVER OBJECT
  */
-const server = process.env.NODE_ENV === 'production' ? https.createServer(app) : http.createServer(app);
+const server = http.createServer(app);
 
 // Serve the static files from the React app
 app.use(express.static(path.join(__dirname, 'client/build')));
