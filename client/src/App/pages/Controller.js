@@ -1,6 +1,5 @@
 import React, { Component, Fragment } from 'react';
 import { Button } from 'semantic-ui-react';
-import { Link } from 'react-router-dom';
 
 class Controller extends Component {
   // Initialize the state
