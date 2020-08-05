@@ -15,9 +15,12 @@ const SocketEvents = {
 	Clear: 'clear_data',
 	NewDevice: 'new_device',
 	GetAllData: 'get_all_data',
-	GetDevices: 'get_devices'
+	GetDevices: 'get_devices',
+	RemoveAll: 'remove_all',
+	DataStore: 'data_store'
 }
 
+GLOBAL_LISTENER_ROOM = 'GLOBAL_LISTENER'
 THRESHOLD = 200
 /**
  * a motion data frame is an object of the form:
@@ -87,10 +90,6 @@ io.on("connection", (socket) => {
 	// report on disconnect
 	socket.on("disconnect", () => {
 		console.log("Client disconnected: ", socket.id, socketId_device[socket.id]);
-		const device = socketId_device[socket.id]
-		if (device && devices().filter(d => d.deviceId === device.deviceId).length === 1) {
-			delete dataStore[socketId_device[socket.id].deviceId];
-		}
 		delete socketId_device[socket.id];
 		io.emit(SocketEvents.Devices, devices());
 	});
@@ -151,9 +150,10 @@ io.on("connection", (socket) => {
 		if (data.broadcast) {
 			io.emit(SocketEvents.NewData, data)
 		} else if (device) {
-			io.to(device.socketId).emit(SocketEvents.NewData, data);
+			io.to(device.socketId).to(GLOBAL_LISTENER_ROOM).emit(SocketEvents.NewData, data);
 		} else {
 			io.in(data.deviceId).emit(SocketEvents.NewData, data);
+			io.to(GLOBAL_LISTENER_ROOM).emit(SocketEvents.NewData, data);
 		}
 	});
 
@@ -173,6 +173,22 @@ io.on("connection", (socket) => {
 		}
 		dataStore[data.deviceId] = [];
 		io.emit(SocketEvents.AllData, dataStore[data.deviceId]);
+	});
+
+
+	socket.on(SocketEvents.RemoveAll, () => {
+		const device = socketId_device[socket.id]
+		Object.keys(dataStore).forEach(key => {
+			if (key !== device.deviceId) {
+				delete dataStore[key]
+			}
+		})
+		io.emit(SocketEvents.DataStore, dataStore);
+	});
+
+
+	socket.on(SocketEvents.DataStore, () => {
+		socket.emit(SocketEvents.DataStore, dataStore);
 	});
 });
 

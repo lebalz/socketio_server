@@ -8,13 +8,14 @@ import 'semantic-ui-css/semantic.min.css'
 import ColorPanel from './pages/ColorPanel';
 import ColorGrid from './pages/ColorGrid';
 import { Label } from 'semantic-ui-react';
+import Admin from './pages/Admin';
 class App extends Component {
   state = { deviceId: `Device${Math.floor(Math.random() * 899) + 100}`, valid: true, deviceNr: -1 }
   socket = new SocketData();
 
   constructor(props) {
     super(props);
-    this.socket.onDeviceNr = (deviceNr) => {
+    this.socket.onDevice = (deviceNr) => {
       this.setState({ deviceNr: deviceNr });
     }
   }
@@ -64,6 +65,7 @@ class App extends Component {
           <Route path='/controller/:deviceId?' component={() => <Controller socket={this.socket} />} />
           <Route path='/color_panel/:deviceId?' component={() => <ColorPanel socket={this.socket} />} />
           <Route path='/color_grid/:deviceId?' component={() => <ColorGrid socket={this.socket} />} />
+          <Route path='/admin/:deviceId?' component={() => <Admin socket={this.socket} />} />
         </Switch>
       </div>
     )
