@@ -1,6 +1,4 @@
-import React, { Component, Fragment } from 'react';
-import { Button } from 'semantic-ui-react';
-import { Link } from 'react-router-dom';
+import React, { Component } from 'react';
 
 class ColorPanel extends Component {
   _isMounted = false;
@@ -21,6 +19,10 @@ class ColorPanel extends Component {
     const callbackFun = this.socket.onData.indexOf(f => f === this.onClick)
     if (callbackFun >= 0) {
       this.socket.onData.splice(callbackFun, callbackFun)
+      const colors = this.socket.getData('color');
+      if (colors.leangth > 0) {
+        this.setState({ color: colors[colors.length - 1]})
+      }
       console.log('removed component')
     }
   }

@@ -7,8 +7,7 @@ import SocketData from './SocketData';
 import 'semantic-ui-css/semantic.min.css'
 import ColorPanel from './pages/ColorPanel';
 import ColorGrid from './pages/ColorGrid';
-import { Button, Label } from 'semantic-ui-react';
-
+import { Label } from 'semantic-ui-react';
 class App extends Component {
   state = { deviceId: `Device${Math.floor(Math.random() * 899) + 100}`, valid: true, deviceNr: -1 }
   socket = new SocketData();
@@ -21,7 +20,8 @@ class App extends Component {
   }
 
   componentDidMount() {
-    const deviceId = localStorage.getItem('device_id');
+    const querySearchId = new URLSearchParams(window.location.search).get('deviceId')
+    const deviceId = querySearchId || localStorage.getItem('device_id');
     if (deviceId) {
       this.setState({ deviceId: deviceId });
     }
@@ -40,13 +40,13 @@ class App extends Component {
   render() {
     const App = () => (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
-        <div style={{display: 'flex', flexDirection: 'row', position: 'absolute', left: '4px', top: '4px'}}>
+        <div style={{ display: 'flex', flexDirection: 'row', position: 'absolute', left: '4px', top: '4px' }}>
           <Link to="/">
             <Label icon="home" size="small" />
           </Link>
           <Label size="small" content={`Nr. ${this.state.deviceNr}`} />
         </div>
-        <span>
+        <span style={{margin: '0.25em 0'}}>
           <label htmlFor="device-id" style={{ marginRight: '1em' }}>DeviceID</label>
           <input
             id="device-id"
@@ -61,14 +61,15 @@ class App extends Component {
         </span>
         <Switch>
           <Route exact path='/' component={Home} />
-          <Route path='/controller' component={() => <Controller socket={this.socket} />} />
-          <Route path='/color_panel' component={() => <ColorPanel socket={this.socket} />} />
-          <Route path='/color_grid' component={() => <ColorGrid socket={this.socket} />} />
+          <Route path='/controller/:deviceId?' component={() => <Controller socket={this.socket} />} />
+          <Route path='/color_panel/:deviceId?' component={() => <ColorPanel socket={this.socket} />} />
+          <Route path='/color_grid/:deviceId?' component={() => <ColorGrid socket={this.socket} />} />
         </Switch>
       </div>
     )
     return (
       <Switch>
+        {/* <Route exact path='/' component={App} /> */}
         <App />
       </Switch>
     );

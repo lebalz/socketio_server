@@ -1,17 +1,18 @@
 import socketioClient from "socket.io-client";
+import * as _ from 'lodash';
 
-const WS_PORT = process.env.NODE_ENV === 'production' ? '' : ':5001'
+const WS_PORT = process.env.NODE_ENV === 'production' ? '' : ':5000'
 
 const SocketEvents = {
-	Device: 'device',
-	Devices: 'devices',
-	AllData: 'all_data',
-	AddNewData: 'new_data',
-	NewData: 'new_data',
-	Clear: 'clear_data',
-	NewDevice: 'new_device',
-	GetAllData: 'get_all_data',
-	GetDevices: 'get_devices'
+    Device: 'device',
+    Devices: 'devices',
+    AllData: 'all_data',
+    AddNewData: 'new_data',
+    NewData: 'new_data',
+    Clear: 'clear_data',
+    NewDevice: 'new_device',
+    GetAllData: 'get_all_data',
+    GetDevices: 'get_devices'
 }
 
 export default class SocketData {
@@ -72,6 +73,7 @@ export default class SocketData {
             if (this.onDeviceNr) {
                 this.onDeviceNr(data.deviceNr);
             }
+            this.refreshData()
         })
         this.socket.on(SocketEvents.AllData, data => {
             if (Array.isArray(data)) {
@@ -98,17 +100,21 @@ export default class SocketData {
         });
     }
 
-    setDeviceId(deviceId) {
+    getData(type) {
+        return this.myData.filter(d => d.type === type);
+    }
+
+    setDeviceId = _.debounce((deviceId) => {
         const oldId = this.deviceId;
         this.deviceId = deviceId;
         this.socket.emit(SocketEvents.NewDevice, { deviceId: deviceId, oldDeviceId: oldId, isController: true });
-    }
+    }, 300);
 
     clearData() {
         this.socket.emit(SocketEvents.Clear, { deviceId: this.deviceId });
     }
 
-    refreshDate() {
+    refreshData() {
         this.socket.emit(SocketEvents.GetAllData, { deviceId: this.deviceId });
     }
 

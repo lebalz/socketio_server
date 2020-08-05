@@ -1,6 +1,4 @@
-import React, { Component, Fragment } from 'react';
-import { Button } from 'semantic-ui-react';
-import { Link } from 'react-router-dom';
+import React, { Component } from 'react';
 
 class ColorGrid extends Component {
   _isMounted = false;
@@ -14,6 +12,10 @@ class ColorGrid extends Component {
   componentDidMount() {
     this._isMounted = true;
     this.socket.onData.push(this.onData);
+    const grids = this.socket.getData('grid');
+    if (grids.leangth > 0) {
+      this.setState({ grid: grids[grids.length - 1]})
+    }
   }
 
   componentWillUnmount() {
