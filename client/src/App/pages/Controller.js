@@ -29,6 +29,21 @@ class Controller extends Component {
     this.socket.addData({ type: 'key', key: action });
   }
 
+  requestPermission(onGrant) {
+    // feature detect
+    if (typeof DeviceMotionEvent.requestPermission === 'function') {
+      DeviceMotionEvent.requestPermission()
+        .then(permissionState => {
+          if (permissionState === 'granted') {
+            onGrant()
+          }
+        })
+        .catch(console.error);
+    } else {
+      onGrant()
+    }
+  }
+
 
 
   onDevicemotion = (e) => {
@@ -57,20 +72,21 @@ class Controller extends Component {
     if (!deviceSimulator) {
       return;
     }
-
-    if (simulateSensor) {
-      deviceSimulator.addEventListener("devicemotion", this.onDevicemotion, true);
-      window.removeEventListener("devicemotion", this.onDevicemotion, true);
-      const simulator = new MotionSimulator();
-      this.setState({ simulateSensor: simulateSensor, simulator: simulator, streamSenensor: true });
-    } else {
-      deviceSimulator.removeEventListener("devicemotion", this.onDevicemotion, true);
-      window.addEventListener("devicemotion", this.onDevicemotion, true);
-      if (this.state.simulator) {
-        this.state.simulator.stopSimulation();
+    this.requestPermission(() => {
+      if (simulateSensor) {
+        deviceSimulator.addEventListener("devicemotion", this.onDevicemotion, true);
+        window.removeEventListener("devicemotion", this.onDevicemotion, true);
+        const simulator = new MotionSimulator();
+        this.setState({ simulateSensor: simulateSensor, simulator: simulator, streamSenensor: true });
+      } else {
+        deviceSimulator.removeEventListener("devicemotion", this.onDevicemotion, true);
+        window.addEventListener("devicemotion", this.onDevicemotion, true);
+        if (this.state.simulator) {
+          this.state.simulator.stopSimulation();
+        }
+        this.setState({ simulateSensor: simulateSensor, simulator: undefined, streamSenensor: true });
       }
-      this.setState({ simulateSensor: simulateSensor, simulator: undefined, streamSenensor: true });
-    }
+    })
   }
 
   toggleSensorStream = () => {
