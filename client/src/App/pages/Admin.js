@@ -3,6 +3,8 @@ import { Table, Segment, Button, Checkbox } from 'semantic-ui-react';
 import { SocketEvents, AdminSocketData } from '../SocketData';
 import * as _ from 'lodash';
 
+const THRESHOLD = 20
+
 class ColorPanel extends Component {
   _isMounted = false;
   intervallHandle = undefined;
@@ -35,6 +37,9 @@ class ColorPanel extends Component {
     }
     if (!dataStore[data.deviceId]) {
       dataStore[data.deviceId] = []
+    }
+    if (dataStore[data.deviceId].length > THRESHOLD) {
+      dataStore[data.deviceId].shift()
     }
     dataStore[data.deviceId].push(data)
     this.setState({ dataStore: dataStore })
@@ -84,34 +89,38 @@ class ColorPanel extends Component {
             })}
           </Table.Body>
         </Table>
-        <Table celled striped compact unstackable>
-          <Table.Header>
-            <Table.Row>
-              <Table.HeaderCell colSpan='4'>Events</Table.HeaderCell>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            {this.allEvents.map((event, idx) => {
-              return (
-                <Table.Row key={idx}>
-                  <Table.Cell collapsing>{event.deviceId}</Table.Cell>
-                  <Table.Cell collapsing>{new Date(event.timeStamp).toLocaleTimeString()}</Table.Cell>
-                  <Table.Cell collapsing>{event.type}</Table.Cell>
-                  <Table.Cell collapsing>
-                    <pre style={{ overflowY: 'auto', maxHeight: '10em' }}>
-                      <code>
-                        {JSON.stringify(event[event.type || ''], null, 1)}
-                      </code>
-                    </pre>
-                  </Table.Cell>
-                </Table.Row>
-              )
-            })}
-          </Table.Body>
-        </Table>
+        <div style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+
+          <Table celled striped compact unstackable>
+            <Table.Header>
+              <Table.Row>
+                <Table.HeaderCell colSpan='4'>Events</Table.HeaderCell>
+              </Table.Row>
+            </Table.Header>
+            <Table.Body>
+              {this.allEvents.map((event, idx) => {
+                return (
+                  <Table.Row key={idx}>
+                    <Table.Cell collapsing>{event.deviceId}</Table.Cell>
+                    <Table.Cell collapsing>{new Date(event.timeStamp).toLocaleTimeString()}</Table.Cell>
+                    <Table.Cell collapsing>{event.type}</Table.Cell>
+                    <Table.Cell collapsing>
+                      <pre style={{ overflowY: 'auto', maxHeight: '10em' }}>
+                        <code>
+                          {JSON.stringify(event[event.type || ''], null, 1)}
+                        </code>
+                      </pre>
+                    </Table.Cell>
+                  </Table.Row>
+                )
+              })}
+            </Table.Body>
+          </Table>
+        </div>
+
         <Checkbox toggle onClick={() => { this.setState({ showRaw: !this.state.showRaw }) }} label="show raw" checked={this.state.showRaw} />
         {this.state.showRaw &&
-          <Segment>
+          <Segment style={{ maxHeight: '70vh', overflowY: 'auto' }}>
             <pre>
               <code>
                 {JSON.stringify(this.state.dataStore, null, 2)}

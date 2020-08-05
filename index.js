@@ -21,7 +21,7 @@ const SocketEvents = {
 }
 
 GLOBAL_LISTENER_ROOM = 'GLOBAL_LISTENER'
-THRESHOLD = 200
+THRESHOLD = 100
 /**
  * a motion data frame is an object of the form:
  * {

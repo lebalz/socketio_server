@@ -74,7 +74,6 @@ export default class SocketData {
     constructor() {
         const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
         const ws_url = `${protocol}://${window.location.hostname}${WS_PORT}`;
-        console.log(ws_url);
         this.socket = socketioClient(ws_url, { transports: ['websocket', 'polling'] });
         this.socket.on(SocketEvents.Devices, (data) => {
             this.devices = data;
@@ -82,7 +81,6 @@ export default class SocketData {
         });
         this.socket.on(SocketEvents.Device, data => {
             this.deviceNr = data.deviceNr;
-            console.log(data);
             if (this.onDevice) {
                 this.onDevice(data.deviceNr);
             }
