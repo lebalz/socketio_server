@@ -8,11 +8,7 @@ const THRESHOLD = 20
 class ColorPanel extends Component {
   _isMounted = false;
   intervallHandle = undefined;
-  state = { devices: [], dataStore: {}, showRaw: false }
-
-  constructor(props) {
-    super(props);
-  }
+  state = { devices: [], dataStore: {}, showRaw: false, noSleepOn: false }
 
   componentDidMount() {
     this._isMounted = true;
@@ -55,6 +51,16 @@ class ColorPanel extends Component {
     }
   }
 
+  enableNoSleep = () => {
+    if (this.state.noSleepOn) {
+      window.noSleep.disable();
+      this.setState({ noSleepOn: false })  
+    } else {
+      window.noSleep.enable();
+      this.setState({ noSleepOn: true })
+    }
+  }
+
   get allEvents() {
     return _.orderBy(_.flatten(Object.values(this.state.dataStore)), ['timeStamp'], 'desc')
   }
@@ -69,6 +75,7 @@ class ColorPanel extends Component {
       >
         <span>
           <Button icon="trash" onClick={() => this.socket.removeAllData()} content="Clear All Data" color="red" />
+          <Button icon="lightbulb outline" content="No Sleep" onClick={this.enableNoSleep} color={this.state.noSleepOn ? 'yellow' : 'grey'} />
         </span>
         <Table celled striped compact unstackable>
           <Table.Header>

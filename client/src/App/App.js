@@ -9,6 +9,8 @@ import ColorPanel from './pages/ColorPanel';
 import ColorGrid from './pages/ColorGrid';
 import { Label } from 'semantic-ui-react';
 import Admin from './pages/Admin';
+import NoSleep from 'nosleep.js';
+
 class App extends Component {
   state = { deviceId: `Device${Math.floor(Math.random() * 899) + 100}`, valid: true, deviceNr: -1 }
   socket = new SocketData();
@@ -27,6 +29,7 @@ class App extends Component {
       this.setState({ deviceId: deviceId });
     }
     this.socket.setDeviceId(deviceId || this.state.deviceId);
+    window.noSleep = new NoSleep();
   }
 
   onChangeDeviceId = (event) => {
@@ -37,13 +40,12 @@ class App extends Component {
   }
 
 
-
   render() {
     const App = () => (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
         <div style={{ display: 'flex', flexDirection: 'row', position: 'absolute', left: '4px', top: '4px' }}>
           <Link to="/">
-            <Label icon="home" size="small" />
+            <Label icon="home" size="small"  onClick={() => window.noSleep.disable()} />
           </Link>
           <Label size="small" content={`Nr. ${this.state.deviceNr}`} />
         </div>

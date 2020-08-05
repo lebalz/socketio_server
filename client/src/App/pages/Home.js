@@ -9,13 +9,13 @@ class Home extends Component {
     <div className="App">
       <h1>Controller</h1>
       <Link to={'./controller'}>
-        <Button icon="arrows alternate" content="Steuertasten" />
+        <Button icon="arrows alternate" content="Steuertasten" onClick={() => window.noSleep.enable()} />
       </Link>
       <Link to={'./color_panel'}>
-        <Button icon="rss" content="Farbdisplay" />
+        <Button icon="rss" content="Farbdisplay" onClick={() => window.noSleep.enable()} />
       </Link>
       <Link to={'./color_grid'}>
-        <Button icon="grid layout" content="Farbraster" />
+        <Button icon="grid layout" content="Farbraster" onClick={() => window.noSleep.enable()} />
       </Link>
     </div>
     );
