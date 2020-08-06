@@ -204,7 +204,7 @@ io.on("connection", (socket) => {
 		let deviceId = data.deviceId
 		let device = undefined
 		if (data.deviceNr) {
-			device = socketId_device.find(device => device.deviceNr == data.deviceNr);
+			device = Object.values(socketId_device).find(device => device.deviceNr == data.deviceNr);
 			if (device) {
 				deviceId = device.deviceId;
 			}

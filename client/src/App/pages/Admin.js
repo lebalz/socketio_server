@@ -106,10 +106,11 @@ class ColorPanel extends Component {
             </Table.Header>
             <Table.Body>
               {this.allEvents.map((event, idx) => {
+                const ts = new Date(event.timeStamp * 1000);
                 return (
                   <Table.Row key={idx}>
                     <Table.Cell collapsing>{event.deviceId}</Table.Cell>
-                    <Table.Cell collapsing>{new Date(event.timeStamp).toLocaleTimeString()}</Table.Cell>
+                    <Table.Cell collapsing>{`${ts.toLocaleTimeString()}.${`${ts.getMilliseconds()}`.padEnd(3, '0')}`}</Table.Cell>
                     <Table.Cell collapsing>{event.type}</Table.Cell>
                     <Table.Cell collapsing>
                       <pre style={{ overflowY: 'auto', maxHeight: '10em' }}>

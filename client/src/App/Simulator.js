@@ -70,8 +70,8 @@ export default class MotionSimulator {
   }
 
   nextOrientationValues() {
-    this.alpha = Math.sin(this.orientationCounter / (2000 / INTERVAL)) / Math.PI * 180;
-    this.beta = (Math.cos(this.orientationCounter / (2000 / INTERVAL)) / Math.PI * 180) / 2;
+    this.alpha = Math.sin(this.orientationCounter / (2000 / INTERVAL)) * 180 + 180;
+    this.beta = Math.cos(this.orientationCounter / (2000 / INTERVAL)) * 180.0;
     this.orientationCounter += 1;
   }
 

@@ -1,6 +1,5 @@
 import React, { Component, Fragment } from 'react';
 import { Button, Checkbox, Segment, Form } from 'semantic-ui-react';
-import { SocketEvents } from '../SocketData';
 import MotionSimulator from '../Simulator'
 
 class Controller extends Component {
@@ -27,7 +26,7 @@ class Controller extends Component {
     if (cmds.length > 5) {
       cmds.shift();
     }
-    cmds.push({ timeStamp: Date.now(), key: action });
+    cmds.push({ timeStamp: Date.now() / 1000.0, key: action });
     this.setState({ lastCommands: cmds });
     this.socket.addData({ type: 'key', key: action});
   }
@@ -240,9 +239,10 @@ class Controller extends Component {
           {this.state.showLogs && (
             <div style={{ margin: '1em' }}>
               {this.state.lastCommands.slice().reverse().map((cmd) => {
+                const ts = new Date(cmd.timeStamp * 1000);
                 return (
                   <div key={cmd.timeStamp}>
-                    {(new Date(cmd.timeStamp)).toLocaleTimeString()}:{' '}
+                    {`${ts.toLocaleTimeString()}.${`${ts.getMilliseconds()}`.padEnd(3, '0')}: `}
                     <i>
                       {cmd.key}
                     </i>

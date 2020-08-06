@@ -34,6 +34,7 @@ class ColorPanel extends Component {
 
   onClick = (event) => {
     const rect = event.target.getBoundingClientRect();
+    this.setState({ touched: undefined })
     const pointer = {
       context: 'color',
       x: event.clientX - rect.left,
@@ -56,9 +57,10 @@ class ColorPanel extends Component {
           position: 'relative',
           userSelect: 'none'
         }}
-        onClick={this.onClick}
         onPointerDown={() => this.setState({ touched: true })}
-        onPointerUp={() => this.setState({ touched: false })}
+        onPointerUp={this.onClick}
+        onPointerCancel={() => this.setState({ touched: undefined })}
+        onPointerOut={() => this.setState({ touched: undefined })}
       >
         {this.state.touched && (
           <div

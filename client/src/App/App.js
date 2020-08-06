@@ -49,26 +49,31 @@ class App extends Component {
 
   render() {
     const App = () => (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
-        <div style={{ display: 'flex', flexDirection: 'row', position: 'absolute', left: '4px', top: '4px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div className="header-bar">
           <Link to="/">
             <Label icon="home" size="small" onClick={this.disableNoSleep} />
           </Link>
-          <Label size="small" content={`Nr. ${this.state.deviceNr}`} />
+          <div>
+            <Label size="small" content={`Nr. ${this.state.deviceNr}`} />
+          </div>
+          <div className="spacer" />
+          <span style={{ margin: '0.25em 0' }}>
+            <label htmlFor="device-id" style={{ marginRight: '1em' }}>DeviceID</label>
+            <input
+              id="device-id"
+              type="text"
+              onChange={this.onChangeDeviceId}
+              defaultValue={this.state.deviceId}
+              valid={this.state.valid ? 'true' : 'false'}
+              title={this.state.valid ? undefined : 'ID wird bereits verwendet'}
+              autoFocus
+              style={{ maxWidth: '10rem' }}
+            />
+          </span>
+          <div className="spacer" />
+
         </div>
-        <span style={{ margin: '0.25em 0' }}>
-          <label htmlFor="device-id" style={{ marginRight: '1em' }}>DeviceID</label>
-          <input
-            id="device-id"
-            type="text"
-            onChange={this.onChangeDeviceId}
-            defaultValue={this.state.deviceId}
-            valid={this.state.valid ? 'true' : 'false'}
-            title={this.state.valid ? undefined : 'ID wird bereits verwendet'}
-            autoFocus
-            style={{ maxWidth: '10rem' }}
-          />
-        </span>
         <Switch>
           <Route exact path='/' component={Home} />
           <Route path='/controller/:deviceId?' component={() => <Controller socket={this.socket} />} />
@@ -80,7 +85,6 @@ class App extends Component {
     )
     return (
       <Switch>
-        {/* <Route exact path='/' component={App} /> */}
         <App />
       </Switch>
     );

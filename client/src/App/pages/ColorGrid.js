@@ -32,18 +32,19 @@ class ColorGrid extends Component {
       const first_row = data.grid[0]
       if (first_row.length === 0) {
         // an empty row was provided, set the screen to white
-        this.setState({grid: [['white']]})
+        this.setState({ grid: [['white']] })
       } else if (Array.isArray(first_row)) {
         this.setState({ grid: data.grid })
       } else {
         // only a 1D array is provided - use it as row
-        this.setState({grid: [data.grid]})
+        this.setState({ grid: [data.grid] })
       }
     }
   }
 
   onClick(row, column) {
     const rowColors = this.state.grid[row] || []
+    this.setState({ activeCell: undefined })
     this.socket.addData({
       type: 'pointer',
       pointer: {
@@ -57,6 +58,7 @@ class ColorGrid extends Component {
 
   render() {
     const grid = this.state.grid;
+    console.log(this.state.activeCell)
     return (
       <div id="color-grid" style={{
         width: '100%',
@@ -68,6 +70,7 @@ class ColorGrid extends Component {
           return row.map((cell, colIdx) => {
             const key = `cell_${rowIdx}_${colIdx}`
             const isActive = key === this.state.activeCell
+            const label = `[${rowIdx}, ${colIdx}]`
             return (
               <div
                 key={key}
@@ -79,18 +82,37 @@ class ColorGrid extends Component {
                   gridRowEnd: rowIdx + 1,
                   gridColumnStart: colIdx + 1,
                   gridColumnEnd: colIdx + 1,
-                  outline: isActive ? '1px solid grey' : undefined,
-                  outlineOffset: isActive ? '-1px' : undefined,
+                  outline: isActive ? '3px solid grey' : undefined,
+                  outlineOffset: isActive ? '-3px' : undefined,
                   position: 'relative',
                   userSelect: 'none'
                 }}
-                onClick={() => this.onClick(rowIdx, colIdx)}
-                onPointerDown={() => this.setState({ activeCell: key })}
-                onPointerUp={() => this.setState({ activeCell: undefined })}
+                onPointerDown={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  this.setState({ activeCell: key, x: e.clientX - rect.left, y: e.clientY - rect.top })
+                }}
+                onPointerUp={() => this.onClick(rowIdx, colIdx)}
+                onPointerCancel={() => this.setState({ activeCell: undefined })}
+                onPointerOut={(e) => {
+                  if (isActive) {
+                    /** do hit test with the center of the pointer */
+                    const rect = e.currentTarget.getBoundingClientRect()
+                    if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
+                      this.setState({ activeCell: undefined })
+                    }
+                  }
+                }}
               >
                 {isActive && (
-                  <div style={{ position: 'absolute', top: '50%', left: '45%' }}>
-                    {`[${rowIdx}, ${colIdx}]`}
+                  <div
+                    className="cell-index-popup"
+                    style={{
+                      width: `${label.length / 1.5}em`,
+                      top: `${this.state.y - 35}px`,
+                      left: `${this.state.x - 20}px`,
+                    }}
+                  >
+                    {label}
                   </div>
                 )}
               </div>

@@ -34,3 +34,34 @@ body {
   height: 100vh;
   width: 100vw;
 }
+
+.screen-link {
+  margin: 4px !important;
+}
+
+.header-bar {
+  width: 100vw;
+  padding: 0 1%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.spacer {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: 0;
+}
+
+.cell-index-popup {
+  position: absolute;
+  height: 2rem;
+  text-align: center;
+  padding: 4px;
+  line-break: strict;
+  background: rgba(255, 217, 0, 0.534);
+  border: 1px solid black;
+  border-radius: 4px;
+  z-index: 999;
+}

@@ -3,7 +3,7 @@
 General purpose socket.io server coming with lightweight react app to generate and receive events.
 
 ## Emmited Events
-In the examples, `deviceId` is expected to be **FooBar**, `deviceNr` to be `0` and a random `timeStamp` (ms since 1.1.1970).
+In the examples, `deviceId` is expected to be **FooBar**, `deviceNr` to be `0` and a random `timeStamp` (seconds since epoch).
 
 ### `new_data`
 
@@ -14,7 +14,7 @@ In the examples, `deviceId` is expected to be **FooBar**, `deviceNr` to be `0` a
   {
       deviceId: 'FooBar',
       deviceNr: 0,
-      timeStamp: 1596731613793,
+      timeStamp: 1596731613.793,
       type: 'key',
       key: 'up' | 'right' |'down' |'left' | 'home'
   }
@@ -24,7 +24,7 @@ In the examples, `deviceId` is expected to be **FooBar**, `deviceNr` to be `0` a
   {
       deviceId: 'FooBar',
       deviceNr: 0,
-      timeStamp: 1596731613793,
+      timeStamp: 1596731613.793,
       type: 'acceleration',
       acceleration: {
           x: 0.0,
@@ -39,7 +39,7 @@ In the examples, `deviceId` is expected to be **FooBar**, `deviceNr` to be `0` a
   {
       deviceId: 'FooBar',
       deviceNr: 0,
-      timeStamp: 1596731613793,
+      timeStamp: 1596731613.793,
       type: 'gyro',
       acceleration: {
           alpha: 0.0,   /* between 0 and 360degrees */
@@ -57,7 +57,7 @@ In the examples, `deviceId` is expected to be **FooBar**, `deviceNr` to be `0` a
   {
       deviceId: 'FooBar',
       deviceNr: 0,
-      timeStamp: 1596731613793,
+      timeStamp: 1596731613.793,
       type: 'pointer',
       pointer: {
         context: 'color',
@@ -77,7 +77,7 @@ In the examples, `deviceId` is expected to be **FooBar**, `deviceNr` to be `0` a
   {
       deviceId: 'FooBar',
       deviceNr: 0,
-      timeStamp: 1596731613793,
+      timeStamp: 1596731613.793,
       type: 'pointer',
       pointer: {
         context: 'grid',

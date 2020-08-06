@@ -49,7 +49,7 @@ export default class SocketData {
      * @param {Array<{deviceId: string, deviceNr: number, isController: boolean, socketId: string}>} all connected devices
      */
     devices = []
-    startTime = Date.now()
+    startTime = Date.now() / 1000.0
 
     /**
      * @param {Array<event => void)>}
@@ -140,7 +140,7 @@ export default class SocketData {
             {
                 deviceId: this.deviceId,
                 deviceNr: this.deviceNr,
-                timeStamp: Date.now(),
+                timeStamp: Date.now() / 1000.0,
                 broadcast: broadcast,
                 ...data
             }
