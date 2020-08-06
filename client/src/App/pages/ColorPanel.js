@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 
 class ColorPanel extends Component {
   _isMounted = false;
-  state = { color: '#aaffff' };
+  state = { color: '#aaffff', touched: false };
   // Initialize the state
   constructor(props) {
     super(props);
@@ -21,9 +21,8 @@ class ColorPanel extends Component {
       this.socket.onData.splice(callbackFun, callbackFun)
       const colors = this.socket.getData('color');
       if (colors.leangth > 0) {
-        this.setState({ color: colors[colors.length - 1]})
+        this.setState({ color: colors[colors.length - 1] })
       }
-      console.log('removed component')
     }
   }
 
@@ -33,9 +32,46 @@ class ColorPanel extends Component {
     }
   }
 
+  onClick = (event) => {
+    const rect = event.target.getBoundingClientRect();
+    const pointer = {
+      context: 'color',
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+      width: rect.width,
+      height: rect.height,
+      color: this.state.color
+    }
+    this.socket.addData({
+      type: 'pointer',
+      pointer: pointer
+    });
+  }
+
   render() {
     return (
-      <div id="color-panel" style={{ background: this.state.color }}>
+      <div id="color-panel"
+        style={{
+          background: this.state.color,
+          position: 'relative',
+          userSelect: 'none'
+        }}
+        onClick={this.onClick}
+        onPointerDown={() => this.setState({ touched: true })}
+        onPointerUp={() => this.setState({ touched: false })}
+      >
+        {this.state.touched && (
+          <div
+            style={{
+              borderRadius: '50%',
+              width: '0.5rem',
+              height: '0.5rem',
+              position: 'absolute',
+              left: '1rem',
+              top: '1rem',
+              background: 'red'
+            }}></div>
+        )}
       </div>
     );
   }

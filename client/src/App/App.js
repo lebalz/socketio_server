@@ -39,23 +39,30 @@ class App extends Component {
     this.socket.setDeviceId(deviceId);
   }
 
+  disableNoSleep = () => {
+    try {
+      window.noSleep.disable()
+    } catch {
+    }
+  }
+
 
   render() {
     const App = () => (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
         <div style={{ display: 'flex', flexDirection: 'row', position: 'absolute', left: '4px', top: '4px' }}>
           <Link to="/">
-            <Label icon="home" size="small"  onClick={() => window.noSleep.disable()} />
+            <Label icon="home" size="small" onClick={this.disableNoSleep} />
           </Link>
           <Label size="small" content={`Nr. ${this.state.deviceNr}`} />
         </div>
-        <span style={{margin: '0.25em 0'}}>
+        <span style={{ margin: '0.25em 0' }}>
           <label htmlFor="device-id" style={{ marginRight: '1em' }}>DeviceID</label>
           <input
             id="device-id"
             type="text"
             onChange={this.onChangeDeviceId}
-            value={this.state.deviceId}
+            defaultValue={this.state.deviceId}
             valid={this.state.valid ? 'true' : 'false'}
             title={this.state.valid ? undefined : 'ID wird bereits verwendet'}
             autoFocus

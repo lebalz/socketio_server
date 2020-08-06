@@ -10,7 +10,7 @@ body {
   display: grid;
   grid-template-areas:
     ". up ."
-    "left . right"
+    "left middle right"
     ". down .";
   gap: 1rem;
 }
@@ -26,6 +26,9 @@ body {
 }
 .action.down {
   grid-area: down;
+}
+.action.middle {
+  grid-area: middle;
 }
 #color-panel {
   height: 100vh;

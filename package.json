@@ -1,6 +1,6 @@
 {
   "name": "socketio_server",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "",
   "main": "index.js",
   "author": "Balthasar Hofer",
@@ -9,7 +9,7 @@
     "heroku-postbuild": "cd client && npm install --only=dev && npm install && npm run build"
   },
   "keywords": [],
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "express": "^4.16.3",
     "socket.io": "^2.3.0",

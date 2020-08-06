@@ -13,8 +13,8 @@ export const SocketEvents = {
     NewDevice: 'new_device',
     GetAllData: 'get_all_data',
     GetDevices: 'get_devices',
-	RemoveAll: 'remove_all',
-	DataStore: 'data_store'
+    RemoveAll: 'remove_all',
+    DataStore: 'data_store'
 }
 
 export default class SocketData {
@@ -87,18 +87,12 @@ export default class SocketData {
             this.refreshData()
         })
         this.socket.on(SocketEvents.AllData, data => {
-            if (Array.isArray(data)) {
-                const device = data.find(d => d.deviceId);
-                if (device) {
-                    const deviceId = device.deviceId;
-                    if (deviceId === this.deviceId) {
-                        this.myData = data;
-                    } else {
-                        this.otherData.push(...data);
-                    }
-                }
-                this.onAllData.forEach(callback => callback(data))
+            if (data.deviceId === this.deviceId) {
+                this.myData = data.allData;
+            } else {
+                this.otherData.push(...data.allData);
             }
+            this.onAllData.forEach(callback => callback(data))
         })
         this.socket.on(SocketEvents.NewData, data => {
             if (data.deviceId === this.deviceId) {
@@ -145,6 +139,7 @@ export default class SocketData {
             event,
             {
                 deviceId: this.deviceId,
+                deviceNr: this.deviceNr,
                 timeStamp: Date.now(),
                 broadcast: broadcast,
                 ...data
@@ -180,7 +175,7 @@ export class AdminSocketData extends SocketData {
         super()
         this.deviceId = 'GLOBAL_LISTENER';
         this.emit(SocketEvents.NewDevice, { deviceId: this.deviceId, isController: true });
-        
+
         this.socket.on(SocketEvents.DataStore, data => {
             this.dataStore = data
             if (this.onDataStore) {

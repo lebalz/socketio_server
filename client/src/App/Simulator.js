@@ -17,16 +17,32 @@ export default class MotionSimulator {
   gamma = 0.0;
 
   counter = 0;
+  orientationCounter = 0;
 
   constructor() {
     this.deviceSimulator = document.getElementById("DeviceSimulator");
-    if (this.deviceSimulator) {
-      this.intervalId = setInterval(this.emitMotionEvent, INTERVAL);
+  }
+
+  startMotionSimulation() {
+    this.motionIntervalId = setInterval(this.emitMotionEvent, INTERVAL);
+  }
+  startOrientationSimulation() {
+    this.orientationIntervalId = setInterval(this.emitOrientationEvent, INTERVAL);
+  }
+  stopMotionSimulation() {
+    if (this.motionIntervalId) {
+      clearInterval(this.motionIntervalId);
+    }
+  }
+  stopOrientationSimulation() {
+    if (this.orientationIntervalId) {
+      clearInterval(this.orientationIntervalId);
     }
   }
 
   stopSimulation() {
-    clearInterval(this.intervalId);
+    this.stopMotionSimulation();
+    this.stopOrientationSimulation();
   }
 
   get acceleration() {
@@ -53,10 +69,13 @@ export default class MotionSimulator {
     };
   }
 
-  nextValues() {
-    this.alpha = Math.sin(this.counter / (2000 / INTERVAL));
-    this.beta = Math.cos(this.counter / (2000 / INTERVAL));
+  nextOrientationValues() {
+    this.alpha = Math.sin(this.orientationCounter / (2000 / INTERVAL)) / Math.PI * 180;
+    this.beta = (Math.cos(this.orientationCounter / (2000 / INTERVAL)) / Math.PI * 180) / 2;
+    this.orientationCounter += 1;
+  }
 
+  nextValues() {
     this.dx = Math.random() / 10;
     this.dy = Math.random() / 10;
     this.dz = Math.sin(this.counter / (50 / INTERVAL));
@@ -78,6 +97,21 @@ export default class MotionSimulator {
         accelerationIncludingGravity: this.accelerationIncludingGravity,
         rotationRate: this.rotationRate,
         interval: INTERVAL
+      }
+    )
+
+    this.deviceSimulator.dispatchEvent(event);
+  }
+
+  emitOrientationEvent = () => {
+    this.nextOrientationValues();
+    const event = new DeviceOrientationEvent(
+      "deviceorientation",
+      {
+        alpha: this.alpha,
+        beta: this.beta,
+        gamma: this.gamma,
+        absolute: true
       }
     )
 
