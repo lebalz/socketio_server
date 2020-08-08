@@ -30,14 +30,14 @@ THRESHOLD = 100
 /**
  * a motion data frame is an object of the form:
  * {
- *    deviceId: "TJVSV",
- *    timeStamp: 1023
+ *    device_id: "TJVSV",
+ *    time_stamp: 1023
  *  };
- * the timeStamp is in milliseconds
+ * the time_stamp is in milliseconds
  */
 const dataStore = {};
 /**
- * a map to save socketId -> {deviceId: string, isController: boolean, deviceNr: number, socketId: string} conversions
+ * a map to save socket_id -> {device_id: string, is_controller: boolean, device_nr: number, socket_id: string} conversions
  */
 const socketId_device = {};
 
@@ -74,10 +74,10 @@ function devices() {
 }
 
 
-function nextDeviceNr(isController) {
-	const numbers = devices().map(device => device.deviceNr)
+function nextDeviceNr(is_controller) {
+	const numbers = devices().map(device => device.device_nr)
 	let nextNr = 0;
-	if (isController) {
+	if (is_controller) {
 		while (numbers.includes(nextNr)) {
 			nextNr += 1;
 		}
@@ -92,9 +92,9 @@ function nextDeviceNr(isController) {
 
 function allDataPkg(deviceId) {
 	return {
-		deviceId: deviceId,
-		type: 'allData',
-		allData: dataStore[deviceId]
+		device_id: deviceId,
+		type: 'all_data',
+		all_data: dataStore[deviceId]
 	}
 }
 
@@ -102,8 +102,8 @@ io.on("connection", (socket) => {
 	// emit the initial data
 	socket.emit(SocketEvents.Devices, devices());
 	const device = socketId_device[socket.id];
-	if (device && dataStore[device.deviceId]) {
-		socket.emit(SocketEvents.AllData, allDataPkg(device.deviceId))
+	if (device && dataStore[device.device_id]) {
+		socket.emit(SocketEvents.AllData, allDataPkg(device.device_id))
 	}
 
 	socket.on('disconnecting', () => {
@@ -124,32 +124,32 @@ io.on("connection", (socket) => {
 	});
 
 	socket.on(SocketEvents.NewDevice, data => {
-		if (data.oldDeviceId) {
-			socket.leave(data.oldDeviceId);
+		if (data.old_device_id) {
+			socket.leave(data.old_device_id);
 			const oldDevice = socketId_device[socket.id]
 			if (oldDevice) {
-				io.to(data.oldDeviceId).emit(SocketEvents.RoomLeft, { room: data.oldDeviceId, device: oldDevice })
+				io.to(data.old_device_id).emit(SocketEvents.RoomLeft, { room: data.old_device_id, device: oldDevice })
 			}
 			delete socketId_device[socket.id]
 		}
 
-		if (data.deviceId.length > 0) {
-			if (!dataStore[data.deviceId]) {
-				dataStore[data.deviceId] = [];
+		if (data.device_id.length > 0) {
+			if (!dataStore[data.device_id]) {
+				dataStore[data.device_id] = [];
 			}
-			const isController = data.isController ? true : false;
+			const is_controller = data.is_controller ? true : false;
 			const device = {
-				deviceId: data.deviceId,
-				isController: isController,
-				deviceNr: nextDeviceNr(isController),
-				socketId: socket.id
+				device_id: data.device_id,
+				is_controller: is_controller,
+				device_nr: nextDeviceNr(is_controller),
+				socket_id: socket.id
 			};
 			socketId_device[socket.id] = device
-			socket.join(data.deviceId, (err) => {
+			socket.join(data.device_id, (err) => {
 				if (err) {
-					socket.emit(SocketEvents.ErrorMsg, { type: SocketEvents.NewDevice, err: err, msg: `Could not join room '${data.deviceId}'` })
+					socket.emit(SocketEvents.ErrorMsg, { type: SocketEvents.NewDevice, err: err, msg: `Could not join room '${data.device_id}'` })
 				} else {
-					io.to(data.deviceId).emit(SocketEvents.RoomJoined, { room: data.deviceId, device: device })
+					io.to(data.device_id).emit(SocketEvents.RoomJoined, { room: data.device_id, device: device })
 					socket.emit(SocketEvents.Device, device)
 				}
 			});
@@ -197,64 +197,72 @@ io.on("connection", (socket) => {
 	})
 
 	socket.on(SocketEvents.AddNewData, data => {
-		// return if neither deviceId not deviceNr is given
-		if (!data.deviceId && !data.deviceNr) {
+		// return if neither device_id not device_nr is given
+		if (!data.device_id && !data.device_nr) {
 			return;
 		}
-		let deviceId = data.deviceId
-		let unicastTo = undefined
-		if (typeof data.unicastTo === 'number') {
-			unicastTo = Object.values(socketId_device).find(device => device.deviceNr == data.unicastTo);
-			if (unicastTo) {
-				deviceId = unicastTo.deviceId;
+		let device_id = data.device_id
+		let unicast_to = undefined
+		if (typeof data.unicast_to === 'number') {
+			unicast_to = Object.values(socketId_device).find(device => device.device_nr == data.unicast_to);
+			if (unicast_to) {
+				device_id = unicast_to.device_id;
 				data.broadcast = false
 			}
 		}
-		if (!dataStore[deviceId]) {
-			dataStore[deviceId] = [];
+		if (!dataStore[device_id]) {
+			dataStore[device_id] = [];
 		}
 
 		// remove first element if too many elements are present
-		if (dataStore[deviceId].length >= THRESHOLD) {
-			dataStore[deviceId].shift();
+		if (dataStore[device_id].length >= THRESHOLD) {
+			dataStore[device_id].shift();
 		}
 		// add the new data
-		dataStore[deviceId].push(data);
+		dataStore[device_id].push(data);
 
 		// socket.to(...) --> sends to all but self
 		// io.to(...) --> sends to all in room
 		if (data.broadcast) {
 			io.emit(SocketEvents.NewData, data)
-		} else if (unicastTo) {
-			io.to(unicastTo.socketId).to(GLOBAL_LISTENER_ROOM).emit(SocketEvents.NewData, data);
+		} else if (unicast_to) {
+			io.to(unicast_to.socket_id).to(GLOBAL_LISTENER_ROOM).emit(SocketEvents.NewData, data);
 		} else {
-			io.to(data.deviceId).emit(SocketEvents.NewData, data);
+			io.to(data.device_id).emit(SocketEvents.NewData, data);
 			io.to(GLOBAL_LISTENER_ROOM).emit(SocketEvents.NewData, data);
 		}
 	});
 
 	socket.on(SocketEvents.GetAllData, data => {
 		// return if the device is not known
-		if (!dataStore[data.deviceId]) {
+		if (!dataStore[data.device_id]) {
 			return;
 		}
 
-		socket.emit(SocketEvents.AllData, allDataPkg(data.deviceId))
+		socket.emit(SocketEvents.AllData, allDataPkg(data.device_id))
 	});
 
 	socket.on(SocketEvents.Clear, data => {
-		if (!dataStore[data.deviceId]) {
+		if (!dataStore[data.device_id]) {
 			return;
 		}
-		dataStore[data.deviceId] = [];
-		io.emit(SocketEvents.AllData, allDataPkg(data.deviceId));
+		dataStore[data.device_id] = [];
+		io.emit(SocketEvents.AllData, allDataPkg(data.device_id));
+	});
+
+	socket.on(SocketEvents.ReassignNumbers, data => {
+		if (!dataStore[data.device_id]) {
+			return;
+		}
+		dataStore[data.device_id] = [];
+		io.emit(SocketEvents.AllData, allDataPkg(data.device_id));
 	});
 
 
 	socket.on(SocketEvents.RemoveAll, () => {
 		const device = socketId_device[socket.id]
 		Object.keys(dataStore).forEach(key => {
-			if (key !== device.deviceId) {
+			if (key !== device.device_id) {
 				delete dataStore[key]
 			}
 		})

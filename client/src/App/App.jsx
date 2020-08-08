@@ -23,7 +23,7 @@ class App extends Component {
   }
 
   componentDidMount() {
-    const querySearchId = new URLSearchParams(window.location.search).get('deviceId')
+    const querySearchId = new URLSearchParams(window.location.search).get('device_id')
     const deviceId = querySearchId || localStorage.getItem('device_id');
     if (deviceId) {
       this.setState({ deviceId: deviceId });
@@ -76,10 +76,10 @@ class App extends Component {
         </div>
         <Switch>
           <Route exact path='/' component={Home} />
-          <Route path='/controller/:deviceId?' component={() => <Controller socket={this.socket} />} />
-          <Route path='/color_panel/:deviceId?' component={() => <ColorPanel socket={this.socket} />} />
-          <Route path='/color_grid/:deviceId?' component={() => <ColorGrid socket={this.socket} />} />
-          <Route path='/admin/:deviceId?' component={() => <Admin socket={this.socket} />} />
+          <Route path='/controller/:device_id?' component={() => <Controller socket={this.socket} />} />
+          <Route path='/color_panel/:device_id?' component={() => <ColorPanel socket={this.socket} />} />
+          <Route path='/color_grid/:device_id?' component={() => <ColorGrid socket={this.socket} />} />
+          <Route path='/admin/:device_id?' component={() => <Admin socket={this.socket} />} />
         </Switch>
       </div>
     )

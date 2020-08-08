@@ -46,7 +46,7 @@ export default class SocketData {
 
     /**
      * 
-     * @param {Array<{deviceId: string, deviceNr: number, isController: boolean, socketId: string}>} all connected devices
+     * @param {Array<{device_id: string, device_nr: number, is_controller: boolean, socket_id: string}>} all connected devices
      */
     devices = []
     startTime = Date.now() / 1000.0
@@ -80,24 +80,24 @@ export default class SocketData {
             this.onDevices.forEach(callback => callback(data))
         });
         this.socket.on(SocketEvents.Device, data => {
-            this.deviceNr = data.deviceNr;
+            this.deviceNr = data.device_nr;
             if (this.onDevice) {
-                this.onDevice(data.deviceNr);
+                this.onDevice(data.device_nr);
             }
             this.refreshData()
         })
         this.socket.on(SocketEvents.AllData, data => {
-            if (data.deviceId === this.deviceId) {
-                this.myData = data.allData;
+            if (data.device_id === this.deviceId) {
+                this.myData = data.all_data;
             } else {
-                this.otherData.push(...data.allData);
+                this.otherData.push(...data.all_data);
             }
             this.onAllData.forEach(callback => callback(data))
         })
         this.socket.on(SocketEvents.NewData, data => {
-            if (data.deviceId === this.deviceId) {
+            if (data.device_id === this.deviceId) {
                 this.myData.push(data);
-            } else if (data.deviceId) {
+            } else if (data.device_id) {
                 this.otherData.push(data);
             }
             this.onData.forEach(callback => {
@@ -118,7 +118,7 @@ export default class SocketData {
     setDeviceId = _.debounce((deviceId) => {
         const oldId = this.deviceId;
         this.deviceId = deviceId;
-        this.emit(SocketEvents.NewDevice, { deviceId: deviceId, oldDeviceId: oldId, isController: true });
+        this.emit(SocketEvents.NewDevice, { device_id: deviceId, old_device_id: oldId, is_controller: true });
     }, 300);
 
     clearData() {
@@ -146,9 +146,9 @@ export default class SocketData {
         this.socket.emit(
             event,
             {
-                deviceId: this.deviceId,
-                deviceNr: this.deviceNr,
-                timeStamp: Date.now() / 1000.0,
+                device_id: this.deviceId,
+                device_nr: this.deviceNr,
+                time_stamp: Date.now() / 1000.0,
                 broadcast: broadcast,
                 ...data
             }
@@ -190,7 +190,7 @@ export class AdminSocketData extends SocketData {
     constructor() {
         super()
         this.deviceId = 'GLOBAL_LISTENER';
-        this.emit(SocketEvents.NewDevice, { deviceId: this.deviceId, isController: false });
+        this.emit(SocketEvents.NewDevice, { device_id: this.deviceId, is_controller: false });
 
         this.socket.on(SocketEvents.DataStore, data => {
             this.dataStore = data
@@ -209,7 +209,7 @@ export class AdminSocketData extends SocketData {
     }
 
     get allEvents() {
-        return _.orderBy(this.otherData, ['timeStamp'], 'desc')
+        return _.orderBy(this.otherData, ['time_stamp'], 'desc')
     }
 
     destroy() {

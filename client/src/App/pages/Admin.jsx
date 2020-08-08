@@ -29,16 +29,16 @@ class ColorPanel extends Component {
 
   onData = (data) => {
     const dataStore = this.state.dataStore || {}
-    if (!data.deviceId) {
+    if (!data.device_id) {
       return;
     }
-    if (!dataStore[data.deviceId]) {
-      dataStore[data.deviceId] = []
+    if (!dataStore[data.device_id]) {
+      dataStore[data.device_id] = []
     }
-    if (dataStore[data.deviceId].length > THRESHOLD) {
-      dataStore[data.deviceId].shift()
+    if (dataStore[data.device_id].length > THRESHOLD) {
+      dataStore[data.device_id].shift()
     }
-    dataStore[data.deviceId].push(data)
+    dataStore[data.device_id].push(data)
     this.setState({ dataStore: dataStore })
   }
 
@@ -63,7 +63,7 @@ class ColorPanel extends Component {
   }
 
   get allEvents() {
-    return _.orderBy(_.flatten(Object.values(this.state.dataStore)), ['timeStamp'], 'desc')
+    return _.orderBy(_.flatten(Object.values(this.state.dataStore)), ['time_stamp'], 'desc')
   }
   render() {
     return (
@@ -85,13 +85,13 @@ class ColorPanel extends Component {
             </Table.Row>
           </Table.Header>
           <Table.Body>
-            {_.sortBy(this.state.devices, ['deviceNr'], 'asc').map((device) => {
+            {_.sortBy(this.state.devices, ['device_nr'], 'asc').map((device) => {
               return (
-                <Table.Row key={device.socketId}>
-                  <Table.Cell collapsing textAlign="right">{device.deviceNr}</Table.Cell>
-                  <Table.Cell collapsing>{device.deviceId}</Table.Cell>
-                  <Table.Cell collapsing>{device.isController ? 'Controller' : 'Read Only'}</Table.Cell>
-                  <Table.Cell collapsing>{device.socketId}</Table.Cell>
+                <Table.Row key={device.socket_id}>
+                  <Table.Cell collapsing textAlign="right">{device.device_nr}</Table.Cell>
+                  <Table.Cell collapsing>{device.device_id}</Table.Cell>
+                  <Table.Cell collapsing>{device.is_controller ? 'Controller' : 'Read Only'}</Table.Cell>
+                  <Table.Cell collapsing>{device.socket_id}</Table.Cell>
                 </Table.Row>
               )
             })}
@@ -111,17 +111,17 @@ class ColorPanel extends Component {
             </Table.Header>
             <Table.Body>
               {this.allEvents.map((event, idx) => {
-                const ts = new Date(event.timeStamp * 1000);
-                let to = event.deviceId
+                const ts = new Date(event.time_stamp * 1000);
+                let to = event.device_id
                 if (event.broadcast) {
                   to = 'broadcast'
                 }
-                if (typeof(event.unicastTo) === 'number') {
-                  to = event.unicastTo
+                if (typeof(event.unicast_to) === 'number') {
+                  to = event.unicast_to
                 }
                 return (
                   <Table.Row key={idx}>
-                    <Table.Cell collapsing>{event.deviceId}</Table.Cell>
+                    <Table.Cell collapsing>{event.device_id}:{event.device_nr}</Table.Cell>
                     <Table.Cell collapsing>{`${ts.toLocaleTimeString()}.${`${ts.getMilliseconds()}`.padEnd(3, '0')}`}</Table.Cell>
                     <Table.Cell collapsing>{to}</Table.Cell>
                     <Table.Cell collapsing>{event.type}</Table.Cell>

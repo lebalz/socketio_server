@@ -4,7 +4,7 @@ General purpose socket.io server coming with lightweight react app to generate a
 
 ## Emmited Events
 
-In the examples, `deviceId` is expected to be **FooBar**, `deviceNr` to be `0` and a random `timeStamp` (seconds since epoch).
+In the examples, `device_id` is expected to be **FooBar**, `device_nr` to be `0` and a random `time_stamp` (seconds since epoch).
 
 ### `new_data`
 
@@ -12,9 +12,9 @@ a `new_data` event always has the following format:
 
 ```js
 {
-  deviceId: 'FooBar',
-  deviceNr: 0,
-  timeStamp: 12,
+  device_id: 'FooBar',
+  device_nr: 0,
+  time_stamp: 12,
   type: 'key' | 'acceleration' | 'gyro' | 'pointer' | 'notification'
 }
 ```
@@ -32,7 +32,7 @@ Optionally, the new_data event can be sent
   ```js
   {
     ...,
-    unicastTo: 2 // only send the message to the device number 2
+    unicast_to: 2 // only send the message to the device number 2
   }
   ```
 
@@ -41,9 +41,9 @@ Optionally, the new_data event can be sent
 - `key`
   ```js
   {
-      deviceId: 'FooBar',
-      deviceNr: 0,
-      timeStamp: 1596731613.793,
+      device_id: 'FooBar',
+      device_nr: 0,
+      time_stamp: 1596731613.793,
       type: 'key',
       key: 'up' | 'right' |'down' |'left' | 'home'
   }
@@ -51,9 +51,9 @@ Optionally, the new_data event can be sent
 - `acceleration`
   ```js
   {
-      deviceId: 'FooBar',
-      deviceNr: 0,
-      timeStamp: 1596731613.793,
+      device_id: 'FooBar',
+      device_nr: 0,
+      time_stamp: 1596731613.793,
       type: 'acceleration',
       acceleration: {
           x: 0.0,
@@ -66,9 +66,9 @@ Optionally, the new_data event can be sent
 - `gyro`
   ```js
   {
-      deviceId: 'FooBar',
-      deviceNr: 0,
-      timeStamp: 1596731613.793,
+      device_id: 'FooBar',
+      device_nr: 0,
+      time_stamp: 1596731613.793,
       type: 'gyro',
       gyro: {
           alpha: 0.0,   /* between 0 and 360degrees */
@@ -84,9 +84,9 @@ Optionally, the new_data event can be sent
 - `pointer`
   ```js
   {
-      deviceId: 'FooBar',
-      deviceNr: 0,
-      timeStamp: 1596731613.793,
+      device_id: 'FooBar',
+      device_nr: 0,
+      time_stamp: 1596731613.793,
       type: 'pointer',
       pointer: {
         context: 'color',
@@ -104,9 +104,9 @@ Optionally, the new_data event can be sent
 - `pointer`
   ```js
   {
-      deviceId: 'FooBar',
-      deviceNr: 0,
-      timeStamp: 1596731613.793,
+      device_id: 'FooBar',
+      device_nr: 0,
+      time_stamp: 1596731613.793,
       type: 'pointer',
       pointer: {
         context: 'grid',
