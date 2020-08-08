@@ -21,6 +21,10 @@ class Controller extends Component {
     this.socket = props.socket
   }
 
+  componentWillUnmount() {
+    this.stopSensorStream();
+  }
+
   onClick(action) {
     const cmds = this.state.lastCommands
     if (cmds.length > 5) {
@@ -150,6 +154,21 @@ class Controller extends Component {
     this.setState({ simulateSensor: simulateSensor })
   }
 
+  stopSensorStream = () => {
+    const deviceSimulator = document.getElementById("DeviceSimulator");
+
+    if (!deviceSimulator) {
+      return;
+    }
+
+    window.removeEventListener("devicemotion", this.onDevicemotion, true);
+    window.removeEventListener("deviceorientation", this.onDeviceOrientation, true);
+    deviceSimulator.removeEventListener("devicemotion", this.onDevicemotion, true);
+    deviceSimulator.removeEventListener("deviceorientation", this.onDeviceOrientation, true);
+    this.simulator.stopSimulation()
+    this.setState({ streamSenensor: false });
+  }
+
   toggleSensorStream = () => {
     const deviceSimulator = document.getElementById("DeviceSimulator");
 
@@ -158,12 +177,7 @@ class Controller extends Component {
     }
 
     if (this.state.streamSenensor) {
-      window.removeEventListener("devicemotion", this.onDevicemotion, true);
-      window.removeEventListener("deviceorientation", this.onDeviceOrientation, true);
-      deviceSimulator.removeEventListener("devicemotion", this.onDevicemotion, true);
-      deviceSimulator.removeEventListener("deviceorientation", this.onDeviceOrientation, true);
-      this.simulator.stopSimulation()
-      this.setState({ streamSenensor: false });
+      this.stopSensorStream()
     } else {
       this.setupSensorStream(this.state.simulateSensor)
       this.setState({ streamSenensor: true });
