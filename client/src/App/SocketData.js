@@ -104,6 +104,11 @@ export default class SocketData {
                 callback(data)
             })
         });
+        this.connect()
+    }
+
+    get isDisabled() {
+        return this.socket.connected;
     }
 
     getData(type) {
@@ -135,6 +140,9 @@ export default class SocketData {
      * @param {boolean} broadcast 
      */
     emit(event, data, broadcast = false) {
+        if (!this.socket.connected) {
+            this.connect()
+        }
         this.socket.emit(
             event,
             {
@@ -161,6 +169,14 @@ export default class SocketData {
         if (callbackIdx >= 0) {
             this[name].splice(callbackIdx, callbackIdx)
         }
+    }
+
+    connect() {
+        this.socket.connect()
+    }
+
+    disconnect() {
+        this.socket.disconnect()
     }
 }
 
@@ -196,12 +212,13 @@ export class AdminSocketData extends SocketData {
         return _.orderBy(this.otherData, ['timeStamp'], 'desc')
     }
 
-    disconnect() {
+    destroy() {
         this.onAllData = []
         this.onData = []
         this.onDevices = []
         this.onDataStore = undefined
         this.onDevice = undefined
-        this.socket.disconnect()
+        this.disconnect()
+
     }
 }

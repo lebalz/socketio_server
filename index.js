@@ -207,6 +207,7 @@ io.on("connection", (socket) => {
 			unicastTo = Object.values(socketId_device).find(device => device.deviceNr == data.unicastTo);
 			if (unicastTo) {
 				deviceId = unicastTo.deviceId;
+				data.broadcast = false
 			}
 		}
 		if (!dataStore[deviceId]) {

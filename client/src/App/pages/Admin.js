@@ -12,6 +12,7 @@ class ColorPanel extends Component {
 
   componentDidMount() {
     this._isMounted = true;
+    this.props.socket.disconnect()
     this.socket = new AdminSocketData()
 
     this.socket.onDevices.push(this.onDevices)
@@ -23,7 +24,7 @@ class ColorPanel extends Component {
 
   componentWillUnmount() {
     this._isMounted = false;
-    this.socket.disconnect()
+    this.socket.destroy()
   }
 
   onData = (data) => {
@@ -101,16 +102,28 @@ class ColorPanel extends Component {
           <Table celled striped compact unstackable>
             <Table.Header>
               <Table.Row>
-                <Table.HeaderCell colSpan='4'>Events</Table.HeaderCell>
+                <Table.HeaderCell>Device Id</Table.HeaderCell>
+                <Table.HeaderCell>Time</Table.HeaderCell>
+                <Table.HeaderCell>To</Table.HeaderCell>
+                <Table.HeaderCell>Type</Table.HeaderCell>
+                <Table.HeaderCell>Data</Table.HeaderCell>
               </Table.Row>
             </Table.Header>
             <Table.Body>
               {this.allEvents.map((event, idx) => {
                 const ts = new Date(event.timeStamp * 1000);
+                let to = event.deviceId
+                if (event.broadcast) {
+                  to = 'broadcast'
+                }
+                if (typeof(event.unicastTo) === 'number') {
+                  to = event.unicastTo
+                }
                 return (
                   <Table.Row key={idx}>
                     <Table.Cell collapsing>{event.deviceId}</Table.Cell>
                     <Table.Cell collapsing>{`${ts.toLocaleTimeString()}.${`${ts.getMilliseconds()}`.padEnd(3, '0')}`}</Table.Cell>
+                    <Table.Cell collapsing>{to}</Table.Cell>
                     <Table.Cell collapsing>{event.type}</Table.Cell>
                     <Table.Cell collapsing>
                       <pre style={{ overflowY: 'auto', maxHeight: '10em' }}>
