@@ -113,7 +113,7 @@ export default class SocketData {
     setDeviceId = _.debounce((deviceId) => {
         const oldId = this.deviceId;
         this.deviceId = deviceId;
-        this.emit(SocketEvents.NewDevice, { deviceId: deviceId, oldDeviceId: oldId, isController: true });
+        this.emit(SocketEvents.NewDevice, { deviceId: deviceId, oldDeviceId: oldId, isController: false });
     }, 300);
 
     clearData() {

@@ -202,11 +202,11 @@ io.on("connection", (socket) => {
 			return;
 		}
 		let deviceId = data.deviceId
-		let device = undefined
-		if (data.deviceNr) {
-			device = Object.values(socketId_device).find(device => device.deviceNr == data.deviceNr);
-			if (device) {
-				deviceId = device.deviceId;
+		let unicastTo = undefined
+		if (data.unicastTo) {
+			unicastTo = Object.values(socketId_device).find(device => device.deviceNr == data.unicastTo);
+			if (unicastTo) {
+				deviceId = unicastTo.deviceId;
 			}
 		}
 		if (!dataStore[deviceId]) {
@@ -224,8 +224,8 @@ io.on("connection", (socket) => {
 		// io.to(...) --> sends to all in room
 		if (data.broadcast) {
 			io.emit(SocketEvents.NewData, data)
-		} else if (device) {
-			io.to(device.socketId).to(GLOBAL_LISTENER_ROOM).emit(SocketEvents.NewData, data);
+		} else if (unicastTo) {
+			io.to(unicastTo.socketId).to(GLOBAL_LISTENER_ROOM).emit(SocketEvents.NewData, data);
 		} else {
 			io.to(data.deviceId).emit(SocketEvents.NewData, data);
 			io.to(GLOBAL_LISTENER_ROOM).emit(SocketEvents.NewData, data);
