@@ -41,7 +41,7 @@ In the examples, `deviceId` is expected to be **FooBar**, `deviceNr` to be `0` a
       deviceNr: 0,
       timeStamp: 1596731613.793,
       type: 'gyro',
-      acceleration: {
+      gyro: {
           alpha: 0.0,   /* between 0 and 360degrees */
           beta: 0.0,    /* between -180 and 180 degrees */
           gamma: 0.0, /* between -90 and 90 degrees */
