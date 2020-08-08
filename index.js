@@ -203,7 +203,7 @@ io.on("connection", (socket) => {
 		}
 		let deviceId = data.deviceId
 		let unicastTo = undefined
-		if (data.unicastTo) {
+		if (typeof data.unicastTo === 'number') {
 			unicastTo = Object.values(socketId_device).find(device => device.deviceNr == data.unicastTo);
 			if (unicastTo) {
 				deviceId = unicastTo.deviceId;
