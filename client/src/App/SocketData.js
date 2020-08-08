@@ -113,7 +113,7 @@ export default class SocketData {
     setDeviceId = _.debounce((deviceId) => {
         const oldId = this.deviceId;
         this.deviceId = deviceId;
-        this.emit(SocketEvents.NewDevice, { deviceId: deviceId, oldDeviceId: oldId, isController: false });
+        this.emit(SocketEvents.NewDevice, { deviceId: deviceId, oldDeviceId: oldId, isController: true });
     }, 300);
 
     clearData() {
@@ -174,7 +174,7 @@ export class AdminSocketData extends SocketData {
     constructor() {
         super()
         this.deviceId = 'GLOBAL_LISTENER';
-        this.emit(SocketEvents.NewDevice, { deviceId: this.deviceId, isController: true });
+        this.emit(SocketEvents.NewDevice, { deviceId: this.deviceId, isController: false });
 
         this.socket.on(SocketEvents.DataStore, data => {
             this.dataStore = data
