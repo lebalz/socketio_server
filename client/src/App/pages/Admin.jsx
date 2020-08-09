@@ -55,7 +55,7 @@ class ColorPanel extends Component {
   enableNoSleep = () => {
     if (this.state.noSleepOn) {
       window.noSleep.disable();
-      this.setState({ noSleepOn: false })  
+      this.setState({ noSleepOn: false })
     } else {
       window.noSleep.enable();
       this.setState({ noSleepOn: true })
@@ -116,7 +116,7 @@ class ColorPanel extends Component {
                 if (event.broadcast) {
                   to = 'broadcast'
                 }
-                if (typeof(event.unicast_to) === 'number') {
+                if (typeof (event.unicast_to) === 'number') {
                   to = event.unicast_to
                 }
                 return (
@@ -128,7 +128,7 @@ class ColorPanel extends Component {
                     <Table.Cell collapsing>
                       <pre style={{ overflowY: 'auto', maxHeight: '10em' }}>
                         <code>
-                          {JSON.stringify(event[event.type || ''], null, 1)}
+                          {JSON.stringify({ ...event, type: undefined, time_stamp: undefined, device_id: undefined, device_nr: undefined }, null, 1)}
                         </code>
                       </pre>
                     </Table.Cell>

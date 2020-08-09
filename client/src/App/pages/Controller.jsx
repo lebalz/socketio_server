@@ -32,7 +32,7 @@ class Controller extends Component {
     }
     cmds.push({ timeStamp: Date.now() / 1000.0, key: action });
     this.setState({ lastCommands: cmds });
-    this.socket.addData({ type: 'key', key: action});
+    this.socket.addData({ type: 'key', key: action });
   }
 
   requestMotionPermission(onGrant) {
@@ -68,17 +68,15 @@ class Controller extends Component {
 
 
   onDevicemotion = (e) => {
-    const sensor = {}
     if (!this.state.acceleration) {
       return;
     }
-    sensor['x'] = e.accelerationIncludingGravity.x;
-    sensor['y'] = e.accelerationIncludingGravity.y;
-    sensor['z'] = e.accelerationIncludingGravity.z;
-    sensor['interval'] = e.interval;
     const motionData = {
       type: 'acceleration',
-      acceleration: sensor
+      x: e.accelerationIncludingGravity.x,
+      y: e.accelerationIncludingGravity.y,
+      z: e.accelerationIncludingGravity.z,
+      interval: e.interval
     };
     this.setState({ currentAcceleration: motionData })
     this.socket.addData(motionData);
@@ -86,17 +84,15 @@ class Controller extends Component {
 
 
   onDeviceOrientation = (e) => {
-    const sensor = {}
     if (!this.state.gyro) {
       return;
     }
-    sensor['alpha'] = e.alpha;
-    sensor['beta'] = e.beta;
-    sensor['gamma'] = e.gamma;
-    sensor['absolute'] = e.absolute;
     const gyroData = {
       type: 'gyro',
-      gyro: sensor
+      alpha: e.alpha,
+      beta: e.beta,
+      gamma: e.gamma,
+      absolute: e.absolute
     };
     this.setState({ currentGyro: gyroData });
     this.socket.addData(gyroData);

@@ -47,12 +47,10 @@ class ColorGrid extends Component {
     this.setState({ activeCell: undefined })
     this.socket.addData({
       type: 'pointer',
-      pointer: {
-        context: 'grid',
-        row: row,
-        column: column,
-        color: rowColors[column]
-      }
+      context: 'grid',
+      row: row,
+      column: column,
+      color: rowColors[column]
     });
   }
 

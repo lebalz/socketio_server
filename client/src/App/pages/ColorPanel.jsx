@@ -35,17 +35,14 @@ class ColorPanel extends Component {
   onClick = (event) => {
     const rect = event.target.getBoundingClientRect();
     this.setState({ touched: undefined })
-    const pointer = {
+    this.socket.addData({
+      type: 'pointer',
       context: 'color',
       x: event.clientX - rect.left,
       y: event.clientY - rect.top,
       width: rect.width,
       height: rect.height,
       color: this.state.color
-    }
-    this.socket.addData({
-      type: 'pointer',
-      pointer: pointer
     });
   }
 
