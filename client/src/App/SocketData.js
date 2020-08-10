@@ -46,7 +46,7 @@ export default class SocketData {
 
     /**
      * 
-     * @param {Array<{device_id: string, device_nr: number, is_controller: boolean, socket_id: string}>} all connected devices
+     * @param {Array<{device_id: string, device_nr: number, is_client: boolean, socket_id: string}>} all connected devices
      */
     devices = []
     startTime = Date.now() / 1000.0
@@ -76,8 +76,8 @@ export default class SocketData {
         const ws_url = `${protocol}://${window.location.hostname}${WS_PORT}`;
         this.socket = socketioClient(ws_url, { transports: ['websocket', 'polling'] });
         this.socket.on(SocketEvents.Devices, (data) => {
-            this.devices = data;
-            this.onDevices.forEach(callback => callback(data))
+            this.devices = data.devices;
+            this.onDevices.forEach(callback => callback(data.devices))
         });
         this.socket.on(SocketEvents.Device, data => {
             this.deviceNr = data.device_nr;
@@ -118,7 +118,7 @@ export default class SocketData {
     setDeviceId = _.debounce((deviceId) => {
         const oldId = this.deviceId;
         this.deviceId = deviceId;
-        this.emit(SocketEvents.NewDevice, { device_id: deviceId, old_device_id: oldId, is_controller: true });
+        this.emit(SocketEvents.NewDevice, { device_id: deviceId, old_device_id: oldId, is_client: true });
     }, 300);
 
     clearData() {
@@ -190,7 +190,7 @@ export class AdminSocketData extends SocketData {
     constructor() {
         super()
         this.deviceId = 'GLOBAL_LISTENER';
-        this.emit(SocketEvents.NewDevice, { device_id: this.deviceId, is_controller: false });
+        this.emit(SocketEvents.NewDevice, { device_id: this.deviceId, is_client: false });
 
         this.socket.on(SocketEvents.DataStore, data => {
             this.dataStore = data

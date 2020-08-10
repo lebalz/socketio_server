@@ -90,7 +90,7 @@ class ColorPanel extends Component {
                 <Table.Row key={device.socket_id}>
                   <Table.Cell collapsing textAlign="right">{device.device_nr}</Table.Cell>
                   <Table.Cell collapsing>{device.device_id}</Table.Cell>
-                  <Table.Cell collapsing>{device.is_controller ? 'Controller' : 'Read Only'}</Table.Cell>
+                  <Table.Cell collapsing>{device.is_client ? 'Controller' : 'Read Only'}</Table.Cell>
                   <Table.Cell collapsing>{device.socket_id}</Table.Cell>
                 </Table.Row>
               )
