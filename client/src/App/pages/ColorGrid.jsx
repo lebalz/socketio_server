@@ -28,7 +28,6 @@ class ColorGrid extends Component {
 
   onData = (data) => {
     if (this._isMounted && data.type === 'grid') {
-      console.log(data)
       const first_row = data.grid[0]
       if (first_row.length === 0) {
         // an empty row was provided, set the screen to white
@@ -56,7 +55,6 @@ class ColorGrid extends Component {
 
   render() {
     const grid = this.state.grid;
-    console.log(this.state.activeCell)
     return (
       <div id="color-grid" style={{
         width: '100%',
@@ -106,8 +104,8 @@ class ColorGrid extends Component {
                     className="cell-index-popup"
                     style={{
                       width: `${label.length / 1.5}em`,
-                      top: `${this.state.y - 35}px`,
-                      left: `${this.state.x - 20}px`,
+                      top: `calc(${this.state.y}px - 3rem)`,
+                      left: `calc(${this.state.x}px - ${label.length / 3}em)`,
                     }}
                   >
                     {label}
