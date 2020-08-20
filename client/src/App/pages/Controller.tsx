@@ -1,31 +1,48 @@
 import React, { Component, Fragment } from 'react';
 import { Button, Checkbox, Segment, Form } from 'semantic-ui-react';
 import MotionSimulator from '../Simulator'
+import SocketData, { Key, AccMsg, GyroMsg, KeyMsg } from '../SocketData';
 
-class Controller extends Component {
-  state = {
+interface Props {
+  socket: SocketData;
+}
+
+interface ControllerState {
+  streamSenensor: boolean,
+  simulateSensor: boolean,
+  acceleration: boolean,
+  gyro: boolean,
+  currentAcceleration?: AccMsg,
+  currentGyro?: GyroMsg,
+  lastCommands: { timeStamp: number, key: Key}[],
+  showLogs: boolean
+}
+
+class Controller extends Component<Props> {
+  state: ControllerState = {
     streamSenensor: false,
     simulateSensor: false,
     acceleration: true,
     gyro: true,
-    currentAcceleration: {},
-    currentGyro: {},
+    currentAcceleration: undefined,
+    currentGyro: undefined,
     lastCommands: [],
     showLogs: true
   }
   simulator = new MotionSimulator();
+  socket: SocketData;
 
   // Initialize the state
-  constructor(props) {
+  constructor(props: Props) {
     super(props);
-    this.socket = props.socket
+    this.socket = props.socket;
   }
 
   componentWillUnmount() {
     this.stopSensorStream();
   }
 
-  onClick(action) {
+  onClick(action: Key) {
     const cmds = this.state.lastCommands
     if (cmds.length > 5) {
       cmds.shift();
@@ -35,7 +52,7 @@ class Controller extends Component {
     this.socket.addData({ type: 'key', key: action });
   }
 
-  requestMotionPermission(onGrant) {
+  requestMotionPermission(onGrant: () => void) {
     // feature detect
     if (typeof DeviceMotionEvent.requestPermission === 'function') {
       DeviceMotionEvent.requestPermission()
@@ -50,7 +67,7 @@ class Controller extends Component {
     }
   }
 
-  requestOrientationPermission(onGrant) {
+  requestOrientationPermission(onGrant: () => void) {
     // feature detect
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
       DeviceOrientationEvent.requestPermission()
@@ -67,8 +84,11 @@ class Controller extends Component {
 
 
 
-  onDevicemotion = (e) => {
+  onDevicemotion = (e: DeviceMotionEvent) => {
     if (!this.state.acceleration) {
+      return;
+    }
+    if (e.accelerationIncludingGravity == null) {
       return;
     }
     const motionData = {
@@ -83,7 +103,7 @@ class Controller extends Component {
   };
 
 
-  onDeviceOrientation = (e) => {
+  onDeviceOrientation = (e: DeviceOrientationEvent) => {
     if (!this.state.gyro) {
       return;
     }
@@ -98,7 +118,7 @@ class Controller extends Component {
     this.socket.addData(gyroData);
   };
 
-  setupAccelerationStream(simulateSensor) {
+  setupAccelerationStream(simulateSensor: boolean) {
     const deviceSimulator = document.getElementById("DeviceSimulator");
 
     if (!deviceSimulator) {
@@ -106,12 +126,12 @@ class Controller extends Component {
     }
     this.requestMotionPermission(() => {
       if (simulateSensor) {
-        deviceSimulator.addEventListener("devicemotion", this.onDevicemotion, true);
+        deviceSimulator.addEventListener("devicemotion", this.onDevicemotion as any, true);
         window.removeEventListener("devicemotion", this.onDevicemotion, true);
         this.simulator.startMotionSimulation();
         this.setState({ simulateSensor: simulateSensor, streamSenensor: true });
       } else {
-        deviceSimulator.removeEventListener("devicemotion", this.onDevicemotion, true);
+        deviceSimulator.removeEventListener("devicemotion", this.onDevicemotion as any, true);
         window.addEventListener("devicemotion", this.onDevicemotion, true);
         this.simulator.stopMotionSimulation();
         this.setState({ simulateSensor: simulateSensor, streamSenensor: true });
@@ -119,7 +139,7 @@ class Controller extends Component {
     })
   }
 
-  setupGyroStream(simulateSensor) {
+  setupGyroStream(simulateSensor: boolean) {
     const deviceSimulator = document.getElementById("DeviceSimulator");
 
     if (!deviceSimulator) {
@@ -127,12 +147,12 @@ class Controller extends Component {
     }
     this.requestOrientationPermission(() => {
       if (simulateSensor) {
-        deviceSimulator.addEventListener("deviceorientation", this.onDeviceOrientation, true);
+        deviceSimulator.addEventListener("deviceorientation", this.onDeviceOrientation as any, true);
         window.removeEventListener("deviceorientation", this.onDeviceOrientation, true);
         this.simulator.startOrientationSimulation();
         this.setState({ simulateSensor: simulateSensor, streamSenensor: true });
       } else {
-        deviceSimulator.removeEventListener("deviceorientation", this.onDeviceOrientation, true);
+        deviceSimulator.removeEventListener("deviceorientation", this.onDeviceOrientation as any, true);
         window.addEventListener("deviceorientation", this.onDeviceOrientation, true);
         this.simulator.stopOrientationSimulation();
         this.setState({ simulateSensor: simulateSensor, streamSenensor: true });
@@ -140,7 +160,7 @@ class Controller extends Component {
     })
   }
 
-  setupSensorStream(simulateSensor) {
+  setupSensorStream(simulateSensor:boolean) {
     if (this.state.acceleration) {
       this.setupAccelerationStream(simulateSensor)
     }
@@ -159,8 +179,8 @@ class Controller extends Component {
 
     window.removeEventListener("devicemotion", this.onDevicemotion, true);
     window.removeEventListener("deviceorientation", this.onDeviceOrientation, true);
-    deviceSimulator.removeEventListener("devicemotion", this.onDevicemotion, true);
-    deviceSimulator.removeEventListener("deviceorientation", this.onDeviceOrientation, true);
+    deviceSimulator.removeEventListener("devicemotion", this.onDevicemotion as any, true);
+    deviceSimulator.removeEventListener("deviceorientation", this.onDeviceOrientation as any, true);
     this.simulator.stopSimulation()
     this.setState({ streamSenensor: false });
   }
@@ -189,7 +209,7 @@ class Controller extends Component {
 
     if (this.state.acceleration) {
       window.removeEventListener("devicemotion", this.onDevicemotion, true);
-      deviceSimulator.removeEventListener("devicemotion", this.onDevicemotion, true);
+      deviceSimulator.removeEventListener("devicemotion", this.onDevicemotion as any, true);
       this.simulator.stopMotionSimulation()
       this.setState({ acceleration: false });
     } else {
@@ -207,7 +227,7 @@ class Controller extends Component {
 
     if (this.state.gyro) {
       window.removeEventListener("deviceorientation", this.onDeviceOrientation, true);
-      deviceSimulator.removeEventListener("deviceorientation", this.onDeviceOrientation, true);
+      deviceSimulator.removeEventListener("deviceorientation", this.onDeviceOrientation as any, true);
       this.simulator.stopOrientationSimulation()
       this.setState({ gyro: false });
     } else {
@@ -222,11 +242,11 @@ class Controller extends Component {
         <div className="control">
           <h1>Controller</h1>
           <div className="actions">
-            <Button icon="angle up" onClick={() => this.onClick('up')} className="action up" size="huge" />
-            <Button icon="angle right" onClick={() => this.onClick('right')} className="action right" size="huge" />
-            <Button icon="angle down" onClick={() => this.onClick('down')} className="action down" size="huge" />
-            <Button icon="angle left" onClick={() => this.onClick('left')} className="action left" size="huge" />
-            <Button circular icon="circle" onClick={() => this.onClick('home')} className="action middle" size="huge" />
+            <Button icon="angle up" onClick={() => this.onClick(Key.Up)} className="action up" size="huge" />
+            <Button icon="angle right" onClick={() => this.onClick(Key.Right)} className="action right" size="huge" />
+            <Button icon="angle down" onClick={() => this.onClick(Key.Down)} className="action down" size="huge" />
+            <Button icon="angle left" onClick={() => this.onClick(Key.Left)} className="action left" size="huge" />
+            <Button circular icon="circle" onClick={() => this.onClick(Key.Home)} className="action middle" size="huge" />
           </div>
         </div>
         <Segment>

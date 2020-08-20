@@ -19,8 +19,12 @@ export default class MotionSimulator {
   counter = 0;
   orientationCounter = 0;
 
+  deviceSimulator: HTMLDivElement;
+  motionIntervalId?: NodeJS.Timeout;
+  orientationIntervalId?: NodeJS.Timeout;
+
   constructor() {
-    this.deviceSimulator = document.getElementById("DeviceSimulator");
+    this.deviceSimulator = document.getElementById("DeviceSimulator") as HTMLDivElement;
   }
 
   startMotionSimulation() {

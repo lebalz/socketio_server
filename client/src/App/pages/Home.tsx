@@ -13,14 +13,14 @@ class Home extends Component {
             className="screen-link"
             icon="arrows alternate"
             content="Steuertasten"
-            onClick={() => window.noSleep.enable()} />
+            onClick={() => ((window as any).noSleep as NoSleep).enable()} />
         </Link>
         <Link to={'./color_panel'} >
           <Button
             className="screen-link"
             icon="rss"
             content="Farbdisplay"
-            onClick={() => window.noSleep.enable()}
+            onClick={() => ((window as any).noSleep as NoSleep).enable()}
           />
         </Link>
         <Link to={'./color_grid'}>
@@ -28,7 +28,7 @@ class Home extends Component {
             className="screen-link"
             icon="grid layout"
             content="Farbraster"
-            onClick={() => window.noSleep.enable()}
+            onClick={() => ((window as any).noSleep as NoSleep).enable()}
           />
         </Link>
       </div>

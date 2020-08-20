@@ -6,7 +6,11 @@ import http from "http";
 import morgan from "morgan";
 import socketIo from "socket.io";
 
+const GLOBAL_LISTENER_ROOM = "GLOBAL_LISTENER";
+const THRESHOLD = 100;
+
 // tslint:disable-next-line: variable-name
+// export namespace SharedTypes {
 enum SocketEvents {
   Device = "device",
   Devices = "devices",
@@ -44,33 +48,37 @@ interface BaseMsg extends TimeStampedMsg {
 }
 
 enum DataType {
-  Key = 'key',
-  Acceleration = 'acceleration',
-  Gyro = 'gyro',
-  Pointer = 'pointer',
-  Notification = 'notification'
+  Key = "key",
+  Acceleration = "acceleration",
+  Gyro = "gyro",
+  Pointer = "pointer",
+  Notification = "notification",
+  Unknown = "unknown",
+  AllData = "all_data"
 }
 
 interface DataMsg extends BaseMsg {
-  type: DataType
+  type: DataType;
+  unicast_to?: number;
+  broadcast?: boolean;
 }
 
 enum Key {
-  Up = 'up',
-  Right = 'right',
-  Down = 'down',
-  Left = 'left',
-  Home = 'home'
+  Up = "up",
+  Right = "right",
+  Down = "down",
+  Left = "left",
+  Home = "home",
 }
 
 interface KeyMsg extends DataMsg {
-  type: DataType.Key,
-  key: Key
+  type: DataType.Key;
+  key: Key;
 }
 
 enum PointerContext {
-  Color = 'color',
-  Grid = 'grid'
+  Color = "color",
+  Grid = "grid",
 }
 
 interface PointerDataMsg extends DataMsg {
@@ -78,7 +86,7 @@ interface PointerDataMsg extends DataMsg {
   context: PointerContext;
 }
 
-interface ColorPointer extends PointerDataMsg {
+interface ColorPointerMsg extends PointerDataMsg {
   context: PointerContext.Color;
   x: number;
   y: number;
@@ -86,13 +94,12 @@ interface ColorPointer extends PointerDataMsg {
   height: number;
 }
 
-interface GridPointer extends PointerDataMsg{
-  context: PointerContext.Grid
+interface GridPointerMsg extends PointerDataMsg {
+  context: PointerContext.Grid;
   row: number;
   column: number;
   color: string;
 }
-
 
 interface Acc {
   x: number;
@@ -101,7 +108,6 @@ interface Acc {
   interval: number;
 }
 
-
 interface Gyro {
   alpha: number;
   beta: number;
@@ -109,16 +115,13 @@ interface Gyro {
   absolute: boolean;
 }
 
-
 interface AccMsg extends Acc, DataMsg {
-  type: DataType.Acceleration
+  type: DataType.Acceleration;
 }
-
 
 interface GyroMsg extends Gyro, DataMsg {
-  type: DataType.Gyro
+  type: DataType.Gyro;
 }
-
 
 interface ErrorMsg {
   type: SocketEvents;
@@ -126,10 +129,12 @@ interface ErrorMsg {
   err: string | Object;
 }
 
+interface AllDataPkg {
+  device_id: string;
+  type: DataType.AllData;
+  all_data: DataMsg[]
+}
 
-
-const GLOBAL_LISTENER_ROOM = "GLOBAL_LISTENER";
-const THRESHOLD = 100;
 /**
  * a motion data frame is an object of the form:
  * {
@@ -215,7 +220,12 @@ function touchDevices() {
   lastDeviceModification = timeStamp();
 }
 
-function devicesPkg() {
+interface DevicesPkg {
+  time_stamp: number;
+  devices: Device[];
+}
+
+function devicesPkg(): DevicesPkg {
   return {
     time_stamp: lastDeviceModification,
     devices: devices(),
@@ -240,10 +250,10 @@ function nextDeviceNr(is_client: boolean) {
   return nextNr;
 }
 
-function allDataPkg(deviceId: string) {
+function allDataPkg(deviceId: string): AllDataPkg {
   return {
     device_id: deviceId,
-    type: "all_data",
+    type: DataType.AllData,
     all_data: dataStore[deviceId],
   };
 }
@@ -392,7 +402,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on(SocketEvents.NewData, (data) => {
+  socket.on(SocketEvents.NewData, (data: Partial<DataMsg>) => {
     // return if neither device_id not device_nr is given
     if (!data.device_id && !data.device_nr) {
       return;
@@ -408,6 +418,9 @@ io.on("connection", (socket) => {
         data.broadcast = false;
       }
     }
+    if (device_id === undefined) {
+      return;
+    }
     if (!dataStore[device_id]) {
       dataStore[device_id] = [];
     }
@@ -416,8 +429,11 @@ io.on("connection", (socket) => {
     if (dataStore[device_id].length >= THRESHOLD) {
       dataStore[device_id].shift();
     }
+    if (data.type === undefined) {
+      data.type = DataType.Unknown;
+    }
     // add the new data
-    dataStore[device_id].push(data);
+    dataStore[device_id].push(data as DataMsg);
 
     // socket.to(...) --> sends to all but self
     // io.to(...) --> sends to all in room
@@ -428,7 +444,7 @@ io.on("connection", (socket) => {
         .to(GLOBAL_LISTENER_ROOM)
         .emit(SocketEvents.NewData, data);
     } else {
-      io.to(data.device_id).emit(SocketEvents.NewData, data);
+      io.to(device_id).emit(SocketEvents.NewData, data);
       io.to(GLOBAL_LISTENER_ROOM).emit(SocketEvents.NewData, data);
     }
   });
