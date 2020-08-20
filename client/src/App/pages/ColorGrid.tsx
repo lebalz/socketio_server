@@ -147,7 +147,7 @@ class ColorGrid extends Component<Props> {
                     className="cell-index-popup"
                     style={{
                       width: `${label.length / 1.5}em`,
-                      top: `calc(${this.state.y}px - 3rem)`,
+                      top: `calc(${this.state.y}px - 6rem)`,
                       left: `calc(${this.state.x}px - ${label.length / 3}em)`,
                     }}
                   >
