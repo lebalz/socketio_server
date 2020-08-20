@@ -1,0 +1,27 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "baseUrl": "./",
+        "outDir": "build",
+        "target": "es6",
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "lib": [
+            "es6"
+        ],
+        "strict": true,
+        "allowJs": true,
+        "forceConsistentCasingInFileNames": true,
+    },
+    "include": [
+        "**.ts"
+    ],
+    "exclude": [
+        "./client",
+        "**/*.spec.ts",
+        "node_modules",
+        "vendor",
+        "public"
+    ],
+    "compileOnSave": false
+}
