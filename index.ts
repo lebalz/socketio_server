@@ -191,6 +191,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on(SocketEvents.NewDevice, (data: NewDevice) => {
+    console.log('Device: ', data);
     if (data.old_device_id) {
       socket.leave(data.old_device_id);
       const oldDevice = socketId_device[socket.id];
@@ -297,7 +298,6 @@ io.on("connection", (socket) => {
     if (!data.device_id && !data.device_nr) {
       return;
     }
-    console.log(data);
     let device_id = data.device_id;
     let unicast_to;
     if (typeof data.unicast_to === "number") {
