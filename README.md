@@ -122,18 +122,3 @@ Run within client folder
 
 - `yarn install` to install npm packages
 - `yarn start` to start the client on port `3000`
-
-
-### Types
-
-Too lazy to setup shared types, so run from the project's root:
-
-**copy from server to client**
-```sh
-(rm -rf ./client/src/types/ || true) && cp -r ./types/ ./client/src/types/
-```
-
-**copy from client to server**
-```sh
-(rm -rf ./types || true) && cp -r ./client/src/types/ ./types/
-```

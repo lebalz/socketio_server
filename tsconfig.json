@@ -11,10 +11,11 @@
         ],
         "strict": true,
         "allowJs": true,
-        "forceConsistentCasingInFileNames": true,
+        "forceConsistentCasingInFileNames": true
     },
     "include": [
-        "**.ts"
+        "**.ts",
+        "client/src/Shared/*"
     ],
     "exclude": [
         "./client",

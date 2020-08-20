@@ -1,5 +1,6 @@
 import React, { Component } from "react";
-import SocketData, { DataMsg, DataType, ColorMsg } from "../SocketData";
+import SocketData from "../SocketData";
+import { DataMsg, DataType, ColorMsg } from "../../Shared/SharedTypings";
 
 interface Props {
   socket: SocketData;
@@ -44,7 +45,7 @@ class ColorPanel extends Component<Props> {
     const rect = (event.target as HTMLDivElement).getBoundingClientRect();
     this.setState({ touched: undefined });
     this.socket.addData({
-      type: "pointer",
+      type: DataType.Pointer,
       context: "color",
       x: event.clientX - rect.left,
       y: event.clientY - rect.top,

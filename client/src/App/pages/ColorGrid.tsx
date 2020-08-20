@@ -1,11 +1,11 @@
 import React, { Component } from "react";
-import SocketData, {
+import SocketData from "../SocketData";
+import {
   DataType,
-  GridPointerMsg,
   PointerContext,
   DataMsg,
   GridMsg,
-} from "../SocketData";
+} from "../../Shared/SharedTypings";
 
 interface Props {
   socket: SocketData;
@@ -48,7 +48,9 @@ class ColorGrid extends Component<Props> {
 
   componentWillUnmount() {
     this._isMounted = false;
-    const callbackFun = this.socket.onData.indexOf((f: any) => f === this.onData);
+    const callbackFun = this.socket.onData.indexOf(
+      (f: any) => f === this.onData
+    );
     if (callbackFun >= 0) {
       this.socket.onData.splice(callbackFun, callbackFun);
     }

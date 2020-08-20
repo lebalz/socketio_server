@@ -1,3 +1,21 @@
+import {
+  InformationPkg,
+  SetDeviceNr,
+  TimeStampedMsg,
+  RoomDevice,
+  NewDevice,
+  DeviceIdPkg,
+} from "./client/src/Shared/SharedTypings";
+import {
+  DataMsg,
+  Device,
+  AllDataPkg,
+  DataType,
+  SocketEvents,
+  DataStore,
+  DataPkg,
+  DevicesPkg,
+} from "./client/src/Shared/SharedTypings";
 import express from "express";
 import path from "path";
 import bodyParser from "body-parser";
@@ -9,132 +27,6 @@ import socketIo from "socket.io";
 const GLOBAL_LISTENER_ROOM = "GLOBAL_LISTENER";
 const THRESHOLD = 100;
 
-// tslint:disable-next-line: variable-name
-// export namespace SharedTypes {
-enum SocketEvents {
-  Device = "device",
-  Devices = "devices",
-  AllData = "all_data",
-  NewData = "new_data",
-  Clear = "clear_data",
-  NewDevice = "new_device",
-  GetAllData = "get_all_data",
-  GetDevices = "get_devices",
-  JoinRoom = "join_room",
-  LeaveRoom = "leave_room",
-  RoomLeft = "room_left",
-  RoomJoined = "room_joined",
-  RemoveAll = "remove_all",
-  DataStore = "data_store",
-  ErrorMsg = "error_msg",
-  SetNewDeviceNr = "set_new_device_nr",
-  InformationMsg = "information_msg",
-}
-
-interface TimeStampedMsg {
-  time_stamp: number;
-}
-
-interface Device {
-  device_id: string;
-  socket_id: string;
-  device_nr: number;
-  is_client: boolean;
-}
-
-interface BaseMsg extends TimeStampedMsg {
-  device_id: string;
-  device_nr: number;
-}
-
-enum DataType {
-  Key = "key",
-  Acceleration = "acceleration",
-  Gyro = "gyro",
-  Pointer = "pointer",
-  Notification = "notification",
-  Unknown = "unknown",
-  AllData = "all_data"
-}
-
-interface DataMsg extends BaseMsg {
-  type: DataType;
-  unicast_to?: number;
-  broadcast?: boolean;
-}
-
-enum Key {
-  Up = "up",
-  Right = "right",
-  Down = "down",
-  Left = "left",
-  Home = "home",
-}
-
-interface KeyMsg extends DataMsg {
-  type: DataType.Key;
-  key: Key;
-}
-
-enum PointerContext {
-  Color = "color",
-  Grid = "grid",
-}
-
-interface PointerDataMsg extends DataMsg {
-  type: DataType.Pointer;
-  context: PointerContext;
-}
-
-interface ColorPointerMsg extends PointerDataMsg {
-  context: PointerContext.Color;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-interface GridPointerMsg extends PointerDataMsg {
-  context: PointerContext.Grid;
-  row: number;
-  column: number;
-  color: string;
-}
-
-interface Acc {
-  x: number;
-  y: number;
-  z: number;
-  interval: number;
-}
-
-interface Gyro {
-  alpha: number;
-  beta: number;
-  gamma: number;
-  absolute: boolean;
-}
-
-interface AccMsg extends Acc, DataMsg {
-  type: DataType.Acceleration;
-}
-
-interface GyroMsg extends Gyro, DataMsg {
-  type: DataType.Gyro;
-}
-
-interface ErrorMsg {
-  type: SocketEvents;
-  msg: string;
-  err: string | Object;
-}
-
-interface AllDataPkg {
-  device_id: string;
-  type: DataType.AllData;
-  all_data: DataMsg[]
-}
-
 /**
  * a motion data frame is an object of the form:
  * {
@@ -143,9 +35,7 @@ interface AllDataPkg {
  *  };
  * the time_stamp is in milliseconds
  */
-const dataStore: {
-  [key: string]: DataMsg[];
-} = {};
+const dataStore: DataStore = {};
 
 // tslint:disable-next-line: variable-name
 const socketId_device: {
@@ -181,7 +71,7 @@ const io = socketIo(server);
  * @return [Array<Device>] all devices, unordered
  *
  */
-function unorderedDevices() {
+function unorderedDevices(): Device[] {
   return Object.values(socketId_device);
 }
 
@@ -190,7 +80,7 @@ function unorderedDevices() {
  * 		- first clients, ordered ascending by device_nr
  * 		- last scripts (=non-clients), ordered descending by device_nr
  */
-function devices(device_id?: string) {
+function devices(device_id?: string): Device[] {
   const unordered = Object.values(socketId_device);
   const partitioned = unordered.reduce(
     (store, device) => {
@@ -211,18 +101,13 @@ function devices(device_id?: string) {
   ];
 }
 
-function timeStamp() {
+function timeStamp(): number {
   return Date.now() / 1000.0;
 }
 
 let lastDeviceModification = timeStamp();
 function touchDevices() {
   lastDeviceModification = timeStamp();
-}
-
-interface DevicesPkg {
-  time_stamp: number;
-  devices: Device[];
 }
 
 function devicesPkg(): DevicesPkg {
@@ -234,7 +119,7 @@ function devicesPkg(): DevicesPkg {
 
 let deviceNrAssginmentLocked = false;
 
-function nextDeviceNr(is_client: boolean) {
+function nextDeviceNr(is_client: boolean): number {
   const numbers = unorderedDevices().map((device) => device.device_nr);
   let nextNr = 0;
   if (is_client) {
@@ -258,16 +143,20 @@ function allDataPkg(deviceId: string): AllDataPkg {
   };
 }
 
-function informationPkg(message: string, action: DataMsg, data = {}) {
+function informationPkg(
+  message: string,
+  action: TimeStampedMsg,
+  data = {}
+): InformationPkg {
   return {
     time_stamp: timeStamp(),
-    message,
-    action,
+    message: message,
+    action: action,
     ...data,
   };
 }
 
-function roomJoinedPkg(roomId: string, device: Device) {
+function roomJoinedPkg(roomId: string, device: Device): RoomDevice {
   return {
     room: roomId,
     device,
@@ -288,7 +177,8 @@ io.on("connection", (socket) => {
     rooms.forEach((room) => {
       if (room !== socket.id) {
         const device = socketId_device[socket.id];
-        socket.to(room).emit(SocketEvents.RoomLeft, { room, device: device });
+        const roomDevice: RoomDevice = { room: room, device: device };
+        socket.to(room).emit(SocketEvents.RoomLeft, roomDevice);
       }
     });
   });
@@ -300,7 +190,7 @@ io.on("connection", (socket) => {
     io.emit(SocketEvents.Devices, devicesPkg());
   });
 
-  socket.on(SocketEvents.NewDevice, (data) => {
+  socket.on(SocketEvents.NewDevice, (data: NewDevice) => {
     if (data.old_device_id) {
       socket.leave(data.old_device_id);
       const oldDevice = socketId_device[socket.id];
@@ -350,7 +240,7 @@ io.on("connection", (socket) => {
     socket.emit(SocketEvents.Devices, devicesPkg());
   });
 
-  socket.on(SocketEvents.JoinRoom, (data) => {
+  socket.on(SocketEvents.JoinRoom, (data: RoomDevice) => {
     if (!data.room) {
       return;
     }
@@ -374,7 +264,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on(SocketEvents.LeaveRoom, (data) => {
+  socket.on(SocketEvents.LeaveRoom, (data: RoomDevice) => {
     if (!data.room) {
       return;
     }
@@ -402,11 +292,12 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on(SocketEvents.NewData, (data: Partial<DataMsg>) => {
+  socket.on(SocketEvents.NewData, (data: DataPkg) => {
     // return if neither device_id not device_nr is given
     if (!data.device_id && !data.device_nr) {
       return;
     }
+    console.log(data);
     let device_id = data.device_id;
     let unicast_to;
     if (typeof data.unicast_to === "number") {
@@ -449,7 +340,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on(SocketEvents.GetAllData, (data) => {
+  socket.on(SocketEvents.GetAllData, (data: DeviceIdPkg) => {
     // return if the device is not known
     if (!data.device_id || !dataStore[data.device_id]) {
       return;
@@ -458,15 +349,7 @@ io.on("connection", (socket) => {
     socket.emit(SocketEvents.AllData, allDataPkg(data.device_id));
   });
 
-  socket.on(SocketEvents.Clear, (data) => {
-    if (!data.device_id || !dataStore[data.device_id]) {
-      return;
-    }
-    dataStore[data.device_id] = [];
-    io.emit(SocketEvents.AllData, allDataPkg(data.device_id));
-  });
-
-  socket.on(SocketEvents.SetNewDeviceNr, (data) => {
+  socket.on(SocketEvents.Clear, (data: DeviceIdPkg) => {
     if (!data.device_id || !dataStore[data.device_id]) {
       return;
     }
@@ -483,7 +366,7 @@ io.on("connection", (socket) => {
    * 					current_device_nr?: int		// ... or more specific the client with this nr.
    * 			}
    */
-  socket.on(SocketEvents.SetNewDeviceNr, (data) => {
+  socket.on(SocketEvents.SetNewDeviceNr, (data: SetDeviceNr) => {
     if (deviceNrAssginmentLocked) {
       return socket.emit(
         SocketEvents.InformationMsg,

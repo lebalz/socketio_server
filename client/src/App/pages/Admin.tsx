@@ -3,7 +3,7 @@ import { Table, Segment, Button, Checkbox } from "semantic-ui-react";
 import SocketData, { AdminSocketData } from "../SocketData";
 import * as _ from "lodash";
 import NoSleep from "nosleep.js";
-import { SocketEvents, Device, DataMsg } from '../SocketData'
+import { SocketEvents, Device, DataMsg } from '../../Shared/SharedTypings'
 
 const THRESHOLD = 20;
 interface Props {
