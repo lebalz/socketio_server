@@ -1,3 +1,17 @@
 .App {
   text-align: center;
 }
+
+.clickable {
+  cursor: pointer;
+}
+
+#notification-container {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  min-width: 20em;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow: auto;
+}

@@ -8,8 +8,10 @@ import {
   AllDataPkg,
   DevicesPkg,
   DataStore,
-  DataPkg,
   MessageType,
+  NotificationMsg,
+  InputPromptMsg,
+  SendDataPkg,
 } from "../Shared/SharedTypings";
 
 const WS_PORT = process.env.NODE_ENV === "production" ? "" : ":5000";
@@ -67,6 +69,9 @@ export default class SocketData {
    */
   onDevice?: (deviceNr: number) => void;
 
+  onNotification?: (notification: NotificationMsg) => void;
+  onInputPrompt?: (question: InputPromptMsg) => void;
+
   constructor() {
     const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
     const ws_url = `${protocol}://${window.location.hostname}${WS_PORT}`;
@@ -97,6 +102,16 @@ export default class SocketData {
         this.myData.push(data);
       } else if (data.device_id) {
         this.otherData.push(data);
+      }
+      if (data.type === DataType.Notification) {
+        if (this.onNotification) {
+          this.onNotification((data as any) as NotificationMsg);
+        }
+      }
+      if (data.type === DataType.InputPrompt) {
+        if (this.onInputPrompt) {
+          this.onInputPrompt((data as any) as InputPromptMsg);
+        }
       }
       this.onData.forEach((callback) => {
         callback(data);
@@ -141,7 +156,11 @@ export default class SocketData {
    * @param {Object} data
    * @param {boolean} broadcast
    */
-  emit(event: SocketEvents, data: MessageType = undefined, broadcast: boolean = false) {
+  emit(
+    event: SocketEvents,
+    data: MessageType = undefined,
+    broadcast: boolean = false
+  ) {
     if (!this.socket.connected) {
       this.connect();
     }
@@ -154,7 +173,7 @@ export default class SocketData {
     });
   }
 
-  addData(data: DataPkg) {
+  addData(data: SendDataPkg) {
     this.emit(SocketEvents.NewData, data);
   }
 

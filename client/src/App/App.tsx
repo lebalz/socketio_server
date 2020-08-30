@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, Fragment } from "react";
 import { Route, Switch, Link } from "react-router-dom";
 import "./App.css";
 import Home from "./pages/Home";
@@ -10,9 +10,17 @@ import ColorGrid from "./pages/ColorGrid";
 import { Label } from "semantic-ui-react";
 import Admin from "./pages/Admin";
 import NoSleep from "nosleep.js";
+import NotificationList from "./components/NotificationList";
+import InputPromptContainer from "./components/InputPromptContainer";
+
+interface State {
+  deviceId: string;
+  valid: boolean;
+  deviceNr: number;
+}
 
 class App extends Component {
-  state = {
+  state: State = {
     deviceId: `Device${Math.floor(Math.random() * 899) + 100}`,
     valid: true,
     deviceNr: -1,
@@ -22,7 +30,12 @@ class App extends Component {
   constructor(props: any) {
     super(props);
     this.socket.onDevice = (deviceNr) => {
-      this.setState({ deviceNr: deviceNr });
+      console.log("Component did mount: ", deviceNr);
+      if (this.state.deviceNr !== deviceNr) {
+        this.setState({
+          deviceNr: deviceNr,
+        });
+      }
     };
   }
 
@@ -106,9 +119,13 @@ class App extends Component {
       </div>
     );
     return (
-      <Switch>
-        <App />
-      </Switch>
+      <Fragment>
+        <Switch>
+          <App />
+        </Switch>
+        <NotificationList socket={this.socket} />
+        <InputPromptContainer socket={this.socket} />
+      </Fragment>
     );
   }
 }

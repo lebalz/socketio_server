@@ -21,8 +21,11 @@ export enum DataType {
   Gyro = "gyro",
   Pointer = "pointer",
   Notification = "notification",
+  InputPrompt = "input_prompt",
+  InputResponse = "input_response",
   Unknown = "unknown",
   AllData = "all_data",
+  AlertConfirm = "alert_confirm",
 }
 
 export interface DataStore {
@@ -33,10 +36,42 @@ export interface DataPkg {
   type: DataType;
   unicast_to?: number;
   broadcast?: boolean;
+  caller_id?: string;
+  response_id?: string;
+  alert?: boolean;
+}
+
+export interface SendDataPkg extends DataPkg {
   [key: string]: any;
 }
 
 export interface DataMsg extends DataPkg, BaseMsg {}
+
+export interface NotificationMsg extends DataMsg, TimeStampedMsg {
+  type: DataType.Notification;
+  message: string;
+  notification_type?: "success" | "error" | "warn";
+  time?: number;
+  alert?: boolean;
+  response_id?: string;
+}
+
+export interface AlertConfirmMsg extends DataPkg, TimeStampedMsg {
+  type: DataType.AlertConfirm;
+}
+
+export interface InputPromptMsg extends DataMsg, TimeStampedMsg {
+  type: DataType.InputPrompt;
+  question: string;
+  input_type?: "number" | "date" | "text" | "datetime-local" | "time";
+  response_id: string;
+}
+
+export interface InputResponseMsg extends DataPkg, TimeStampedMsg {
+  type: DataType.InputResponse;
+  caller_id: string;
+  response: string | number | Date;
+}
 
 export enum PointerContext {
   Color = "color",
