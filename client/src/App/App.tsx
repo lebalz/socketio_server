@@ -30,7 +30,6 @@ class App extends Component {
   constructor(props: any) {
     super(props);
     this.socket.onDevice = (deviceNr) => {
-      console.log("Component did mount: ", deviceNr);
       if (this.state.deviceNr !== deviceNr) {
         this.setState({
           deviceNr: deviceNr,

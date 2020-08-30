@@ -251,7 +251,7 @@ io.on("connection", (socket) => {
       );
       if (undelivered.length > 0) {
         undelivered.forEach((n) => {
-          io.emit(SocketEvents.NewData, n);
+          io.to(n.device_id).emit(SocketEvents.NewData, n);
         });
       }
     }
