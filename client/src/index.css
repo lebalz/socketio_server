@@ -6,7 +6,7 @@ body {
   touch-action: manipulation;
 }
 
-.actions {
+.control > .actions {
   display: grid;
   grid-template-areas:
     ". up ."

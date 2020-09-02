@@ -63,8 +63,20 @@ export interface AlertConfirmMsg extends DataPkg, TimeStampedMsg {
 export interface InputPromptMsg extends DataMsg, TimeStampedMsg {
   type: DataType.InputPrompt;
   question: string;
-  input_type?: "number" | "date" | "text" | "datetime-local" | "time";
+  input_type?:
+    | "number"
+    | "date"
+    | "text"
+    | "datetime-local"
+    | "time"
+    | "select";
   response_id: string;
+  options?: string[];
+}
+
+export interface SelectionPrompt extends InputPromptMsg {
+  input_type: "select";
+  options: string[];
 }
 
 export interface InputResponseMsg extends DataPkg, TimeStampedMsg {

@@ -3,6 +3,7 @@ import { DataType, NotificationMsg } from "../../Shared/SharedTypings";
 import { Notification as NotificationModel } from "../models/Notification";
 import Notification from "./Notification";
 import SocketData from "../SocketData";
+import { Icon } from "semantic-ui-react";
 
 interface Props {
   socket: SocketData;
@@ -48,6 +49,21 @@ class NotificationList extends React.Component<Props> {
   render() {
     return (
       <div id="notification-container">
+        {this.state.notifications.length > 1 && (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              cursor: "pointer",
+            }}
+            onClick={() => {
+              this.setState({ notifications: [] });
+            }}
+          >
+            <div>Alle schliessen</div>
+            <Icon name="close" className="clickable" />
+          </div>
+        )}
         {this.state.notifications
           .sort((a, b) => b.timeStamp - a.timeStamp)
           .map((n, idx) => {

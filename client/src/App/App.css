@@ -15,3 +15,8 @@
   max-height: 80vh;
   overflow: auto;
 }
+
+.notification-header {
+  background: #2184d04b;
+  font-style: italic;
+}

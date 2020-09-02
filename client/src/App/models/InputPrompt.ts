@@ -1,5 +1,10 @@
-import { DataType, InputPromptMsg } from "./../../Shared/SharedTypings";
+import {
+  DataType,
+  InputPromptMsg,
+  SelectionPrompt,
+} from "./../../Shared/SharedTypings";
 import SocketData from "../SocketData";
+import { DropdownItemProps } from "semantic-ui-react";
 
 export class InputPrompt {
   prompt: InputPromptMsg;
@@ -26,6 +31,23 @@ export class InputPrompt {
 
   get timeStamp() {
     return this.prompt.time_stamp;
+  }
+
+  get selectOptions(): DropdownItemProps[] {
+    if (this.prompt.input_type !== "select") {
+      return [];
+    }
+    const prompt = this.prompt as SelectionPrompt;
+    return prompt.options.map((opt) => {
+      return { text: opt, value: opt };
+    });
+  }
+
+  get defaultValue(): string | undefined {
+    if (!this.prompt.options) {
+      return;
+    }
+    return this.prompt.options[0];
   }
 
   respond(response: string | number | Date) {
