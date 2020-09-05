@@ -9,6 +9,7 @@ import {
   Select,
 } from "semantic-ui-react";
 import { InputPrompt as InputPromptModel } from "../models/InputPrompt";
+import { timeStamp } from "../SocketData";
 
 interface Props {
   prompt: InputPromptModel;
@@ -16,10 +17,17 @@ interface Props {
 
 class InputPrompt extends React.Component<Props> {
   inputRef = React.createRef<Input>();
-  state = { open: true, response: "" };
+  state = { open: true, response: "", displayedAt: timeStamp() };
 
   componentDidMount() {
     this.inputRef.current?.focus();
+    this.setState({ displayedAt: timeStamp() });
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    if (this.props.prompt !== prevProps.prompt) {
+      this.setState({ displayedAt: timeStamp() });
+    }
   }
 
   onChangeSelection = (
@@ -71,7 +79,9 @@ class InputPrompt extends React.Component<Props> {
               content="Send"
               labelPosition="right"
               icon="send"
-              onClick={() => prompt.respond(this.state.response)}
+              onClick={() =>
+                prompt.respond(this.state.response, this.state.displayedAt)
+              }
               positive
             />
           </Button.Group>

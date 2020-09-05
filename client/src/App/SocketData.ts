@@ -16,6 +16,17 @@ import {
 
 const WS_PORT = process.env.NODE_ENV === "production" ? "" : ":5000";
 
+export function timeStamp(): number {
+  return Date.now() / 1000.0;
+}
+
+export interface ClientDataMsg extends DataMsg {
+  color?: string;
+  grid?: string[][];
+}
+export interface ClientsAllDataPkg extends AllDataPkg {
+  all_data: ClientDataMsg[];
+}
 export default class SocketData {
   socket: SocketIOClient.Socket;
   /**
@@ -34,25 +45,25 @@ export default class SocketData {
    *
    * @param {Array<any>} myData (data for this deviceId)
    */
-  myData: DataMsg[] = [];
+  myData: ClientDataMsg[] = [];
 
   /**
    *
    * @param {Array<any>} data from other clients
    */
-  otherData: DataMsg[] = [];
+  otherData: ClientDataMsg[] = [];
 
   /**
    *
    * @param {Array<{device_id: string, device_nr: number, is_client: boolean, socket_id: string}>} all connected devices
    */
   devices: Device[] = [];
-  startTime = Date.now() / 1000.0;
+  startTime = timeStamp();
 
   /**
    * @param {Array<event => void)>}
    */
-  onData: ((data: DataMsg) => void)[] = [];
+  onData: ((data: ClientDataMsg) => void)[] = [];
 
   /**
    * @param {Array<event => void)>}
@@ -62,7 +73,7 @@ export default class SocketData {
   /**
    * @param {Array<event => void)>}
    */
-  onAllData: ((allData: AllDataPkg) => void)[] = [];
+  onAllData: ((allData: ClientsAllDataPkg) => void)[] = [];
 
   /**
    * @param {undefined | (data) => void}
@@ -90,14 +101,17 @@ export default class SocketData {
       this.refreshData();
     });
     this.socket.on(SocketEvents.AllData, (data: AllDataPkg) => {
+      const allData: ClientDataMsg[] = data.all_data;
       if (data.device_id === this.deviceId) {
-        this.myData = data.all_data;
+        this.myData = allData;
       } else {
-        this.otherData.push(...data.all_data);
+        this.otherData.push(...allData);
       }
-      this.onAllData.forEach((callback) => callback(data));
+      this.onAllData.forEach((callback) =>
+        callback({ ...data, all_data: allData })
+      );
     });
-    this.socket.on(SocketEvents.NewData, (data: DataMsg) => {
+    this.socket.on(SocketEvents.NewData, (data: ClientDataMsg) => {
       if (data.device_id === this.deviceId) {
         this.myData.push(data);
       } else if (data.device_id) {
@@ -167,7 +181,7 @@ export default class SocketData {
     this.socket.emit(event, {
       device_id: this.deviceId,
       device_nr: this.deviceNr,
-      time_stamp: Date.now() / 1000.0,
+      time_stamp: timeStamp(),
       broadcast: broadcast,
       ...data,
     });

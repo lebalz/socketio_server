@@ -56,7 +56,11 @@ export interface NotificationMsg extends DataMsg, TimeStampedMsg {
   response_id?: string;
 }
 
-export interface AlertConfirmMsg extends DataPkg, TimeStampedMsg {
+export interface AlertConfirm {
+  displayed_at: number;
+}
+
+export interface AlertConfirmMsg extends DataPkg, TimeStampedMsg, AlertConfirm {
   type: DataType.AlertConfirm;
 }
 
@@ -79,10 +83,14 @@ export interface SelectionPrompt extends InputPromptMsg {
   options: string[];
 }
 
-export interface InputResponseMsg extends DataPkg, TimeStampedMsg {
-  type: DataType.InputResponse;
-  caller_id: string;
+export interface InputResponse {
   response: string | number | Date;
+  displayed_at: number;
+}
+
+export interface InputResponseMsg extends DataPkg, TimeStampedMsg, InputResponse {
+  caller_id: string;
+  type: DataType.InputResponse;
 }
 
 export enum PointerContext {
@@ -95,19 +103,28 @@ export interface PointerDataMsg extends DataMsg {
   context: PointerContext;
 }
 
-export interface ColorPointer extends PointerDataMsg {
-  context: PointerContext.Color;
+export interface ColorPointer {
   x: number;
   y: number;
+  color: string;
   width: number;
   height: number;
+  displayed_at: number;
 }
 
-export interface GridPointerMsg extends PointerDataMsg {
-  context: PointerContext.Grid;
+export interface ColorPointerMsg extends PointerDataMsg, ColorPointer {
+  context: PointerContext.Color;
+}
+
+export interface GridPointer {
   row: number;
   column: number;
   color: string;
+  displayed_at: number;
+}
+
+export interface GridPointerMsg extends PointerDataMsg, GridPointer {
+  context: PointerContext.Grid;
 }
 
 export interface GridMsg extends DataMsg {

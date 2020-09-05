@@ -1,7 +1,7 @@
 import React, { Component, Fragment } from "react";
 import { Button, Checkbox, Segment, Form } from "semantic-ui-react";
 import MotionSimulator from "../Simulator";
-import SocketData from "../SocketData";
+import SocketData, { timeStamp } from "../SocketData";
 import { Key, AccMsg, GyroMsg, DataType } from "../../Shared/SharedTypings";
 
 interface Props {
@@ -48,7 +48,7 @@ class Controller extends Component<Props> {
     if (cmds.length > 5) {
       cmds.shift();
     }
-    cmds.push({ timeStamp: Date.now() / 1000.0, key: action });
+    cmds.push({ timeStamp: timeStamp(), key: action });
     this.setState({ lastCommands: cmds });
     this.socket.addData({ type: DataType.Key, key: action });
   }

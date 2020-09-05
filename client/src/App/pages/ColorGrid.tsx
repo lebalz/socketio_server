@@ -1,10 +1,9 @@
 import React, { Component } from "react";
-import SocketData from "../SocketData";
+import SocketData, { ClientDataMsg, timeStamp } from "../SocketData";
 import {
   DataType,
   PointerContext,
-  DataMsg,
-  GridMsg,
+  GridPointer
 } from "../../Shared/SharedTypings";
 
 interface Props {
@@ -16,6 +15,7 @@ interface GridState {
   activeCell?: string;
   x: number;
   y: number;
+  displayedAt?: number;
 }
 
 class ColorGrid extends Component<Props> {
@@ -28,6 +28,7 @@ class ColorGrid extends Component<Props> {
     activeCell: undefined,
     x: 0,
     y: 0,
+    displayedAt: timeStamp()
   };
   // Initialize the state
   socket: SocketData;
@@ -35,6 +36,12 @@ class ColorGrid extends Component<Props> {
   constructor(props: Props) {
     super(props);
     this.socket = props.socket;
+  }
+
+  componentDidUpdate(prevProps: Props, prevState: GridState) {
+    if (this.state.grid !== prevState.grid) {
+      this.setState({displayedAt: timeStamp()})
+    }
   }
 
   componentDidMount() {
@@ -56,18 +63,18 @@ class ColorGrid extends Component<Props> {
     }
   }
 
-  onData = (data: DataMsg) => {
+  onData = (data: ClientDataMsg) => {
     if (this._isMounted && data.type === DataType.Grid) {
-      const gridData = data as GridMsg;
-      const first_row = gridData.grid[0];
+      const grid = data.grid!
+      const first_row = grid[0];
       if (first_row.length === 0) {
         // an empty row was provided, set the screen to white
-        this.setState({ grid: [["white"]] });
+        this.setState({ grid: [["white"]], displayedAt: undefined });
       } else if (Array.isArray(first_row)) {
-        this.setState({ grid: gridData.grid });
+        this.setState({ grid: grid, displayedAt: undefined });
       } else {
         // only a 1D array is provided - use it as row
-        this.setState({ grid: [gridData.grid] });
+        this.setState({ grid: [grid], displayedAt: undefined });
       }
     }
   };
@@ -75,12 +82,16 @@ class ColorGrid extends Component<Props> {
   onClick(row: number, column: number) {
     const rowColors = this.state.grid[row] || [];
     this.setState({ activeCell: undefined });
-    this.socket.addData({
-      type: DataType.Pointer,
-      context: PointerContext.Grid,
+    const pkg: GridPointer = {
       row: row,
       column: column,
       color: rowColors[column],
+      displayed_at: this.state.displayedAt ?? timeStamp()
+    }
+    this.socket.addData({
+      type: DataType.Pointer,
+      context: PointerContext.Grid,
+      ...pkg
     });
   }
 

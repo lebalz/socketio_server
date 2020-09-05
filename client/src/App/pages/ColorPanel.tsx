@@ -1,20 +1,36 @@
 import React, { Component } from "react";
-import SocketData from "../SocketData";
-import { DataMsg, DataType, ColorMsg } from "../../Shared/SharedTypings";
+import SocketData, { ClientDataMsg, timeStamp } from "../SocketData";
+import {
+  DataType,
+  PointerContext,
+  ColorPointer,
+} from "../../Shared/SharedTypings";
 
 interface Props {
   socket: SocketData;
 }
 
+interface ColorState {
+  color: string;
+  touched: boolean;
+  displayedAt?: number;
+}
+
 class ColorPanel extends Component<Props> {
   _isMounted = false;
-  state = { color: "#aaffff", touched: false };
+  state: ColorState = { color: "#aaffff", touched: false, displayedAt: timeStamp() };
   socket: SocketData;
 
   // Initialize the state
   constructor(props: Props) {
     super(props);
     this.socket = props.socket;
+  }
+
+  componentDidUpdate(prevProps: Props, prevState: ColorState) {
+    if (this.state.color !== prevState.color) {
+      this.setState({displayedAt: timeStamp()})
+    }
   }
 
   componentDidMount() {
@@ -24,7 +40,9 @@ class ColorPanel extends Component<Props> {
 
   componentWillUnmount() {
     this._isMounted = false;
-    const callbackFun = this.socket.onData.indexOf((f: any) => f === this.onData);
+    const callbackFun = this.socket.onData.indexOf(
+      (f: any) => f === this.onData
+    );
     if (callbackFun >= 0) {
       this.socket.onData.splice(callbackFun, callbackFun);
       const colors = this.socket.getData(DataType.Color);
@@ -34,24 +52,30 @@ class ColorPanel extends Component<Props> {
     }
   }
 
-  onData = (data: DataMsg) => {
+  onData = (data: ClientDataMsg) => {
     if (this._isMounted && data.type === DataType.Color) {
-      const colorData = data as ColorMsg
-      this.setState({ color: colorData.color });
+      this.setState({
+        color: data.color!,
+        displayedAt: undefined,
+      });
     }
   };
 
   onClick = (event: React.PointerEvent<HTMLDivElement>) => {
     const rect = (event.target as HTMLDivElement).getBoundingClientRect();
     this.setState({ touched: undefined });
-    this.socket.addData({
-      type: DataType.Pointer,
-      context: "color",
+    const pkg: ColorPointer = {
       x: event.clientX - rect.left,
       y: event.clientY - rect.top,
       width: rect.width,
       height: rect.height,
       color: this.state.color,
+      displayed_at: this.state.displayedAt ?? timeStamp(),
+    };
+    this.socket.addData({
+      ...pkg,
+      type: DataType.Pointer,
+      context: PointerContext.Color,
     });
   };
 

@@ -1,6 +1,7 @@
 import {
   DataType,
   InputPromptMsg,
+  InputResponse,
   SelectionPrompt,
 } from "./../../Shared/SharedTypings";
 import SocketData from "../SocketData";
@@ -45,17 +46,21 @@ export class InputPrompt {
 
   get defaultValue(): string | undefined {
     if (!this.prompt.options) {
-      return;
+      return undefined;
     }
     return this.prompt.options[0];
   }
 
-  respond(response: string | number | Date) {
+  respond(response: string | number | Date, displayedAt: number) {
+    const pkg: InputResponse = {
+      response: response,
+      displayed_at: displayedAt
+    }
     this.socket.addData({
       type: DataType.InputResponse,
       time_stamp: this.prompt.time_stamp,
       caller_id: this.prompt.response_id,
-      response: response,
+      ...pkg
     });
 
     this.onDone(this);
