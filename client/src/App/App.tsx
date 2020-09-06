@@ -88,7 +88,7 @@ class App extends Component {
               id="device-id"
               type="text"
               onChange={this.onChangeDeviceId}
-              defaultValue={this.state.deviceId}
+              value={this.state.deviceId}
               title={this.state.valid ? undefined : "ID wird bereits verwendet"}
               autoFocus
               style={{ maxWidth: "10rem" }}

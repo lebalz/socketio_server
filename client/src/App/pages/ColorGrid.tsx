@@ -3,7 +3,7 @@ import SocketData, { ClientDataMsg, timeStamp } from "../SocketData";
 import {
   DataType,
   PointerContext,
-  GridPointer
+  GridPointer,
 } from "../../Shared/SharedTypings";
 
 interface Props {
@@ -28,7 +28,7 @@ class ColorGrid extends Component<Props> {
     activeCell: undefined,
     x: 0,
     y: 0,
-    displayedAt: timeStamp()
+    displayedAt: timeStamp(),
   };
   // Initialize the state
   socket: SocketData;
@@ -40,7 +40,7 @@ class ColorGrid extends Component<Props> {
 
   componentDidUpdate(prevProps: Props, prevState: GridState) {
     if (this.state.grid !== prevState.grid) {
-      this.setState({displayedAt: timeStamp()})
+      this.setState({ displayedAt: timeStamp() });
     }
   }
 
@@ -48,8 +48,14 @@ class ColorGrid extends Component<Props> {
     this._isMounted = true;
     this.socket.onData.push(this.onData);
     const grids = this.socket.getData(DataType.Grid);
-    if (grids.length > 0) {
-      this.setState({ grid: grids[grids.length - 1] });
+    const latestGrid = grids[grids.length - 1];
+    if (
+      latestGrid &&
+      latestGrid.grid &&
+      latestGrid.grid.length > 0 &&
+      latestGrid.grid[0].length > 0
+    ) {
+      this.setState({ grid: latestGrid.grid, displayedAt: timeStamp() });
     }
   }
 
@@ -65,7 +71,7 @@ class ColorGrid extends Component<Props> {
 
   onData = (data: ClientDataMsg) => {
     if (this._isMounted && data.type === DataType.Grid) {
-      const grid = data.grid!
+      const grid = data.grid!;
       const first_row = grid[0];
       if (first_row.length === 0) {
         // an empty row was provided, set the screen to white
@@ -86,12 +92,12 @@ class ColorGrid extends Component<Props> {
       row: row,
       column: column,
       color: rowColors[column],
-      displayed_at: this.state.displayedAt ?? timeStamp()
-    }
+      displayed_at: this.state.displayedAt ?? timeStamp(),
+    };
     this.socket.addData({
       type: DataType.Pointer,
       context: PointerContext.Grid,
-      ...pkg
+      ...pkg,
     });
   }
 
