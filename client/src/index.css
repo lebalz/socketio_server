@@ -10,9 +10,13 @@ body {
   display: grid;
   grid-template-areas:
     ". up ."
-    "left middle right"
-    ". down .";
+    "left home right"
+    ". down ."
+    "fkeys fkeys fkeys";
   gap: 1rem;
+}
+
+.action {
 }
 
 .action.up {
@@ -27,8 +31,14 @@ body {
 .action.down {
   grid-area: down;
 }
-.action.middle {
-  grid-area: middle;
+.action.home {
+  grid-area: home;
+}
+.function-keys {
+  grid-area: fkeys;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
 #color-panel {
   height: 100vh;

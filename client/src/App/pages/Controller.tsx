@@ -1,8 +1,9 @@
 import React, { Component, Fragment } from "react";
-import { Button, Checkbox, Segment, Form } from "semantic-ui-react";
+import { Button, Checkbox, Segment, Form, IconProps } from "semantic-ui-react";
 import MotionSimulator from "../Simulator";
 import SocketData, { timeStamp } from "../SocketData";
 import { Key, AccMsg, GyroMsg, DataType } from "../../Shared/SharedTypings";
+import { SemanticShorthandItem } from "semantic-ui-react/dist/commonjs/generic";
 
 interface Props {
   socket: SocketData;
@@ -282,43 +283,50 @@ class Controller extends Component<Props> {
     }
   };
 
+  keyIcon(key: Key): SemanticShorthandItem<IconProps> {
+    switch (key) {
+      case Key.Up:
+      case Key.Right:
+      case Key.Left:
+      case Key.Down:
+        return `angle ${key}`;
+      case Key.Home:
+        return "circle";
+      default:
+        return undefined;
+    }
+  }
+
   render() {
     return (
       <Fragment>
         <div className="control">
           <h1>Controller</h1>
           <div className="actions">
-            <Button
-              icon="angle up"
-              onClick={() => this.onClick(Key.Up)}
-              className="action up"
-              size="huge"
-            />
-            <Button
-              icon="angle right"
-              onClick={() => this.onClick(Key.Right)}
-              className="action right"
-              size="huge"
-            />
-            <Button
-              icon="angle down"
-              onClick={() => this.onClick(Key.Down)}
-              className="action down"
-              size="huge"
-            />
-            <Button
-              icon="angle left"
-              onClick={() => this.onClick(Key.Left)}
-              className="action left"
-              size="huge"
-            />
-            <Button
-              circular
-              icon="circle"
-              onClick={() => this.onClick(Key.Home)}
-              className="action middle"
-              size="huge"
-            />
+            {[Key.Down, Key.Home, Key.Left, Key.Right, Key.Up].map((key) => {
+              return (
+                <Button
+                  key={key}
+                  icon={this.keyIcon(key)}
+                  onClick={() => this.onClick(key)}
+                  className={`action ${key}`}
+                  size="huge"
+                />
+              );
+            })}
+            <div className="function-keys">
+              {[Key.F1, Key.F2, Key.F3, Key.F4].map((key) => {
+                return (
+                  <Button
+                    key={key}
+                    onClick={() => this.onClick(key)}
+                    className={`action ${key}`}
+                    content={key.toUpperCase()}
+                    size="medium"
+                  />
+                );
+              })}
+            </div>
           </div>
         </div>
         <Segment>

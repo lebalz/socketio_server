@@ -88,7 +88,10 @@ export interface InputResponse {
   displayed_at: number;
 }
 
-export interface InputResponseMsg extends DataPkg, TimeStampedMsg, InputResponse {
+export interface InputResponseMsg
+  extends DataPkg,
+    TimeStampedMsg,
+    InputResponse {
   caller_id: string;
   type: DataType.InputResponse;
 }
@@ -181,6 +184,10 @@ export enum Key {
   Down = "down",
   Left = "left",
   Home = "home",
+  F1 = "F1",
+  F2 = "F2",
+  F3 = "F3",
+  F4 = "F4",
 }
 
 export interface KeyMsg extends DataMsg {
