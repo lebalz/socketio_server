@@ -1,9 +1,9 @@
-import React, { Component, Fragment } from "react";
-import { Button, Checkbox, Segment, Form, IconProps } from "semantic-ui-react";
-import MotionSimulator from "../Simulator";
-import SocketData, { timeStamp } from "../SocketData";
-import { Key, AccMsg, GyroMsg, DataType } from "../../Shared/SharedTypings";
-import { SemanticShorthandItem } from "semantic-ui-react/dist/commonjs/generic";
+import React, { Component, Fragment } from 'react';
+import { Button, Checkbox, Segment, Form, IconProps } from 'semantic-ui-react';
+import MotionSimulator from '../Simulator';
+import SocketData, { timeStamp } from '../SocketData';
+import { Key, AccMsg, GyroMsg, DataType } from '../../Shared/SharedTypings';
+import { SemanticShorthandItem } from 'semantic-ui-react/dist/commonjs/generic';
 
 interface Props {
   socket: SocketData;
@@ -56,10 +56,10 @@ class Controller extends Component<Props> {
 
   requestMotionPermission(onGrant: () => void) {
     // feature detect
-    if (typeof DeviceMotionEvent.requestPermission === "function") {
+    if (typeof DeviceMotionEvent.requestPermission === 'function') {
       DeviceMotionEvent.requestPermission()
         .then((permissionState) => {
-          if (permissionState === "granted") {
+          if (permissionState === 'granted') {
             onGrant();
           }
         })
@@ -71,10 +71,10 @@ class Controller extends Component<Props> {
 
   requestOrientationPermission(onGrant: () => void) {
     // feature detect
-    if (typeof DeviceOrientationEvent.requestPermission === "function") {
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
       DeviceOrientationEvent.requestPermission()
         .then((permissionState) => {
-          if (permissionState === "granted") {
+          if (permissionState === 'granted') {
             onGrant();
           }
         })
@@ -118,28 +118,20 @@ class Controller extends Component<Props> {
   };
 
   setupAccelerationStream(simulateSensor: boolean) {
-    const deviceSimulator = document.getElementById("DeviceSimulator");
+    const deviceSimulator = document.getElementById('DeviceSimulator');
 
     if (!deviceSimulator) {
       return;
     }
     this.requestMotionPermission(() => {
       if (simulateSensor) {
-        deviceSimulator.addEventListener(
-          "devicemotion",
-          this.onDevicemotion as any,
-          true
-        );
-        window.removeEventListener("devicemotion", this.onDevicemotion, true);
+        deviceSimulator.addEventListener('devicemotion', this.onDevicemotion as any, true);
+        window.removeEventListener('devicemotion', this.onDevicemotion, true);
         this.simulator.startMotionSimulation();
         this.setState({ simulateSensor: simulateSensor, streamSenensor: true });
       } else {
-        deviceSimulator.removeEventListener(
-          "devicemotion",
-          this.onDevicemotion as any,
-          true
-        );
-        window.addEventListener("devicemotion", this.onDevicemotion, true);
+        deviceSimulator.removeEventListener('devicemotion', this.onDevicemotion as any, true);
+        window.addEventListener('devicemotion', this.onDevicemotion, true);
         this.simulator.stopMotionSimulation();
         this.setState({ simulateSensor: simulateSensor, streamSenensor: true });
       }
@@ -147,36 +139,20 @@ class Controller extends Component<Props> {
   }
 
   setupGyroStream(simulateSensor: boolean) {
-    const deviceSimulator = document.getElementById("DeviceSimulator");
+    const deviceSimulator = document.getElementById('DeviceSimulator');
 
     if (!deviceSimulator) {
       return;
     }
     this.requestOrientationPermission(() => {
       if (simulateSensor) {
-        deviceSimulator.addEventListener(
-          "deviceorientation",
-          this.onDeviceOrientation as any,
-          true
-        );
-        window.removeEventListener(
-          "deviceorientation",
-          this.onDeviceOrientation,
-          true
-        );
+        deviceSimulator.addEventListener('deviceorientation', this.onDeviceOrientation as any, true);
+        window.removeEventListener('deviceorientation', this.onDeviceOrientation, true);
         this.simulator.startOrientationSimulation();
         this.setState({ simulateSensor: simulateSensor, streamSenensor: true });
       } else {
-        deviceSimulator.removeEventListener(
-          "deviceorientation",
-          this.onDeviceOrientation as any,
-          true
-        );
-        window.addEventListener(
-          "deviceorientation",
-          this.onDeviceOrientation,
-          true
-        );
+        deviceSimulator.removeEventListener('deviceorientation', this.onDeviceOrientation as any, true);
+        window.addEventListener('deviceorientation', this.onDeviceOrientation, true);
         this.simulator.stopOrientationSimulation();
         this.setState({ simulateSensor: simulateSensor, streamSenensor: true });
       }
@@ -194,34 +170,22 @@ class Controller extends Component<Props> {
   }
 
   stopSensorStream = () => {
-    const deviceSimulator = document.getElementById("DeviceSimulator");
+    const deviceSimulator = document.getElementById('DeviceSimulator');
 
     if (!deviceSimulator) {
       return;
     }
 
-    window.removeEventListener("devicemotion", this.onDevicemotion, true);
-    window.removeEventListener(
-      "deviceorientation",
-      this.onDeviceOrientation,
-      true
-    );
-    deviceSimulator.removeEventListener(
-      "devicemotion",
-      this.onDevicemotion as any,
-      true
-    );
-    deviceSimulator.removeEventListener(
-      "deviceorientation",
-      this.onDeviceOrientation as any,
-      true
-    );
+    window.removeEventListener('devicemotion', this.onDevicemotion, true);
+    window.removeEventListener('deviceorientation', this.onDeviceOrientation, true);
+    deviceSimulator.removeEventListener('devicemotion', this.onDevicemotion as any, true);
+    deviceSimulator.removeEventListener('deviceorientation', this.onDeviceOrientation as any, true);
     this.simulator.stopSimulation();
     this.setState({ streamSenensor: false });
   };
 
   toggleSensorStream = () => {
-    const deviceSimulator = document.getElementById("DeviceSimulator");
+    const deviceSimulator = document.getElementById('DeviceSimulator');
 
     if (!deviceSimulator) {
       return;
@@ -236,19 +200,15 @@ class Controller extends Component<Props> {
   };
 
   toggleAccelerationStream = () => {
-    const deviceSimulator = document.getElementById("DeviceSimulator");
+    const deviceSimulator = document.getElementById('DeviceSimulator');
 
     if (!deviceSimulator) {
       return;
     }
 
     if (this.state.acceleration) {
-      window.removeEventListener("devicemotion", this.onDevicemotion, true);
-      deviceSimulator.removeEventListener(
-        "devicemotion",
-        this.onDevicemotion as any,
-        true
-      );
+      window.removeEventListener('devicemotion', this.onDevicemotion, true);
+      deviceSimulator.removeEventListener('devicemotion', this.onDevicemotion as any, true);
       this.simulator.stopMotionSimulation();
       this.setState({ acceleration: false });
     } else {
@@ -258,23 +218,15 @@ class Controller extends Component<Props> {
   };
 
   toggleGyroStream = () => {
-    const deviceSimulator = document.getElementById("DeviceSimulator");
+    const deviceSimulator = document.getElementById('DeviceSimulator');
 
     if (!deviceSimulator) {
       return;
     }
 
     if (this.state.gyro) {
-      window.removeEventListener(
-        "deviceorientation",
-        this.onDeviceOrientation,
-        true
-      );
-      deviceSimulator.removeEventListener(
-        "deviceorientation",
-        this.onDeviceOrientation as any,
-        true
-      );
+      window.removeEventListener('deviceorientation', this.onDeviceOrientation, true);
+      deviceSimulator.removeEventListener('deviceorientation', this.onDeviceOrientation as any, true);
       this.simulator.stopOrientationSimulation();
       this.setState({ gyro: false });
     } else {
@@ -291,7 +243,7 @@ class Controller extends Component<Props> {
       case Key.Down:
         return `angle ${key}`;
       case Key.Home:
-        return "circle";
+        return 'circle';
       default:
         return undefined;
     }
@@ -330,7 +282,7 @@ class Controller extends Component<Props> {
           </div>
         </div>
         <Segment>
-          <div style={{ display: "flex", flexDirection: "column" }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
             <Form.Field>
               <Checkbox
                 checked={this.state.streamSenensor}
@@ -342,9 +294,7 @@ class Controller extends Component<Props> {
               <Fragment>
                 <Checkbox
                   checked={this.state.simulateSensor}
-                  onClick={() =>
-                    this.setupSensorStream(!this.state.simulateSensor)
-                  }
+                  onClick={() => this.setupSensorStream(!this.state.simulateSensor)}
                   label="Simulate Sensors"
                 />
                 <Checkbox
@@ -352,23 +302,19 @@ class Controller extends Component<Props> {
                   onClick={this.toggleAccelerationStream}
                   label="Stream Acceleration"
                 />
-                <Checkbox
-                  checked={this.state.gyro}
-                  onClick={this.toggleGyroStream}
-                  label="Stream Gyro"
-                />
+                <Checkbox checked={this.state.gyro} onClick={this.toggleGyroStream} label="Stream Gyro" />
               </Fragment>
             )}
           </div>
         </Segment>
-        <Segment style={{ width: "100%" }}>
+        <Segment style={{ width: '100%' }}>
           <Checkbox
             label="Logs Anzeigen"
             checked={this.state.showLogs}
             onClick={() => this.setState({ showLogs: !this.state.showLogs })}
           />
           {this.state.showLogs && (
-            <div style={{ margin: "1em" }}>
+            <div style={{ margin: '1em' }}>
               {this.state.lastCommands
                 .slice()
                 .reverse()
@@ -376,29 +322,22 @@ class Controller extends Component<Props> {
                   const ts = new Date(cmd.timeStamp * 1000);
                   return (
                     <div key={cmd.timeStamp}>
-                      {`${ts.toLocaleTimeString()}.${`${ts.getMilliseconds()}`.padEnd(
-                        3,
-                        "0"
-                      )}: `}
+                      {`${ts.toLocaleTimeString()}.${`${ts.getMilliseconds()}`.padEnd(3, '0')}: `}
                       <i>{cmd.key}</i>
                     </div>
                   );
                 })}
             </div>
           )}
-          {this.state.showLogs &&
-            this.state.streamSenensor &&
-            this.state.acceleration && (
-              <div style={{ margin: "1em" }}>
-                <pre>
-                  <code>
-                    {JSON.stringify(this.state.currentAcceleration, null, 2)}
-                  </code>
-                </pre>
-              </div>
-            )}
+          {this.state.showLogs && this.state.streamSenensor && this.state.acceleration && (
+            <div style={{ margin: '1em' }}>
+              <pre>
+                <code>{JSON.stringify(this.state.currentAcceleration, null, 2)}</code>
+              </pre>
+            </div>
+          )}
           {this.state.showLogs && this.state.streamSenensor && this.state.gyro && (
-            <div style={{ margin: "1em" }}>
+            <div style={{ margin: '1em' }}>
               <pre>
                 <code>{JSON.stringify(this.state.currentGyro, null, 2)}</code>
               </pre>

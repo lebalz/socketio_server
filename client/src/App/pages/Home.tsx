@@ -1,6 +1,6 @@
-import React, { Component } from "react";
-import { Link } from "react-router-dom";
-import { Button } from "semantic-ui-react";
+import React, { Component } from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from 'semantic-ui-react';
 
 class Home extends Component {
   state = { noSleepOn: false };
@@ -16,18 +16,18 @@ class Home extends Component {
   render() {
     return (
       <div>
-        <div style={{ textAlign: "center" }}>
+        <div style={{ textAlign: 'center' }}>
           <h1>Controller</h1>
           <div>
             <Button
               icon="lightbulb outline"
-              content={`No Sleep: ${this.state.noSleepOn ? "On" : "Off"}`}
+              content={`No Sleep: ${this.state.noSleepOn ? 'On' : 'Off'}`}
               onClick={this.toggleNoSleep}
-              color={this.state.noSleepOn ? "yellow" : "grey"}
+              color={this.state.noSleepOn ? 'yellow' : 'grey'}
             />
           </div>
 
-          <Link to={"./controller"}>
+          <Link to={'./controller'}>
             <Button
               className="screen-link"
               icon="arrows alternate"
@@ -35,7 +35,7 @@ class Home extends Component {
               onClick={() => ((window as any).noSleep as NoSleep).enable()}
             />
           </Link>
-          <Link to={"./color_panel"}>
+          <Link to={'./color_panel'}>
             <Button
               className="screen-link"
               icon="rss"
@@ -43,7 +43,7 @@ class Home extends Component {
               onClick={() => ((window as any).noSleep as NoSleep).enable()}
             />
           </Link>
-          <Link to={"./color_grid"}>
+          <Link to={'./color_grid'}>
             <Button
               className="screen-link"
               icon="grid layout"

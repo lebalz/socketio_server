@@ -24,7 +24,7 @@ export default class MotionSimulator {
   orientationIntervalId?: NodeJS.Timeout;
 
   constructor() {
-    this.deviceSimulator = document.getElementById("DeviceSimulator") as HTMLDivElement;
+    this.deviceSimulator = document.getElementById('DeviceSimulator') as HTMLDivElement;
   }
 
   startMotionSimulation() {
@@ -53,7 +53,7 @@ export default class MotionSimulator {
     return {
       x: this.dx,
       y: this.dy,
-      z: this.dz
+      z: this.dz,
     };
   }
 
@@ -61,7 +61,7 @@ export default class MotionSimulator {
     return {
       x: this.x,
       y: this.y,
-      z: this.z
+      z: this.z,
     };
   }
 
@@ -69,7 +69,7 @@ export default class MotionSimulator {
     return {
       alpha: this.alpha,
       beta: this.beta,
-      gamma: this.gamma
+      gamma: this.gamma,
     };
   }
 
@@ -91,34 +91,27 @@ export default class MotionSimulator {
     this.counter += 1;
   }
 
-
   emitMotionEvent = () => {
     this.nextValues();
-    const event = new DeviceMotionEvent(
-      "devicemotion",
-      {
-        acceleration: this.acceleration,
-        accelerationIncludingGravity: this.accelerationIncludingGravity,
-        rotationRate: this.rotationRate,
-        interval: INTERVAL
-      }
-    )
+    const event = new DeviceMotionEvent('devicemotion', {
+      acceleration: this.acceleration,
+      accelerationIncludingGravity: this.accelerationIncludingGravity,
+      rotationRate: this.rotationRate,
+      interval: INTERVAL,
+    });
 
     this.deviceSimulator.dispatchEvent(event);
-  }
+  };
 
   emitOrientationEvent = () => {
     this.nextOrientationValues();
-    const event = new DeviceOrientationEvent(
-      "deviceorientation",
-      {
-        alpha: this.alpha,
-        beta: this.beta,
-        gamma: this.gamma,
-        absolute: true
-      }
-    )
+    const event = new DeviceOrientationEvent('deviceorientation', {
+      alpha: this.alpha,
+      beta: this.beta,
+      gamma: this.gamma,
+      absolute: true,
+    });
 
     this.deviceSimulator.dispatchEvent(event);
-  }
+  };
 }

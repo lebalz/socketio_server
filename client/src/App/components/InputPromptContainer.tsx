@@ -1,8 +1,8 @@
-import React from "react";
-import { InputPromptMsg } from "../../Shared/SharedTypings";
-import { InputPrompt as InputPromptModel } from "../models/InputPrompt";
-import InputPrompt from "./InputPrompt";
-import SocketData from "../SocketData";
+import React from 'react';
+import { InputPromptMsg } from '../../Shared/SharedTypings';
+import { InputPrompt as InputPromptModel } from '../models/InputPrompt';
+import InputPrompt from './InputPrompt';
+import SocketData from '../SocketData';
 
 interface Props {
   socket: SocketData;
@@ -20,15 +20,13 @@ class InputPromptContainer extends React.Component<Props> {
 
     props.socket.onInputPrompt = (prompt: InputPromptMsg) => {
       const ntfs = this.state.prompts.slice();
-      ntfs.push(
-        new InputPromptModel(prompt, this.props.socket, this.onResponded)
-      );
+      ntfs.push(new InputPromptModel(prompt, this.props.socket, this.onResponded));
       this.setState({ prompts: ntfs });
     };
   }
 
   onResponded = (prompt: InputPromptModel) => {
-    let prompts = this.state.prompts.slice();
+    const prompts = this.state.prompts.slice();
     if (!prompts.includes(prompt)) {
       return;
     }
@@ -37,13 +35,7 @@ class InputPromptContainer extends React.Component<Props> {
   };
 
   render() {
-    return (
-      <div>
-        {this.state.prompts.length > 0 && (
-          <InputPrompt prompt={this.state.prompts[0]} />
-        )}
-      </div>
-    );
+    return <div>{this.state.prompts.length > 0 && <InputPrompt prompt={this.state.prompts[0]} />}</div>;
   }
 }
 

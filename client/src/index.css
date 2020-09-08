@@ -9,14 +9,11 @@ body {
 .control > .actions {
   display: grid;
   grid-template-areas:
-    ". up ."
-    "left home right"
-    ". down ."
-    "fkeys fkeys fkeys";
+    '. up .'
+    'left home right'
+    '. down .'
+    'fkeys fkeys fkeys';
   gap: 1rem;
-}
-
-.action {
 }
 
 .action.up {

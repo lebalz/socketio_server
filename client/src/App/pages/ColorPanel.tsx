@@ -1,10 +1,6 @@
-import React, { Component } from "react";
-import SocketData, { ClientDataMsg, timeStamp } from "../SocketData";
-import {
-  DataType,
-  PointerContext,
-  ColorPointer,
-} from "../../Shared/SharedTypings";
+import React, { Component } from 'react';
+import SocketData, { ClientDataMsg, timeStamp } from '../SocketData';
+import { DataType, PointerContext, ColorPointer } from '../../Shared/SharedTypings';
 
 interface Props {
   socket: SocketData;
@@ -18,7 +14,7 @@ interface ColorState {
 
 class ColorPanel extends Component<Props> {
   _isMounted = false;
-  state: ColorState = { color: "#aaffff", touched: false, displayedAt: timeStamp() };
+  state: ColorState = { color: '#aaffff', touched: false, displayedAt: timeStamp() };
   socket: SocketData;
 
   // Initialize the state
@@ -29,7 +25,7 @@ class ColorPanel extends Component<Props> {
 
   componentDidUpdate(prevProps: Props, prevState: ColorState) {
     if (this.state.color !== prevState.color) {
-      this.setState({displayedAt: timeStamp()})
+      this.setState({ displayedAt: timeStamp() });
     }
   }
 
@@ -40,9 +36,7 @@ class ColorPanel extends Component<Props> {
 
   componentWillUnmount() {
     this._isMounted = false;
-    const callbackFun = this.socket.onData.indexOf(
-      (f: any) => f === this.onData
-    );
+    const callbackFun = this.socket.onData.indexOf((f: any) => f === this.onData);
     if (callbackFun >= 0) {
       this.socket.onData.splice(callbackFun, callbackFun);
       const colors = this.socket.getData(DataType.Color);
@@ -85,8 +79,8 @@ class ColorPanel extends Component<Props> {
         id="color-panel"
         style={{
           background: this.state.color,
-          position: "relative",
-          userSelect: "none",
+          position: 'relative',
+          userSelect: 'none',
         }}
         onPointerDown={() => this.setState({ touched: true })}
         onPointerUp={this.onClick}
@@ -96,15 +90,15 @@ class ColorPanel extends Component<Props> {
         {this.state.touched && (
           <div
             style={{
-              borderRadius: "50%",
-              width: "0.5rem",
-              height: "0.5rem",
-              position: "absolute",
-              left: "1rem",
-              top: "1rem",
-              background: "red",
+              borderRadius: '50%',
+              width: '0.5rem',
+              height: '0.5rem',
+              position: 'absolute',
+              left: '1rem',
+              top: '1rem',
+              background: 'red',
             }}
-          ></div>
+          />
         )}
       </div>
     );

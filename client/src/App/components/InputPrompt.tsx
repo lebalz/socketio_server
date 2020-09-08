@@ -1,15 +1,7 @@
-import React from "react";
-import {
-  Button,
-  DropdownProps,
-  Header,
-  Input,
-  InputOnChangeData,
-  Modal,
-  Select,
-} from "semantic-ui-react";
-import { InputPrompt as InputPromptModel } from "../models/InputPrompt";
-import { timeStamp } from "../SocketData";
+import React from 'react';
+import { Button, DropdownProps, Header, Input, InputOnChangeData, Modal, Select } from 'semantic-ui-react';
+import { InputPrompt as InputPromptModel } from '../models/InputPrompt';
+import { timeStamp } from '../SocketData';
 
 interface Props {
   prompt: InputPromptModel;
@@ -17,7 +9,7 @@ interface Props {
 
 class InputPrompt extends React.Component<Props> {
   inputRef = React.createRef<Input>();
-  state = { open: true, response: "", displayedAt: timeStamp() };
+  state = { open: true, response: '', displayedAt: timeStamp() };
 
   componentDidMount() {
     this.inputRef.current?.focus();
@@ -30,17 +22,11 @@ class InputPrompt extends React.Component<Props> {
     }
   }
 
-  onChangeSelection = (
-    event: React.SyntheticEvent<HTMLElement, Event>,
-    data: DropdownProps
-  ) => {
+  onChangeSelection = (event: React.SyntheticEvent<HTMLElement, Event>, data: DropdownProps) => {
     this.setState({ response: data.value });
   };
 
-  onChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-    data: InputOnChangeData
-  ) => {
+  onChange = (event: React.ChangeEvent<HTMLInputElement>, data: InputOnChangeData) => {
     this.setState({ response: data.value });
   };
   render() {
@@ -50,7 +36,7 @@ class InputPrompt extends React.Component<Props> {
         <Modal.Content>
           <Modal.Description>
             <Header>{prompt.question}</Header>
-            {prompt.inputType === "select" ? (
+            {prompt.inputType === 'select' ? (
               <Select
                 fluid
                 options={prompt.selectOptions}
@@ -79,9 +65,7 @@ class InputPrompt extends React.Component<Props> {
               content="Send"
               labelPosition="right"
               icon="send"
-              onClick={() =>
-                prompt.respond(this.state.response, this.state.displayedAt)
-              }
+              onClick={() => prompt.respond(this.state.response, this.state.displayedAt)}
               positive
             />
           </Button.Group>

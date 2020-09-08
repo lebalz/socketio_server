@@ -1,22 +1,13 @@
-import {
-  DataType,
-  InputPromptMsg,
-  InputResponse,
-  SelectionPrompt,
-} from "./../../Shared/SharedTypings";
-import SocketData from "../SocketData";
-import { DropdownItemProps } from "semantic-ui-react";
+import { DataType, InputPromptMsg, InputResponse, SelectionPrompt } from './../../Shared/SharedTypings';
+import SocketData from '../SocketData';
+import { DropdownItemProps } from 'semantic-ui-react';
 
 export class InputPrompt {
   prompt: InputPromptMsg;
   socket: SocketData;
   onDone: (n: InputPrompt) => void;
 
-  constructor(
-    prompt: InputPromptMsg,
-    socket: SocketData,
-    onDone: (n: InputPrompt) => void
-  ) {
+  constructor(prompt: InputPromptMsg, socket: SocketData, onDone: (n: InputPrompt) => void) {
     this.prompt = prompt;
     this.socket = socket;
     this.onDone = onDone;
@@ -35,7 +26,7 @@ export class InputPrompt {
   }
 
   get selectOptions(): DropdownItemProps[] {
-    if (this.prompt.input_type !== "select") {
+    if (this.prompt.input_type !== 'select') {
       return [];
     }
     const prompt = this.prompt as SelectionPrompt;
@@ -54,13 +45,13 @@ export class InputPrompt {
   respond(response: string | number | Date, displayedAt: number) {
     const pkg: InputResponse = {
       response: response,
-      displayed_at: displayedAt
-    }
+      displayed_at: displayedAt,
+    };
     this.socket.addData({
       type: DataType.InputResponse,
       time_stamp: this.prompt.time_stamp,
       caller_id: this.prompt.response_id,
-      ...pkg
+      ...pkg,
     });
 
     this.onDone(this);

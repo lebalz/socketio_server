@@ -15,16 +15,16 @@ import {
   InputResponseMsg,
   NotificationMsg,
   InputPromptMsg,
-} from "./client/src/Shared/SharedTypings";
-import express from "express";
-import path from "path";
-import bodyParser from "body-parser";
-import cors from "cors";
-import http from "http";
-import morgan from "morgan";
-import socketIo from "socket.io";
+} from './client/src/Shared/SharedTypings';
+import express from 'express';
+import path from 'path';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import http from 'http';
+import morgan from 'morgan';
+import socketIo from 'socket.io';
 
-const GLOBAL_LISTENER_ROOM = "GLOBAL_LISTENER";
+const GLOBAL_LISTENER_ROOM = 'GLOBAL_LISTENER';
 const THRESHOLD = 100;
 
 /**
@@ -53,7 +53,7 @@ const app = express();
 const server = http.createServer(app);
 
 // Serve the static files from the React app
-app.use(express.static(path.join(__dirname, "client/build")));
+app.use(express.static(path.join(__dirname, 'client/build')));
 
 // ensure the server can call other domains: enable cross origin resource sharing (cors)
 app.use(cors());
@@ -62,7 +62,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // show some helpful logs in the commandline
-app.use(morgan("dev"));
+app.use(morgan('dev'));
 
 /**
  * SOCKET CONFIGURATION
@@ -146,11 +146,7 @@ function allDataPkg(deviceId: string): AllDataPkg {
   };
 }
 
-function informationPkg(
-  message: string,
-  action: TimeStampedMsg,
-  data = {}
-): InformationPkg {
+function informationPkg(message: string, action: TimeStampedMsg, data = {}): InformationPkg {
   return {
     time_stamp: timeStamp(),
     message: message,
@@ -162,11 +158,11 @@ function informationPkg(
 function roomJoinedPkg(roomId: string, device: Device): RoomDevice {
   return {
     room: roomId,
-    device,
+    device: device,
   };
 }
 
-io.on("connection", (socket) => {
+io.on('connection', (socket) => {
   // emit the initial data
   socket.emit(SocketEvents.Devices, devicesPkg());
   const myDevice = socketId_device[socket.id];
@@ -174,7 +170,7 @@ io.on("connection", (socket) => {
     socket.emit(SocketEvents.AllData, allDataPkg(myDevice.device_id));
   }
 
-  socket.on("disconnecting", () => {
+  socket.on('disconnecting', () => {
     const rooms = Object.keys(socket.rooms);
     // the rooms array contains at least the socket ID
     rooms.forEach((room) => {
@@ -187,14 +183,14 @@ io.on("connection", (socket) => {
   });
 
   // report on disconnect
-  socket.on("disconnect", () => {
+  socket.on('disconnect', () => {
     delete socketId_device[socket.id];
     touchDevices();
     io.emit(SocketEvents.Devices, devicesPkg());
   });
 
   socket.on(SocketEvents.NewDevice, (data: NewDevice) => {
-    console.log("Device: ", data);
+    console.log('Device: ', data);
     if (data.old_device_id) {
       socket.leave(data.old_device_id);
       const oldDevice = socketId_device[socket.id];
@@ -214,7 +210,7 @@ io.on("connection", (socket) => {
       const is_client = data.is_client ? true : false;
       const device = {
         device_id: data.device_id,
-        is_client,
+        is_client: is_client,
         device_nr: nextDeviceNr(is_client),
         socket_id: socket.id,
       };
@@ -225,30 +221,21 @@ io.on("connection", (socket) => {
         if (err) {
           socket.emit(SocketEvents.ErrorMsg, {
             type: SocketEvents.NewDevice,
-            err,
+            err: err,
             msg: `Could not join room '${data.device_id}'`,
           });
         } else {
-          io.to(data.device_id).emit(
-            SocketEvents.RoomJoined,
-            roomJoinedPkg(data.device_id, device)
-          );
+          io.to(data.device_id).emit(SocketEvents.RoomJoined, roomJoinedPkg(data.device_id, device));
           socket.emit(SocketEvents.Device, device);
         }
       });
     }
 
     if (data.is_client) {
-      const undeliveredP = undeliveredPrompts.filter(
-        (n) => n.device_id === data.device_id
-      );
+      const undeliveredP = undeliveredPrompts.filter((n) => n.device_id === data.device_id);
 
-      const undeliveredN = undeliveredNotifications.filter(
-        (n) => n.device_id === data.device_id
-      );
-      const undelivered = [...undeliveredN, ...undeliveredP].sort(
-        (a, b) => a.time_stamp - b.time_stamp
-      );
+      const undeliveredN = undeliveredNotifications.filter((n) => n.device_id === data.device_id);
+      const undelivered = [...undeliveredN, ...undeliveredP].sort((a, b) => a.time_stamp - b.time_stamp);
       if (undelivered.length > 0) {
         undelivered.forEach((n) => {
           io.to(n.device_id).emit(SocketEvents.NewData, n);
@@ -271,14 +258,11 @@ io.on("connection", (socket) => {
       const device = socketId_device[socket.id];
       socket.join(data.room, (err) => {
         if (!err) {
-          io.to(data.room).emit(
-            SocketEvents.RoomJoined,
-            roomJoinedPkg(data.room, device)
-          );
+          io.to(data.room).emit(SocketEvents.RoomJoined, roomJoinedPkg(data.room, device));
         } else {
           socket.emit(SocketEvents.ErrorMsg, {
             type: SocketEvents.JoinRoom,
-            err,
+            err: err,
             msg: `Could not join room '${data.room}'`,
           });
         }
@@ -306,7 +290,7 @@ io.on("connection", (socket) => {
         } else {
           socket.emit(SocketEvents.ErrorMsg, {
             type: SocketEvents.LeaveRoom,
-            err,
+            err: err,
             msg: `Could not leave room '${data.room}'`,
           });
         }
@@ -321,10 +305,8 @@ io.on("connection", (socket) => {
     }
     let device_id = data.device_id;
     let unicast_to;
-    if (typeof data.unicast_to === "number") {
-      unicast_to = unorderedDevices().find(
-        (d) => d.device_nr === data.unicast_to
-      );
+    if (typeof data.unicast_to === 'number') {
+      unicast_to = unorderedDevices().find((d) => d.device_nr === data.unicast_to);
       if (unicast_to) {
         device_id = unicast_to.device_id;
         data.broadcast = false;
@@ -361,22 +343,17 @@ io.on("connection", (socket) => {
       try {
         if (data.type === DataType.InputResponse) {
           const prompt = undeliveredPrompts.find(
-            (p) =>
-              p.time_stamp === data.time_stamp && p.device_id === data.device_id
+            (p) => p.time_stamp === data.time_stamp && p.device_id === data.device_id
           );
           if (prompt) {
             undeliveredPrompts.splice(undeliveredPrompts.indexOf(prompt), 1);
           }
         } else if (data.type === DataType.AlertConfirm) {
           const notification = undeliveredNotifications.find(
-            (n) =>
-              n.time_stamp === data.time_stamp && n.device_id === data.device_id
+            (n) => n.time_stamp === data.time_stamp && n.device_id === data.device_id
           );
           if (notification) {
-            undeliveredNotifications.splice(
-              undeliveredNotifications.indexOf(notification),
-              1
-            );
+            undeliveredNotifications.splice(undeliveredNotifications.indexOf(notification), 1);
           }
         }
         io.to(data.caller_id).emit(SocketEvents.NewData, data);
@@ -386,9 +363,7 @@ io.on("connection", (socket) => {
     } else if (data.broadcast) {
       io.emit(SocketEvents.NewData, data);
     } else if (unicast_to) {
-      io.to(unicast_to.socket_id)
-        .to(GLOBAL_LISTENER_ROOM)
-        .emit(SocketEvents.NewData, data);
+      io.to(unicast_to.socket_id).to(GLOBAL_LISTENER_ROOM).emit(SocketEvents.NewData, data);
     } else {
       io.to(device_id).emit(SocketEvents.NewData, data);
       io.to(GLOBAL_LISTENER_ROOM).emit(SocketEvents.NewData, data);
@@ -425,57 +400,46 @@ io.on("connection", (socket) => {
     if (deviceNrAssginmentLocked) {
       return socket.emit(
         SocketEvents.InformationMsg,
-        informationPkg("Error", data, {
-          cause: "another script tries to change the device nr",
+        informationPkg('Error', data, {
+          cause: 'another script tries to change the device nr',
           should_retry: true,
         })
       );
     }
     deviceNrAssginmentLocked = true;
     try {
-      if (!(data.device_id || typeof data.current_device_nr === "number")) {
+      if (!(data.device_id || typeof data.current_device_nr === 'number')) {
         return socket.emit(
           SocketEvents.InformationMsg,
-          informationPkg("Error", data, {
-            cause:
-              'data did not contain valid fields "device_id" or "current_device_nr"',
+          informationPkg('Error', data, {
+            cause: 'data did not contain valid fields "device_id" or "current_device_nr"',
           })
         );
       }
       let deviceToReassign;
-      if (typeof data.current_device_nr === "number") {
-        deviceToReassign = unorderedDevices().find(
-          (d) => d.device_nr === data.current_device_nr
-        );
+      if (typeof data.current_device_nr === 'number') {
+        deviceToReassign = unorderedDevices().find((d) => d.device_nr === data.current_device_nr);
       } else {
         deviceToReassign = devices(data.device_id)[0];
       }
       if (!deviceToReassign) {
         return socket.emit(
           SocketEvents.InformationMsg,
-          informationPkg("Error", data, { cause: "no device found" })
+          informationPkg('Error', data, { cause: 'no device found' })
         );
       }
-      const device = unorderedDevices().find(
-        (d) => d.device_nr === data.new_device_nr
-      );
+      const device = unorderedDevices().find((d) => d.device_nr === data.new_device_nr);
       deviceToReassign.device_nr = data.new_device_nr;
       if (device) {
         device.device_nr = nextDeviceNr(device.is_client);
         io.to(device.socket_id).emit(SocketEvents.Device, device);
       }
-      io.to(deviceToReassign.socket_id).emit(
-        SocketEvents.Device,
-        deviceToReassign
-      );
+      io.to(deviceToReassign.socket_id).emit(SocketEvents.Device, deviceToReassign);
       touchDevices();
       io.emit(SocketEvents.Devices, devicesPkg());
-      socket.emit(SocketEvents.InformationMsg, informationPkg("Success", data));
+      socket.emit(SocketEvents.InformationMsg, informationPkg('Success', data));
     } catch (err) {
-      return socket.emit(
-        SocketEvents.InformationMsg,
-        informationPkg("Error", data, { cause: err })
-      );
+      return socket.emit(SocketEvents.InformationMsg, informationPkg('Error', data, { cause: err }));
     } finally {
       deviceNrAssginmentLocked = false;
     }
@@ -500,8 +464,8 @@ io.on("connection", (socket) => {
 });
 
 // Handles any requests that don't match the ones above
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname + "/client/build/index.html"));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(`${__dirname}/client/build/index.html`));
 });
 
 server.listen(process.env.PORT || 5000);

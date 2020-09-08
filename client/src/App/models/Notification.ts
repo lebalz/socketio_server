@@ -1,13 +1,10 @@
-import { NotificationMsg } from "./../../Shared/SharedTypings";
-import _ from "lodash";
+import { NotificationMsg } from './../../Shared/SharedTypings';
+import _ from 'lodash';
 
 export class Notification {
   notification: NotificationMsg;
   onDismiss: (n: Notification) => void;
-  constructor(
-    notification: NotificationMsg,
-    onDismiss: (n: Notification) => void
-  ) {
+  constructor(notification: NotificationMsg, onDismiss: (n: Notification) => void) {
     this.notification = notification;
     this.onDismiss = onDismiss;
     if (this.notification.time! > 0) {

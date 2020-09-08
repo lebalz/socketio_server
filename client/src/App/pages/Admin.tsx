@@ -1,9 +1,9 @@
-import React, { Component } from "react";
-import { Table, Segment, Button, Checkbox } from "semantic-ui-react";
-import SocketData, { AdminSocketData } from "../SocketData";
-import * as _ from "lodash";
-import NoSleep from "nosleep.js";
-import { SocketEvents, Device, DataMsg } from '../../Shared/SharedTypings'
+import React, { Component } from 'react';
+import { Table, Segment, Button, Checkbox } from 'semantic-ui-react';
+import SocketData, { AdminSocketData } from '../SocketData';
+import * as _ from 'lodash';
+import NoSleep from 'nosleep.js';
+import { SocketEvents, Device, DataMsg } from '../../Shared/SharedTypings';
 
 const THRESHOLD = 20;
 interface Props {
@@ -81,19 +81,15 @@ class ColorPanel extends Component<Props> {
   };
 
   get allEvents() {
-    return _.orderBy(
-      _.flatten(Object.values(this.state.dataStore)),
-      ["time_stamp"],
-      "desc"
-    );
+    return _.orderBy(_.flatten(Object.values(this.state.dataStore)), ['time_stamp'], 'desc');
   }
   render() {
     return (
       <div
         style={{
-          display: "flex",
-          flexDirection: "column",
-          width: "100%",
+          display: 'flex',
+          flexDirection: 'column',
+          width: '100%',
         }}
       >
         <span>
@@ -107,7 +103,7 @@ class ColorPanel extends Component<Props> {
             icon="lightbulb outline"
             content="No Sleep"
             onClick={this.enableNoSleep}
-            color={this.state.noSleepOn ? "yellow" : "grey"}
+            color={this.state.noSleepOn ? 'yellow' : 'grey'}
           />
         </span>
         <Table celled striped compact unstackable>
@@ -117,25 +113,21 @@ class ColorPanel extends Component<Props> {
             </Table.Row>
           </Table.Header>
           <Table.Body>
-            {_.sortBy(this.state.devices, ["device_nr"], "asc").map(
-              (device) => {
-                return (
-                  <Table.Row key={device.socket_id}>
-                    <Table.Cell collapsing textAlign="right">
-                      {device.device_nr}
-                    </Table.Cell>
-                    <Table.Cell collapsing>{device.device_id}</Table.Cell>
-                    <Table.Cell collapsing>
-                      {device.is_client ? "Controller" : "Read Only"}
-                    </Table.Cell>
-                    <Table.Cell collapsing>{device.socket_id}</Table.Cell>
-                  </Table.Row>
-                );
-              }
-            )}
+            {_.sortBy(this.state.devices, ['device_nr'], 'asc').map((device) => {
+              return (
+                <Table.Row key={device.socket_id}>
+                  <Table.Cell collapsing textAlign="right">
+                    {device.device_nr}
+                  </Table.Cell>
+                  <Table.Cell collapsing>{device.device_id}</Table.Cell>
+                  <Table.Cell collapsing>{device.is_client ? 'Controller' : 'Read Only'}</Table.Cell>
+                  <Table.Cell collapsing>{device.socket_id}</Table.Cell>
+                </Table.Row>
+              );
+            })}
           </Table.Body>
         </Table>
-        <div style={{ maxHeight: "70vh", overflowY: "auto" }}>
+        <div style={{ maxHeight: '70vh', overflowY: 'auto' }}>
           <Table celled striped compact unstackable>
             <Table.Header>
               <Table.Row>
@@ -151,9 +143,9 @@ class ColorPanel extends Component<Props> {
                 const ts = new Date(event.time_stamp * 1000);
                 let to = event.device_id;
                 if (event.broadcast) {
-                  to = "broadcast";
+                  to = 'broadcast';
                 }
-                if (typeof event.unicast_to === "number") {
+                if (typeof event.unicast_to === 'number') {
                   to = `${event.unicast_to}`;
                 }
                 return (
@@ -161,16 +153,14 @@ class ColorPanel extends Component<Props> {
                     <Table.Cell collapsing>
                       {event.device_id}:{event.device_nr}
                     </Table.Cell>
-                    <Table.Cell
-                      collapsing
-                    >{`${ts.toLocaleTimeString()}.${`${ts.getMilliseconds()}`.padEnd(
+                    <Table.Cell collapsing>{`${ts.toLocaleTimeString()}.${`${ts.getMilliseconds()}`.padEnd(
                       3,
-                      "0"
+                      '0'
                     )}`}</Table.Cell>
                     <Table.Cell collapsing>{to}</Table.Cell>
                     <Table.Cell collapsing>{event.type}</Table.Cell>
                     <Table.Cell collapsing>
-                      <pre style={{ overflowY: "auto", maxHeight: "10em" }}>
+                      <pre style={{ overflowY: 'auto', maxHeight: '10em' }}>
                         <code>
                           {JSON.stringify(
                             {
@@ -202,7 +192,7 @@ class ColorPanel extends Component<Props> {
           checked={this.state.showRaw}
         />
         {this.state.showRaw && (
-          <Segment style={{ maxHeight: "70vh", overflowY: "auto" }}>
+          <Segment style={{ maxHeight: '70vh', overflowY: 'auto' }}>
             <pre>
               <code>{JSON.stringify(this.state.dataStore, null, 2)}</code>
             </pre>

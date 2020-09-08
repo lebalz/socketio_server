@@ -1,9 +1,9 @@
-import React from "react";
-import { AlertConfirm, DataType, NotificationMsg } from "../../Shared/SharedTypings";
-import { Notification as NotificationModel } from "../models/Notification";
-import Notification from "./Notification";
-import SocketData, { timeStamp } from "../SocketData";
-import { Icon } from "semantic-ui-react";
+import React from 'react';
+import { AlertConfirm, DataType, NotificationMsg } from '../../Shared/SharedTypings';
+import { Notification as NotificationModel } from '../models/Notification';
+import Notification from './Notification';
+import SocketData, { timeStamp } from '../SocketData';
+import { Icon } from 'semantic-ui-react';
 
 interface Props {
   socket: SocketData;
@@ -24,26 +24,24 @@ class NotificationList extends React.Component<Props> {
         const ts = timeStamp();
         window.alert(notification.message);
         const pkg: AlertConfirm = {
-          displayed_at: ts
-        }
+          displayed_at: ts,
+        };
         this.props.socket.addData({
           type: DataType.AlertConfirm,
           time_stamp: notification.time_stamp,
           caller_id: notification.response_id,
-          ...pkg
+          ...pkg,
         });
       } else {
         const ntfs = this.state.notifications.slice();
-        ntfs.push(
-          new NotificationModel(notification, this.onDismissNotification)
-        );
+        ntfs.push(new NotificationModel(notification, this.onDismissNotification));
         this.setState({ notifications: ntfs });
       }
     };
   }
 
   onDismissNotification = (notification: NotificationModel) => {
-    let ntfs = this.state.notifications.slice();
+    const ntfs = this.state.notifications.slice();
     if (!ntfs.includes(notification)) {
       return;
     }
@@ -57,9 +55,9 @@ class NotificationList extends React.Component<Props> {
         {this.state.notifications.length > 1 && (
           <div
             style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              cursor: "pointer",
+              display: 'flex',
+              justifyContent: 'flex-end',
+              cursor: 'pointer',
             }}
             onClick={() => {
               this.setState({ notifications: [] });

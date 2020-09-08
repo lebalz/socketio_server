@@ -14,18 +14,18 @@ export interface BaseMsg extends TimeStampedMsg {
 }
 
 export enum DataType {
-  Key = "key",
-  Grid = "grid",
-  Color = "color",
-  Acceleration = "acceleration",
-  Gyro = "gyro",
-  Pointer = "pointer",
-  Notification = "notification",
-  InputPrompt = "input_prompt",
-  InputResponse = "input_response",
-  Unknown = "unknown",
-  AllData = "all_data",
-  AlertConfirm = "alert_confirm",
+  Key = 'key',
+  Grid = 'grid',
+  Color = 'color',
+  Acceleration = 'acceleration',
+  Gyro = 'gyro',
+  Pointer = 'pointer',
+  Notification = 'notification',
+  InputPrompt = 'input_prompt',
+  InputResponse = 'input_response',
+  Unknown = 'unknown',
+  AllData = 'all_data',
+  AlertConfirm = 'alert_confirm',
 }
 
 export interface DataStore {
@@ -50,7 +50,7 @@ export interface DataMsg extends DataPkg, BaseMsg {}
 export interface NotificationMsg extends DataMsg, TimeStampedMsg {
   type: DataType.Notification;
   message: string;
-  notification_type?: "success" | "error" | "warn";
+  notification_type?: 'success' | 'error' | 'warn';
   time?: number;
   alert?: boolean;
   response_id?: string;
@@ -67,19 +67,13 @@ export interface AlertConfirmMsg extends DataPkg, TimeStampedMsg, AlertConfirm {
 export interface InputPromptMsg extends DataMsg, TimeStampedMsg {
   type: DataType.InputPrompt;
   question: string;
-  input_type?:
-    | "number"
-    | "date"
-    | "text"
-    | "datetime-local"
-    | "time"
-    | "select";
+  input_type?: 'number' | 'date' | 'text' | 'datetime-local' | 'time' | 'select';
   response_id: string;
   options?: string[];
 }
 
 export interface SelectionPrompt extends InputPromptMsg {
-  input_type: "select";
+  input_type: 'select';
   options: string[];
 }
 
@@ -88,17 +82,14 @@ export interface InputResponse {
   displayed_at: number;
 }
 
-export interface InputResponseMsg
-  extends DataPkg,
-    TimeStampedMsg,
-    InputResponse {
+export interface InputResponseMsg extends DataPkg, TimeStampedMsg, InputResponse {
   caller_id: string;
   type: DataType.InputResponse;
 }
 
 export enum PointerContext {
-  Color = "color",
-  Grid = "grid",
+  Color = 'color',
+  Grid = 'grid',
 }
 
 export interface PointerDataMsg extends DataMsg {
@@ -148,23 +139,23 @@ export interface NewDevice {
 export type MessageType = DataMsg | DataPkg | NewDevice | undefined;
 
 export enum SocketEvents {
-  Device = "device",
-  Devices = "devices",
-  AllData = "all_data",
-  NewData = "new_data",
-  Clear = "clear_data",
-  NewDevice = "new_device",
-  GetAllData = "get_all_data",
-  GetDevices = "get_devices",
-  JoinRoom = "join_room",
-  LeaveRoom = "leave_room",
-  RoomLeft = "room_left",
-  RoomJoined = "room_joined",
-  RemoveAll = "remove_all",
-  DataStore = "data_store",
-  ErrorMsg = "error_msg",
-  SetNewDeviceNr = "set_new_device_nr",
-  InformationMsg = "information_msg",
+  Device = 'device',
+  Devices = 'devices',
+  AllData = 'all_data',
+  NewData = 'new_data',
+  Clear = 'clear_data',
+  NewDevice = 'new_device',
+  GetAllData = 'get_all_data',
+  GetDevices = 'get_devices',
+  JoinRoom = 'join_room',
+  LeaveRoom = 'leave_room',
+  RoomLeft = 'room_left',
+  RoomJoined = 'room_joined',
+  RemoveAll = 'remove_all',
+  DataStore = 'data_store',
+  ErrorMsg = 'error_msg',
+  SetNewDeviceNr = 'set_new_device_nr',
+  InformationMsg = 'information_msg',
 }
 
 export interface AllDataPkg {
@@ -179,15 +170,15 @@ export interface DevicesPkg {
 }
 
 export enum Key {
-  Up = "up",
-  Right = "right",
-  Down = "down",
-  Left = "left",
-  Home = "home",
-  F1 = "F1",
-  F2 = "F2",
-  F3 = "F3",
-  F4 = "F4",
+  Up = 'up',
+  Right = 'right',
+  Down = 'down',
+  Left = 'left',
+  Home = 'home',
+  F1 = 'F1',
+  F2 = 'F2',
+  F3 = 'F3',
+  F4 = 'F4',
 }
 
 export interface KeyMsg extends DataMsg {

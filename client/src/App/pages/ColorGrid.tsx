@@ -1,10 +1,6 @@
-import React, { Component } from "react";
-import SocketData, { ClientDataMsg, timeStamp } from "../SocketData";
-import {
-  DataType,
-  PointerContext,
-  GridPointer,
-} from "../../Shared/SharedTypings";
+import React, { Component } from 'react';
+import SocketData, { ClientDataMsg, timeStamp } from '../SocketData';
+import { DataType, PointerContext, GridPointer } from '../../Shared/SharedTypings';
 
 interface Props {
   socket: SocketData;
@@ -22,8 +18,8 @@ class ColorGrid extends Component<Props> {
   _isMounted = false;
   state: GridState = {
     grid: [
-      ["#aaffff", "#ffaaff"],
-      ["#ffaaff", "#aaffff"],
+      ['#aaffff', '#ffaaff'],
+      ['#ffaaff', '#aaffff'],
     ],
     activeCell: undefined,
     x: 0,
@@ -49,21 +45,14 @@ class ColorGrid extends Component<Props> {
     this.socket.onData.push(this.onData);
     const grids = this.socket.getData(DataType.Grid);
     const latestGrid = grids[grids.length - 1];
-    if (
-      latestGrid &&
-      latestGrid.grid &&
-      latestGrid.grid.length > 0 &&
-      latestGrid.grid[0].length > 0
-    ) {
+    if (latestGrid && latestGrid.grid && latestGrid.grid.length > 0 && latestGrid.grid[0].length > 0) {
       this.setState({ grid: latestGrid.grid, displayedAt: timeStamp() });
     }
   }
 
   componentWillUnmount() {
     this._isMounted = false;
-    const callbackFun = this.socket.onData.indexOf(
-      (f: any) => f === this.onData
-    );
+    const callbackFun = this.socket.onData.indexOf((f: any) => f === this.onData);
     if (callbackFun >= 0) {
       this.socket.onData.splice(callbackFun, callbackFun);
     }
@@ -75,7 +64,7 @@ class ColorGrid extends Component<Props> {
       const first_row = grid[0];
       if (first_row.length === 0) {
         // an empty row was provided, set the screen to white
-        this.setState({ grid: [["white"]], displayedAt: undefined });
+        this.setState({ grid: [['white']], displayedAt: undefined });
       } else if (Array.isArray(first_row)) {
         this.setState({ grid: grid, displayedAt: undefined });
       } else {
@@ -107,10 +96,10 @@ class ColorGrid extends Component<Props> {
       <div
         id="color-grid"
         style={{
-          width: "100%",
-          display: "grid",
+          width: '100%',
+          display: 'grid',
           gridTemplateColumns: `repeat(${grid[0].length}, 1fr)`,
-          gridAutoFlow: "row",
+          gridAutoFlow: 'row',
         }}
       >
         {grid.map((row, rowIdx) => {
@@ -123,16 +112,16 @@ class ColorGrid extends Component<Props> {
                 key={key}
                 style={{
                   background: cell,
-                  width: "100%",
-                  paddingTop: "100%",
+                  width: '100%',
+                  paddingTop: '100%',
                   gridRowStart: rowIdx + 1,
                   gridRowEnd: rowIdx + 1,
                   gridColumnStart: colIdx + 1,
                   gridColumnEnd: colIdx + 1,
-                  outline: isActive ? "3px solid grey" : undefined,
-                  outlineOffset: isActive ? "-3px" : undefined,
-                  position: "relative",
-                  userSelect: "none",
+                  outline: isActive ? '3px solid grey' : undefined,
+                  outlineOffset: isActive ? '-3px' : undefined,
+                  position: 'relative',
+                  userSelect: 'none',
                 }}
                 onPointerDown={(e) => {
                   const rect = e.currentTarget.getBoundingClientRect();

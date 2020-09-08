@@ -1,5 +1,5 @@
-import socketioClient from "socket.io-client";
-import * as _ from "lodash";
+import socketioClient from 'socket.io-client';
+import * as _ from 'lodash';
 import {
   DataMsg,
   Device,
@@ -12,9 +12,9 @@ import {
   NotificationMsg,
   InputPromptMsg,
   SendDataPkg,
-} from "../Shared/SharedTypings";
+} from '../Shared/SharedTypings';
 
-const WS_PORT = process.env.NODE_ENV === "production" ? "" : ":5000";
+const WS_PORT = process.env.NODE_ENV === 'production' ? '' : ':5000';
 
 export function timeStamp(): number {
   return Date.now() / 1000.0;
@@ -33,7 +33,7 @@ export default class SocketData {
    *
    * @param {string} deviceId
    */
-  deviceId = "";
+  deviceId = '';
 
   /**
    *
@@ -55,7 +55,8 @@ export default class SocketData {
 
   /**
    *
-   * @param {Array<{device_id: string, device_nr: number, is_client: boolean, socket_id: string}>} all connected devices
+   * @param {Array<{device_id: string, device_nr: number, is_client: boolean, socket_id: string}>}
+   *        all connected devices
    */
   devices: Device[] = [];
   startTime = timeStamp();
@@ -84,10 +85,10 @@ export default class SocketData {
   onInputPrompt?: (question: InputPromptMsg) => void;
 
   constructor() {
-    const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
     const ws_url = `${protocol}://${window.location.hostname}${WS_PORT}`;
     this.socket = socketioClient(ws_url, {
-      transports: ["websocket", "polling"],
+      transports: ['websocket', 'polling'],
     });
     this.socket.on(SocketEvents.Devices, (data: DevicesPkg) => {
       this.devices = data.devices;
@@ -107,9 +108,7 @@ export default class SocketData {
       } else {
         this.otherData.push(...allData);
       }
-      this.onAllData.forEach((callback) =>
-        callback({ ...data, all_data: allData })
-      );
+      this.onAllData.forEach((callback) => callback({ ...data, all_data: allData }));
     });
     this.socket.on(SocketEvents.NewData, (data: ClientDataMsg) => {
       if (data.device_id === this.deviceId) {
@@ -170,11 +169,7 @@ export default class SocketData {
    * @param {Object} data
    * @param {boolean} broadcast
    */
-  emit(
-    event: SocketEvents,
-    data: MessageType = undefined,
-    broadcast: boolean = false
-  ) {
+  emit(event: SocketEvents, data: MessageType = undefined, broadcast: boolean = false) {
     if (!this.socket.connected) {
       this.connect();
     }
@@ -209,7 +204,7 @@ export class AdminSocketData extends SocketData {
   onDataStore?: (ds: DataStore) => void;
   constructor() {
     super();
-    this.deviceId = "GLOBAL_LISTENER";
+    this.deviceId = 'GLOBAL_LISTENER';
     this.emit(SocketEvents.NewDevice, {
       device_id: this.deviceId,
       is_client: false,
@@ -232,7 +227,7 @@ export class AdminSocketData extends SocketData {
   }
 
   get allEvents() {
-    return _.orderBy(this.otherData, ["time_stamp"], "desc");
+    return _.orderBy(this.otherData, ['time_stamp'], 'desc');
   }
 
   destroy() {
