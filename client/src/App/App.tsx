@@ -17,6 +17,7 @@ interface State {
   deviceId: string;
   valid: boolean;
   deviceNr: number;
+  noSleep: boolean;
 }
 
 class App extends Component {
@@ -24,6 +25,7 @@ class App extends Component {
     deviceId: `Device${Math.floor(Math.random() * 899) + 100}`,
     valid: true,
     deviceNr: -1,
+    noSleep: false,
   };
   socket: SocketData = new SocketData();
 
@@ -56,8 +58,24 @@ class App extends Component {
   };
 
   disableNoSleep = () => {
+    this.setNoSleep(false);
+  };
+  setNoSleep = (on: boolean) => {
     try {
-      ((window as any).noSleep as NoSleep).disable();
+      const ns = (window as any).noSleep as any;
+      if (on) {
+        ns.enable();
+        this.setState({ noSleep: true });
+      } else {
+        ns.disable();
+        this.setState({ noSleep: false });
+      }
+    } catch {}
+  };
+  toggleNoSleep = () => {
+    try {
+      const ns = (window as any).noSleep as any;
+      this.setNoSleep(!ns._wakeLock);
     } catch {}
   };
 
@@ -77,6 +95,15 @@ class App extends Component {
           <div>
             <Label size="small" content={`Nr. ${this.state.deviceNr}`} />
           </div>
+          <div>
+            <Label
+              as="a"
+              size="small"
+              icon="lightbulb outline"
+              onClick={this.toggleNoSleep}
+              color={this.state.noSleep ? 'yellow' : undefined}
+            />
+          </div>
           <div className="spacer" />
           <span style={{ margin: '0.25em 0' }}>
             <label htmlFor="device-id" style={{ marginRight: '1em' }}>
@@ -95,7 +122,11 @@ class App extends Component {
           <div className="spacer" />
         </div>
         <Switch>
-          <Route exact path="/" component={Home} />
+          <Route
+            exact
+            path="/"
+            component={() => <Home noSleep={this.state.noSleep} setNoSleep={this.setNoSleep} />}
+          />
           <Route path="/controller/:device_id?" component={() => <Controller socket={this.socket} />} />
           <Route path="/color_panel/:device_id?" component={() => <ColorPanel socket={this.socket} />} />
           <Route path="/color_grid/:device_id?" component={() => <ColorGrid socket={this.socket} />} />

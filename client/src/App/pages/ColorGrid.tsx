@@ -12,19 +12,23 @@ interface GridState {
   x: number;
   y: number;
   displayedAt?: number;
+  width: number;
+  height: number;
 }
 
 class ColorGrid extends Component<Props> {
   _isMounted = false;
   state: GridState = {
     grid: [
-      ['#aaffff', '#ffaaff'],
-      ['#ffaaff', '#aaffff'],
+      ['#000000', '#ffffff'],
+      ['#ffffff', '#000000'],
     ],
     activeCell: undefined,
     x: 0,
     y: 0,
     displayedAt: timeStamp(),
+    width: 500,
+    height: 200,
   };
   // Initialize the state
   socket: SocketData;
@@ -46,8 +50,19 @@ class ColorGrid extends Component<Props> {
     const grids = this.socket.getData(DataType.Grid);
     const latestGrid = grids[grids.length - 1];
     if (latestGrid && latestGrid.grid && latestGrid.grid.length > 0 && latestGrid.grid[0].length > 0) {
-      this.setState({ grid: latestGrid.grid, displayedAt: timeStamp() });
+      this.setState({
+        grid: latestGrid.grid,
+        displayedAt: timeStamp(),
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    } else {
+      this.setState({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
     }
+    window.addEventListener('resize', this.onresize);
   }
 
   componentWillUnmount() {
@@ -56,7 +71,15 @@ class ColorGrid extends Component<Props> {
     if (callbackFun >= 0) {
       this.socket.onData.splice(callbackFun, callbackFun);
     }
+    window.removeEventListener('resize', this.onresize);
   }
+
+  onresize = (ev: UIEvent) => {
+    this.setState({
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
+  };
 
   onData = (data: ClientDataMsg) => {
     if (this._isMounted && data.type === DataType.Grid) {
@@ -90,6 +113,14 @@ class ColorGrid extends Component<Props> {
     });
   }
 
+  get maxWidth() {
+    const rows = this.state.grid.length;
+    const columns = this.state.grid[0].length;
+    const maxCellW = window.innerWidth / columns;
+    const maxCellH = window.innerHeight / rows;
+    return Math.min(maxCellH, maxCellW) * columns;
+  }
+
   render() {
     const grid = this.state.grid;
     return (
@@ -97,13 +128,15 @@ class ColorGrid extends Component<Props> {
         id="color-grid"
         style={{
           width: '100%',
+          maxWidth: `${this.maxWidth}px`,
           display: 'grid',
-          gridTemplateColumns: `repeat(${grid[0].length}, 1fr)`,
           gridAutoFlow: 'row',
+          gridTemplateColumns: `repeat(${grid[0].length}, 1fr)`,
+          outline: '1px dashed lightgrey',
         }}
       >
         {grid.map((row, rowIdx) => {
-          return row.map((cell, colIdx) => {
+          return (typeof row === 'string' ? [row] : row).map((cell, colIdx) => {
             const key = `cell_${rowIdx}_${colIdx}`;
             const isActive = key === this.state.activeCell;
             const label = `[${rowIdx}, ${colIdx}]`;
@@ -111,9 +144,9 @@ class ColorGrid extends Component<Props> {
               <div
                 key={key}
                 style={{
-                  background: cell,
                   width: '100%',
                   paddingTop: '100%',
+                  background: cell,
                   gridRowStart: rowIdx + 1,
                   gridRowEnd: rowIdx + 1,
                   gridColumnStart: colIdx + 1,

@@ -1,17 +1,17 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from 'semantic-ui-react';
+interface Props {
+  noSleep: boolean;
+  setNoSleep: (on: boolean) => void;
+}
 
-class Home extends Component {
-  state = { noSleepOn: false };
+class Home extends Component<Props> {
   toggleNoSleep = () => {
-    if (this.state.noSleepOn) {
-      ((window as any).noSleep as NoSleep).disable();
-      this.setState({ noSleepOn: false });
-    } else {
-      ((window as any).noSleep as NoSleep).enable();
-      this.setState({ noSleepOn: true });
-    }
+    this.props.setNoSleep(!this.props.noSleep);
+  };
+  enableNoSleep = () => {
+    this.props.setNoSleep(true);
   };
   render() {
     return (
@@ -21,9 +21,9 @@ class Home extends Component {
           <div>
             <Button
               icon="lightbulb outline"
-              content={`No Sleep: ${this.state.noSleepOn ? 'On' : 'Off'}`}
+              content={`No Sleep: ${this.props.noSleep ? 'On' : 'Off'}`}
               onClick={this.toggleNoSleep}
-              color={this.state.noSleepOn ? 'yellow' : 'grey'}
+              color={this.props.noSleep ? 'yellow' : 'grey'}
             />
           </div>
 
@@ -32,23 +32,18 @@ class Home extends Component {
               className="screen-link"
               icon="arrows alternate"
               content="Steuertasten"
-              onClick={() => ((window as any).noSleep as NoSleep).enable()}
+              onClick={this.enableNoSleep}
             />
           </Link>
           <Link to={'./color_panel'}>
-            <Button
-              className="screen-link"
-              icon="rss"
-              content="Farbdisplay"
-              onClick={() => ((window as any).noSleep as NoSleep).enable()}
-            />
+            <Button className="screen-link" icon="rss" content="Farbdisplay" onClick={this.enableNoSleep} />
           </Link>
           <Link to={'./color_grid'}>
             <Button
               className="screen-link"
               icon="grid layout"
               content="Farbraster"
-              onClick={() => ((window as any).noSleep as NoSleep).enable()}
+              onClick={this.enableNoSleep}
             />
           </Link>
         </div>
