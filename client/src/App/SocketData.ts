@@ -90,6 +90,10 @@ export default class SocketData {
     this.socket = socketioClient(ws_url, {
       transports: ['websocket', 'polling'],
     });
+    this.configureAndConnect();
+  }
+
+  configureAndConnect() {
     this.socket.on(SocketEvents.Devices, (data: DevicesPkg) => {
       this.devices = data.devices;
       this.onDevices.forEach((callback) => callback(data.devices));
@@ -131,6 +135,12 @@ export default class SocketData {
       });
     });
     this.connect();
+  }
+
+  wakeUp() {
+    if (!this.socket.connected) {
+      this.connect();
+    }
   }
 
   get isDisabled() {

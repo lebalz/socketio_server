@@ -12,20 +12,23 @@ import Admin from './pages/Admin';
 import NoSleep from 'nosleep.js';
 import NotificationList from './components/NotificationList';
 import InputPromptContainer from './components/InputPromptContainer';
+import DeviceIdPrompt from './components/DeviceIdPrompt';
 
 interface State {
   deviceId: string;
   valid: boolean;
   deviceNr: number;
   noSleep: boolean;
+  deviceIdPromptOpen: boolean;
 }
 
 class App extends Component {
   state: State = {
-    deviceId: `Device${Math.floor(Math.random() * 899) + 100}`,
     valid: true,
+    deviceId: '',
     deviceNr: -1,
     noSleep: false,
+    deviceIdPromptOpen: false,
   };
   socket: SocketData = new SocketData();
 
@@ -46,15 +49,18 @@ class App extends Component {
     if (deviceId) {
       this.setState({ deviceId: deviceId });
     }
+    window.addEventListener('focus', this.onWakeUp);
+    this.onWakeUp();
     this.socket.setDeviceId(deviceId || this.state.deviceId);
     (window as any).noSleep = new NoSleep();
   }
 
-  onChangeDeviceId = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const deviceId = event.target.value;
-    this.setState({ deviceId: deviceId });
-    localStorage.setItem('device_id', deviceId);
-    this.socket.setDeviceId(deviceId);
+  componentWillUnmount() {
+    window.removeEventListener('focus', this.onWakeUp);
+  }
+
+  onWakeUp = () => {
+    this.socket.wakeUp();
   };
 
   disableNoSleep = () => {
@@ -77,6 +83,13 @@ class App extends Component {
       const ns = (window as any).noSleep as any;
       this.setNoSleep(!ns._wakeLock);
     } catch {}
+  };
+
+  onSetDeviceId = (deviceId: string) => {
+    this.setState({ deviceId: deviceId, deviceIdPromptOpen: false });
+    this.socket.setDeviceId(deviceId);
+    localStorage.setItem('device_id', deviceId);
+    this.socket.setDeviceId(deviceId);
   };
 
   render() {
@@ -105,20 +118,18 @@ class App extends Component {
             />
           </div>
           <div className="spacer" />
-          <span style={{ margin: '0.25em 0' }}>
+          <div style={{ margin: '0.25em 0' }}>
             <label htmlFor="device-id" style={{ marginRight: '1em' }}>
               DeviceID
             </label>
             <input
-              id="device-id"
-              type="text"
-              onChange={this.onChangeDeviceId}
+              key="device-id"
+              type="string"
               value={this.state.deviceId}
-              title={this.state.valid ? undefined : 'ID wird bereits verwendet'}
-              autoFocus
-              style={{ maxWidth: '10rem' }}
+              readOnly
+              onClick={() => this.setState({ deviceIdPromptOpen: true })}
             />
-          </span>
+          </div>
           <div className="spacer" />
         </div>
         <Switch>
@@ -141,6 +152,12 @@ class App extends Component {
         </Switch>
         <NotificationList socket={this.socket} />
         <InputPromptContainer socket={this.socket} />
+        <DeviceIdPrompt
+          open={this.state.deviceIdPromptOpen}
+          onCancel={() => this.setState({ deviceIdPromptOpen: false })}
+          onSetDeviceId={this.onSetDeviceId}
+          deviceId={this.state.deviceId}
+        />
       </Fragment>
     );
   }

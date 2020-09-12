@@ -113,9 +113,9 @@ class ColorPanel extends Component<Props> {
             </Table.Row>
           </Table.Header>
           <Table.Body>
-            {_.sortBy(this.state.devices, ['device_nr'], 'asc').map((device) => {
+            {_.sortBy(this.state.devices, ['device_nr'], 'asc').map((device, idx) => {
               return (
-                <Table.Row key={device.socket_id}>
+                <Table.Row key={idx}>
                   <Table.Cell collapsing textAlign="right">
                     {device.device_nr}
                   </Table.Cell>
