@@ -4,7 +4,7 @@ import { InputPrompt as InputPromptModel } from '../models/InputPrompt';
 import { timeStamp } from '../SocketData';
 
 interface Props {
-  prompt: InputPromptModel;
+  prompt?: InputPromptModel;
 }
 
 class InputPrompt extends React.Component<Props> {
@@ -15,6 +15,23 @@ class InputPrompt extends React.Component<Props> {
     this.inputRef.current?.focus();
     this.setState({ displayedAt: timeStamp() });
   }
+
+  onMount = () => {
+    window.addEventListener('keyup', this.onEnter);
+  };
+
+  onClose = () => {
+    window.removeEventListener('keyup', this.onEnter);
+    this.props.prompt?.cancel();
+  };
+
+  onEnter = (e: KeyboardEvent) => {
+    console.log(e);
+    if (e.key === 'Enter') {
+      this.props.prompt?.respond(this.state.response, this.state.displayedAt);
+      this.props.prompt?.cancel();
+    }
+  };
 
   componentDidUpdate(prevProps: Props) {
     if (this.props.prompt !== prevProps.prompt) {
@@ -29,14 +46,22 @@ class InputPrompt extends React.Component<Props> {
   onChange = (event: React.ChangeEvent<HTMLInputElement>, data: InputOnChangeData) => {
     this.setState({ response: data.value });
   };
+
   render() {
     const prompt = this.props.prompt;
     return (
-      <Modal open={this.state.open}>
+      <Modal
+        open={this.state.open && !!prompt}
+        closeOnEscape
+        closeOnDimmerClick={false}
+        closeOnDocumentClick={false}
+        onClose={this.onClose}
+        onMount={this.onMount}
+      >
         <Modal.Content>
           <Modal.Description>
-            <Header>{prompt.question}</Header>
-            {prompt.inputType === 'select' ? (
+            <Header>{prompt?.question}</Header>
+            {prompt?.inputType === 'select' ? (
               <Select
                 fluid
                 options={prompt.selectOptions}
@@ -47,10 +72,10 @@ class InputPrompt extends React.Component<Props> {
             ) : (
               <Input
                 ref={this.inputRef}
-                type={prompt.inputType}
+                type={prompt?.inputType}
                 fluid
                 onChange={this.onChange}
-                placeholder={prompt.inputType}
+                placeholder={prompt?.inputType}
                 focus
               />
             )}
@@ -58,14 +83,14 @@ class InputPrompt extends React.Component<Props> {
         </Modal.Content>
         <Modal.Actions>
           <Button.Group fluid attached="bottom">
-            <Button color="red" onClick={() => prompt.cancel()}>
+            <Button color="red" onClick={() => prompt?.cancel()}>
               Cancel
             </Button>
             <Button
               content="Send"
               labelPosition="right"
               icon="send"
-              onClick={() => prompt.respond(this.state.response, this.state.displayedAt)}
+              onClick={() => prompt?.respond(this.state.response, this.state.displayedAt)}
               positive
             />
           </Button.Group>

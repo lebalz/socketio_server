@@ -35,7 +35,11 @@ class InputPromptContainer extends React.Component<Props> {
   };
 
   render() {
-    return <div>{this.state.prompts.length > 0 && <InputPrompt prompt={this.state.prompts[0]} />}</div>;
+    return (
+      <div>
+        <InputPrompt prompt={this.state.prompts[0]} />
+      </div>
+    );
   }
 }
 
