@@ -18,6 +18,9 @@ interface ControllerState {
   currentGyro?: GyroMsg;
   lastCommands: { timeStamp: number; key: Key }[];
   showLogs: boolean;
+  active: {
+    [key in Key]?: boolean;
+  };
 }
 
 class Controller extends Component<Props> {
@@ -30,6 +33,7 @@ class Controller extends Component<Props> {
     currentGyro: undefined,
     lastCommands: [],
     showLogs: true,
+    active: {},
   };
   simulator = new MotionSimulator();
   socket: SocketData;
@@ -40,8 +44,18 @@ class Controller extends Component<Props> {
     this.socket = props.socket;
   }
 
+  componentDidMount() {
+    window.addEventListener('keyup', this.onKey);
+  }
   componentWillUnmount() {
+    window.removeEventListener('keyup', this.onKey);
     this.stopSensorStream();
+  }
+
+  setActive(key: Key, active: boolean) {
+    const activeState = { ...this.state.active };
+    activeState[key] = active;
+    this.setState({ active: activeState });
   }
 
   onClick(action: Key) {
@@ -50,7 +64,10 @@ class Controller extends Component<Props> {
       cmds.shift();
     }
     cmds.push({ timeStamp: timeStamp(), key: action });
-    this.setState({ lastCommands: cmds });
+    this.setActive(action, true);
+    setTimeout(() => {
+      this.setActive(action, false);
+    }, 200);
     this.socket.addData({ type: DataType.Key, key: action });
   }
 
@@ -248,6 +265,32 @@ class Controller extends Component<Props> {
         return undefined;
     }
   }
+  onKey = (e: KeyboardEvent) => {
+    switch (e.code) {
+      case 'Space':
+        return this.onClick(Key.Home);
+      case 'ArrowRight':
+        return this.onClick(Key.Right);
+      case 'ArrowLeft':
+        return this.onClick(Key.Left);
+      case 'ArrowUp':
+        return this.onClick(Key.Up);
+      case 'ArrowDown':
+        return this.onClick(Key.Down);
+      case 'F1':
+      case 'Digit1':
+        return this.onClick(Key.F1);
+      case 'F2':
+      case 'Digit2':
+        return this.onClick(Key.F2);
+      case 'F3':
+      case 'Digit3':
+        return this.onClick(Key.F3);
+      case 'F4':
+      case 'Digit4':
+        return this.onClick(Key.F4);
+    }
+  };
 
   render() {
     return (
@@ -263,6 +306,7 @@ class Controller extends Component<Props> {
                   onClick={() => this.onClick(key)}
                   className={`action ${key}`}
                   size="huge"
+                  active={this.state.active[key]}
                 />
               );
             })}
@@ -275,6 +319,7 @@ class Controller extends Component<Props> {
                     className={`action ${key}`}
                     content={key.toUpperCase()}
                     size="medium"
+                    active={this.state.active[key]}
                   />
                 );
               })}

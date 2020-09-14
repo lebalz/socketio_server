@@ -66,6 +66,7 @@ class App extends Component {
   disableNoSleep = () => {
     this.setNoSleep(false);
   };
+
   setNoSleep = (on: boolean) => {
     try {
       const ns = (window as any).noSleep as any;
