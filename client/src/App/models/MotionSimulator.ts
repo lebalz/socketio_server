@@ -36,19 +36,27 @@ export default class MotionSimulator {
   }
 
   startMotionSimulation() {
+    if (!!this.motionIntervalId) {
+      return;
+    }
     this.motionIntervalId = setInterval(this.emitMotionEvent, INTERVAL);
   }
   startOrientationSimulation() {
+    if (!!this.orientationIntervalId) {
+      return;
+    }
     this.orientationIntervalId = setInterval(this.emitOrientationEvent, INTERVAL);
   }
   stopMotionSimulation() {
     if (this.motionIntervalId) {
       clearInterval(this.motionIntervalId);
+      this.motionIntervalId = undefined;
     }
   }
   stopOrientationSimulation() {
     if (this.orientationIntervalId) {
       clearInterval(this.orientationIntervalId);
+      this.orientationIntervalId = undefined;
     }
   }
 

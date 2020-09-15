@@ -18,6 +18,17 @@ class ISensorDevice<T> extends Component<Props<T>> {
   };
   simulator?: MotionSimulator;
 
+  componentDidMount() {
+    const isOn = localStorage.getItem(`${this.props.sensorEventName}`) === 'on';
+    if (isOn) {
+      if (this.props.on) {
+        this.start();
+      } else {
+        this.setState({ on: true });
+      }
+    }
+  }
+
   componentDidUpdate(prevProps: Props<T>) {
     if (this.props.on !== prevProps.on) {
       if (this.props.on) {
@@ -50,17 +61,16 @@ class ISensorDevice<T> extends Component<Props<T>> {
   }
 
   start(force: boolean = false) {
-    if (this.state.on && !force) {
-      // already running, nothing to do
-      return;
-    }
     this.requestPermission(() => {
       if (this.props.simulate) {
+        if (!this.deviceSimulator) {
+          return;
+        }
         if (!this.simulator) {
           this.simulator = new MotionSimulator();
         }
-        this.deviceSimulator?.addEventListener(this.props.sensorEventName, this.onData as any, true);
-        this.simulator?.start(this.props.sensorEventName);
+        this.deviceSimulator.addEventListener(this.props.sensorEventName, this.onData as any, true);
+        this.simulator.start(this.props.sensorEventName);
       } else {
         window.addEventListener(this.props.sensorEventName, this.onData, true);
       }
@@ -77,8 +87,10 @@ class ISensorDevice<T> extends Component<Props<T>> {
 
   toggleOn = () => {
     if (this.state.on) {
+      localStorage.setItem(`${this.props.sensorEventName}`, 'off');
       this.stop();
     } else {
+      localStorage.setItem(`${this.props.sensorEventName}`, 'on');
       this.start();
     }
   };
