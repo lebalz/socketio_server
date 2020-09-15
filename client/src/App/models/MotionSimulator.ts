@@ -27,6 +27,14 @@ export default class MotionSimulator {
     this.deviceSimulator = document.getElementById('DeviceSimulator') as HTMLDivElement;
   }
 
+  start(sensorEventName: 'devicemotion' | 'deviceorientation') {
+    if (sensorEventName === 'devicemotion') {
+      this.startMotionSimulation();
+    } else if (sensorEventName === 'deviceorientation') {
+      this.startOrientationSimulation();
+    }
+  }
+
   startMotionSimulation() {
     this.motionIntervalId = setInterval(this.emitMotionEvent, INTERVAL);
   }

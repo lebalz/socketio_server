@@ -26,7 +26,6 @@ class InputPrompt extends React.Component<Props> {
   };
 
   onEnter = (e: KeyboardEvent) => {
-    console.log(e);
     if (e.key === 'Enter') {
       this.props.prompt?.respond(this.state.response, this.state.displayedAt);
       this.props.prompt?.cancel();

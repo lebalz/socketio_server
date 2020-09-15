@@ -1,9 +1,11 @@
 import React, { Component, Fragment } from 'react';
 import { Button, Checkbox, Segment, Form, IconProps } from 'semantic-ui-react';
-import MotionSimulator from '../Simulator';
+import MotionSimulator from '../models/MotionSimulator';
 import SocketData, { timeStamp } from '../SocketData';
 import { Key, AccMsg, GyroMsg, DataType } from '../../Shared/SharedTypings';
 import { SemanticShorthandItem } from 'semantic-ui-react/dist/commonjs/generic';
+import AccSensor from '../components/AccSensor';
+import GyroSensor from '../components/GyroSensor';
 
 interface Props {
   socket: SocketData;
@@ -49,7 +51,6 @@ class Controller extends Component<Props> {
   }
   componentWillUnmount() {
     window.removeEventListener('keyup', this.onKey);
-    this.stopSensorStream();
   }
 
   setActive(key: Key, active: boolean) {
@@ -70,187 +71,6 @@ class Controller extends Component<Props> {
     }, 200);
     this.socket.addData({ type: DataType.Key, key: action });
   }
-
-  requestMotionPermission(onGrant: () => void) {
-    // feature detect
-    if (typeof DeviceMotionEvent.requestPermission === 'function') {
-      DeviceMotionEvent.requestPermission()
-        .then((permissionState) => {
-          if (permissionState === 'granted') {
-            onGrant();
-          }
-        })
-        .catch(console.error);
-    } else {
-      onGrant();
-    }
-  }
-
-  requestOrientationPermission(onGrant: () => void) {
-    // feature detect
-    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-      DeviceOrientationEvent.requestPermission()
-        .then((permissionState) => {
-          if (permissionState === 'granted') {
-            onGrant();
-          }
-        })
-        .catch(console.error);
-    } else {
-      onGrant();
-    }
-  }
-
-  onDevicemotion = (e: DeviceMotionEvent) => {
-    if (!this.state.acceleration) {
-      return;
-    }
-    if (e.accelerationIncludingGravity == null) {
-      return;
-    }
-    const motionData = {
-      type: DataType.Acceleration,
-      x: e.accelerationIncludingGravity.x ?? 0,
-      y: e.accelerationIncludingGravity.y ?? 0,
-      z: e.accelerationIncludingGravity.z ?? 0,
-      interval: e.interval,
-    };
-    this.setState({ currentAcceleration: motionData });
-    this.socket.addData(motionData);
-  };
-
-  onDeviceOrientation = (e: DeviceOrientationEvent) => {
-    if (!this.state.gyro) {
-      return;
-    }
-    const gyroData = {
-      type: DataType.Gyro,
-      alpha: e.alpha,
-      beta: e.beta,
-      gamma: e.gamma,
-      absolute: e.absolute,
-    };
-    this.setState({ currentGyro: gyroData });
-    this.socket.addData(gyroData);
-  };
-
-  setupAccelerationStream(simulateSensor: boolean) {
-    const deviceSimulator = document.getElementById('DeviceSimulator');
-
-    if (!deviceSimulator) {
-      return;
-    }
-    this.requestMotionPermission(() => {
-      if (simulateSensor) {
-        deviceSimulator.addEventListener('devicemotion', this.onDevicemotion as any, true);
-        window.removeEventListener('devicemotion', this.onDevicemotion, true);
-        this.simulator.startMotionSimulation();
-        this.setState({ simulateSensor: simulateSensor, streamSenensor: true });
-      } else {
-        deviceSimulator.removeEventListener('devicemotion', this.onDevicemotion as any, true);
-        window.addEventListener('devicemotion', this.onDevicemotion, true);
-        this.simulator.stopMotionSimulation();
-        this.setState({ simulateSensor: simulateSensor, streamSenensor: true });
-      }
-    });
-  }
-
-  setupGyroStream(simulateSensor: boolean) {
-    const deviceSimulator = document.getElementById('DeviceSimulator');
-
-    if (!deviceSimulator) {
-      return;
-    }
-    this.requestOrientationPermission(() => {
-      if (simulateSensor) {
-        deviceSimulator.addEventListener('deviceorientation', this.onDeviceOrientation as any, true);
-        window.removeEventListener('deviceorientation', this.onDeviceOrientation, true);
-        this.simulator.startOrientationSimulation();
-        this.setState({ simulateSensor: simulateSensor, streamSenensor: true });
-      } else {
-        deviceSimulator.removeEventListener('deviceorientation', this.onDeviceOrientation as any, true);
-        window.addEventListener('deviceorientation', this.onDeviceOrientation, true);
-        this.simulator.stopOrientationSimulation();
-        this.setState({ simulateSensor: simulateSensor, streamSenensor: true });
-      }
-    });
-  }
-
-  setupSensorStream(simulateSensor: boolean) {
-    if (this.state.acceleration) {
-      this.setupAccelerationStream(simulateSensor);
-    }
-    if (this.state.gyro) {
-      this.setupGyroStream(simulateSensor);
-    }
-    this.setState({ simulateSensor: simulateSensor });
-  }
-
-  stopSensorStream = () => {
-    const deviceSimulator = document.getElementById('DeviceSimulator');
-
-    if (!deviceSimulator) {
-      return;
-    }
-
-    window.removeEventListener('devicemotion', this.onDevicemotion, true);
-    window.removeEventListener('deviceorientation', this.onDeviceOrientation, true);
-    deviceSimulator.removeEventListener('devicemotion', this.onDevicemotion as any, true);
-    deviceSimulator.removeEventListener('deviceorientation', this.onDeviceOrientation as any, true);
-    this.simulator.stopSimulation();
-    this.setState({ streamSenensor: false });
-  };
-
-  toggleSensorStream = () => {
-    const deviceSimulator = document.getElementById('DeviceSimulator');
-
-    if (!deviceSimulator) {
-      return;
-    }
-
-    if (this.state.streamSenensor) {
-      this.stopSensorStream();
-    } else {
-      this.setupSensorStream(this.state.simulateSensor);
-      this.setState({ streamSenensor: true });
-    }
-  };
-
-  toggleAccelerationStream = () => {
-    const deviceSimulator = document.getElementById('DeviceSimulator');
-
-    if (!deviceSimulator) {
-      return;
-    }
-
-    if (this.state.acceleration) {
-      window.removeEventListener('devicemotion', this.onDevicemotion, true);
-      deviceSimulator.removeEventListener('devicemotion', this.onDevicemotion as any, true);
-      this.simulator.stopMotionSimulation();
-      this.setState({ acceleration: false });
-    } else {
-      this.setupAccelerationStream(this.state.simulateSensor);
-      this.setState({ acceleration: true });
-    }
-  };
-
-  toggleGyroStream = () => {
-    const deviceSimulator = document.getElementById('DeviceSimulator');
-
-    if (!deviceSimulator) {
-      return;
-    }
-
-    if (this.state.gyro) {
-      window.removeEventListener('deviceorientation', this.onDeviceOrientation, true);
-      deviceSimulator.removeEventListener('deviceorientation', this.onDeviceOrientation as any, true);
-      this.simulator.stopOrientationSimulation();
-      this.setState({ gyro: false });
-    } else {
-      this.setupGyroStream(this.state.simulateSensor);
-      this.setState({ gyro: true });
-    }
-  };
 
   keyIcon(key: Key): SemanticShorthandItem<IconProps> {
     switch (key) {
@@ -331,7 +151,7 @@ class Controller extends Component<Props> {
             <Form.Field>
               <Checkbox
                 checked={this.state.streamSenensor}
-                onClick={this.toggleSensorStream}
+                onClick={() => this.setState({ streamSenensor: !this.state.streamSenensor })}
                 label="Sensoren Streamen"
               />
             </Form.Field>
@@ -339,15 +159,19 @@ class Controller extends Component<Props> {
               <Fragment>
                 <Checkbox
                   checked={this.state.simulateSensor}
-                  onClick={() => this.setupSensorStream(!this.state.simulateSensor)}
+                  onClick={() => this.setState({ simulateSensor: !this.state.simulateSensor })}
                   label="Simulate Sensors"
                 />
-                <Checkbox
-                  checked={this.state.acceleration}
-                  onClick={this.toggleAccelerationStream}
-                  label="Stream Acceleration"
+                <AccSensor
+                  simulate={this.state.simulateSensor}
+                  onData={(data) => this.socket.addData(data)}
+                  on={this.state.streamSenensor}
                 />
-                <Checkbox checked={this.state.gyro} onClick={this.toggleGyroStream} label="Stream Gyro" />
+                <GyroSensor
+                  simulate={this.state.simulateSensor}
+                  onData={(data) => this.socket.addData(data)}
+                  on={this.state.streamSenensor}
+                />
               </Fragment>
             )}
           </div>
