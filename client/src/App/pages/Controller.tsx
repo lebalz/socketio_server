@@ -2,10 +2,10 @@ import React, { Component, Fragment } from 'react';
 import { Button, Checkbox, Segment, Form, IconProps } from 'semantic-ui-react';
 import MotionSimulator from '../models/MotionSimulator';
 import SocketData, { timeStamp } from '../SocketData';
-import { Key, AccMsg, GyroMsg, DataType } from '../../Shared/SharedTypings';
+import { Key, DataType } from '../../Shared/SharedTypings';
 import { SemanticShorthandItem } from 'semantic-ui-react/dist/commonjs/generic';
-import AccSensor from '../components/AccSensor';
-import GyroSensor from '../components/GyroSensor';
+import AccSensor, { AccelerationData } from '../components/AccSensor';
+import GyroSensor, { GyroData } from '../components/GyroSensor';
 
 interface Props {
   socket: SocketData;
@@ -16,8 +16,8 @@ interface ControllerState {
   simulateSensor: boolean;
   acceleration: boolean;
   gyro: boolean;
-  currentAcceleration?: AccMsg;
-  currentGyro?: GyroMsg;
+  lastAcceleration?: AccelerationData;
+  lastGyro?: GyroData;
   lastCommands: { timeStamp: number; key: Key }[];
   showLogs: boolean;
   active: {
@@ -31,8 +31,8 @@ class Controller extends Component<Props> {
     simulateSensor: false,
     acceleration: true,
     gyro: true,
-    currentAcceleration: undefined,
-    currentGyro: undefined,
+    lastAcceleration: undefined,
+    lastGyro: undefined,
     lastCommands: [],
     showLogs: true,
     active: {},
@@ -48,6 +48,12 @@ class Controller extends Component<Props> {
 
   componentDidMount() {
     window.addEventListener('keyup', this.onKey);
+    if (localStorage.getItem('stream_sensor') === 'on') {
+      this.setState({ streamSenensor: true });
+    }
+    if (localStorage.getItem('simulate_sensor') === 'yes') {
+      this.setState({ simulateSensor: true });
+    }
   }
   componentWillUnmount() {
     window.removeEventListener('keyup', this.onKey);
@@ -112,6 +118,28 @@ class Controller extends Component<Props> {
     }
   };
 
+  toggleSensorStream = () => {
+    const stream = !this.state.streamSenensor;
+    this.setState({ streamSenensor: stream });
+    localStorage.setItem('stream_sensor', stream ? 'on' : 'off');
+  };
+
+  toggleSimulateSensor = () => {
+    const simulate = !this.state.simulateSensor;
+    this.setState({ simulateSensor: simulate });
+    localStorage.setItem('simulate_sensor', simulate ? 'yes' : 'no');
+  };
+
+  onAccelerationData = (data: AccelerationData) => {
+    this.socket.addData(data);
+    this.setState({ lastAcceleration: data });
+  };
+
+  onGyroData = (data: GyroData) => {
+    this.socket.addData(data);
+    this.setState({ lastGyro: data });
+  };
+
   render() {
     return (
       <Fragment>
@@ -151,7 +179,7 @@ class Controller extends Component<Props> {
             <Form.Field>
               <Checkbox
                 checked={this.state.streamSenensor}
-                onClick={() => this.setState({ streamSenensor: !this.state.streamSenensor })}
+                onClick={this.toggleSensorStream}
                 label="Sensoren Streamen"
               />
             </Form.Field>
@@ -159,17 +187,17 @@ class Controller extends Component<Props> {
               <Fragment>
                 <Checkbox
                   checked={this.state.simulateSensor}
-                  onClick={() => this.setState({ simulateSensor: !this.state.simulateSensor })}
+                  onClick={this.toggleSimulateSensor}
                   label="Simulate Sensors"
                 />
                 <AccSensor
                   simulate={this.state.simulateSensor}
-                  onData={(data) => this.socket.addData(data)}
+                  onData={this.onAccelerationData}
                   on={this.state.streamSenensor}
                 />
                 <GyroSensor
                   simulate={this.state.simulateSensor}
-                  onData={(data) => this.socket.addData(data)}
+                  onData={this.onGyroData}
                   on={this.state.streamSenensor}
                 />
               </Fragment>
@@ -201,14 +229,14 @@ class Controller extends Component<Props> {
           {this.state.showLogs && this.state.streamSenensor && this.state.acceleration && (
             <div style={{ margin: '1em' }}>
               <pre>
-                <code>{JSON.stringify(this.state.currentAcceleration, null, 2)}</code>
+                <code>{JSON.stringify(this.state.lastAcceleration, null, 2)}</code>
               </pre>
             </div>
           )}
           {this.state.showLogs && this.state.streamSenensor && this.state.gyro && (
             <div style={{ margin: '1em' }}>
               <pre>
-                <code>{JSON.stringify(this.state.currentGyro, null, 2)}</code>
+                <code>{JSON.stringify(this.state.lastGyro, null, 2)}</code>
               </pre>
             </div>
           )}

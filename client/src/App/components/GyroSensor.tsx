@@ -3,7 +3,7 @@ import { Checkbox } from 'semantic-ui-react';
 import { DataType } from 'src/Shared/SharedTypings';
 import ISensorDevice from './ISensorDevice';
 
-interface GyroData {
+export interface GyroData {
   type: DataType.Gyro;
   alpha: number;
   beta: number;

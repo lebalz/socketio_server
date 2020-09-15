@@ -3,7 +3,7 @@ import { Checkbox } from 'semantic-ui-react';
 import { DataType } from 'src/Shared/SharedTypings';
 import ISensorDevice from './ISensorDevice';
 
-interface AccData {
+export interface AccelerationData {
   type: DataType.Acceleration;
   x: number;
   y: number;
@@ -14,10 +14,10 @@ interface AccData {
 interface Props {
   on: boolean;
   simulate: boolean;
-  onData: (data: AccData) => void;
+  onData: (data: AccelerationData) => void;
 }
 
-class MotionDevice extends ISensorDevice<AccData> {
+class MotionDevice extends ISensorDevice<AccelerationData> {
   requestPermission(onGrant: () => void) {
     // feature detect
     if (typeof DeviceMotionEvent.requestPermission === 'function') {
@@ -40,7 +40,7 @@ class MotionDevice extends ISensorDevice<AccData> {
     if (e.accelerationIncludingGravity == null) {
       return;
     }
-    const motionData: AccData = {
+    const motionData: AccelerationData = {
       type: DataType.Acceleration,
       x: e.accelerationIncludingGravity.x ?? 0,
       y: e.accelerationIncludingGravity.y ?? 0,
