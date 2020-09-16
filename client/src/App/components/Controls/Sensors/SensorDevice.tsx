@@ -1,6 +1,6 @@
 import { Component } from 'react';
-import MotionSimulator from '../models/MotionSimulator';
-import IController, { Props as IControllerProps } from './IController';
+import MotionSimulator from '../../../models/MotionSimulator';
+import IController, { Props as IControllerProps } from '../IController';
 
 interface Props<T> extends IControllerProps<T> {
   on: boolean;

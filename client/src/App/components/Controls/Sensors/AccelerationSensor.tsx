@@ -55,7 +55,7 @@ class MotionDevice extends SensorDevice<AccelerationData> {
   }
 }
 
-const AccSensor = (props: Props) => {
+const AccelerationSensor = (props: Props) => {
   return <MotionDevice {...props} sensorEventName="devicemotion" />;
 };
-export default AccSensor;
+export default AccelerationSensor;

@@ -3,9 +3,9 @@ import { Checkbox, Segment, Form } from 'semantic-ui-react';
 import MotionSimulator from '../models/MotionSimulator';
 import SocketData, { timeStamp } from '../SocketData';
 import { Key } from '../../Shared/SharedTypings';
-import AccSensor, { AccelerationData } from '../components/AccSensor';
-import GyroSensor, { GyroData } from '../components/GyroSensor';
-import KeyControls, { KeyData } from '../components/KeyControls';
+import AccelerationSensor, { AccelerationData } from '../components/Controls/Sensors/AccelerationSensor';
+import GyroSensor, { GyroData } from '../components/Controls/Sensors/GyroSensor';
+import KeyControls, { KeyData } from '../components/Controls/KeyControls';
 
 interface Props {
   socket: SocketData;
@@ -113,7 +113,7 @@ class Controller extends Component<Props> {
                   onClick={this.toggleSimulateSensor}
                   label="Simulate Sensors"
                 />
-                <AccSensor
+                <AccelerationSensor
                   simulate={this.state.simulateSensor}
                   onData={this.onAccelerationData}
                   on={this.state.streamSenensor}

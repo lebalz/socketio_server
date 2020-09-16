@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Button, IconProps } from 'semantic-ui-react';
-import { Key, DataType } from '../../Shared/SharedTypings';
+import { Key, DataType } from '../../../Shared/SharedTypings';
 import { SemanticShorthandItem } from 'semantic-ui-react/dist/commonjs/generic';
 import IController from './IController';
 
