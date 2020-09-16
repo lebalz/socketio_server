@@ -1,11 +1,11 @@
 import React, { Component, Fragment } from 'react';
-import { Button, Checkbox, Segment, Form, IconProps } from 'semantic-ui-react';
+import { Checkbox, Segment, Form } from 'semantic-ui-react';
 import MotionSimulator from '../models/MotionSimulator';
 import SocketData, { timeStamp } from '../SocketData';
-import { Key, DataType } from '../../Shared/SharedTypings';
-import { SemanticShorthandItem } from 'semantic-ui-react/dist/commonjs/generic';
+import { Key } from '../../Shared/SharedTypings';
 import AccSensor, { AccelerationData } from '../components/AccSensor';
 import GyroSensor, { GyroData } from '../components/GyroSensor';
+import KeyControls, { KeyData } from '../components/KeyControls';
 
 interface Props {
   socket: SocketData;
@@ -47,16 +47,12 @@ class Controller extends Component<Props> {
   }
 
   componentDidMount() {
-    window.addEventListener('keyup', this.onKey);
     if (localStorage.getItem('stream_sensor') === 'on') {
       this.setState({ streamSenensor: true });
     }
     if (localStorage.getItem('simulate_sensor') === 'yes') {
       this.setState({ simulateSensor: true });
     }
-  }
-  componentWillUnmount() {
-    window.removeEventListener('keyup', this.onKey);
   }
 
   setActive(key: Key, active: boolean) {
@@ -65,57 +61,14 @@ class Controller extends Component<Props> {
     this.setState({ active: activeState });
   }
 
-  onClick(action: Key) {
+  onKeyData = (data: KeyData) => {
     const cmds = this.state.lastCommands;
     if (cmds.length > 5) {
       cmds.shift();
     }
-    cmds.push({ timeStamp: timeStamp(), key: action });
-    this.setActive(action, true);
-    setTimeout(() => {
-      this.setActive(action, false);
-    }, 200);
-    this.socket.addData({ type: DataType.Key, key: action });
-  }
-
-  keyIcon(key: Key): SemanticShorthandItem<IconProps> {
-    switch (key) {
-      case Key.Up:
-      case Key.Right:
-      case Key.Left:
-      case Key.Down:
-        return `angle ${key}`;
-      case Key.Home:
-        return 'circle';
-      default:
-        return undefined;
-    }
-  }
-  onKey = (e: KeyboardEvent) => {
-    switch (e.code) {
-      case 'Space':
-        return this.onClick(Key.Home);
-      case 'ArrowRight':
-        return this.onClick(Key.Right);
-      case 'ArrowLeft':
-        return this.onClick(Key.Left);
-      case 'ArrowUp':
-        return this.onClick(Key.Up);
-      case 'ArrowDown':
-        return this.onClick(Key.Down);
-      case 'F1':
-      case 'Digit1':
-        return this.onClick(Key.F1);
-      case 'F2':
-      case 'Digit2':
-        return this.onClick(Key.F2);
-      case 'F3':
-      case 'Digit3':
-        return this.onClick(Key.F3);
-      case 'F4':
-      case 'Digit4':
-        return this.onClick(Key.F4);
-    }
+    cmds.push({ timeStamp: timeStamp(), key: data.key });
+    this.setState({ lastCommands: cmds });
+    this.socket.addData(data);
   };
 
   toggleSensorStream = () => {
@@ -143,37 +96,7 @@ class Controller extends Component<Props> {
   render() {
     return (
       <Fragment>
-        <div className="control">
-          <h1>Controller</h1>
-          <div className="actions">
-            {[Key.Down, Key.Home, Key.Left, Key.Right, Key.Up].map((key) => {
-              return (
-                <Button
-                  key={key}
-                  icon={this.keyIcon(key)}
-                  onClick={() => this.onClick(key)}
-                  className={`action ${key}`}
-                  size="huge"
-                  active={this.state.active[key]}
-                />
-              );
-            })}
-            <div className="function-keys">
-              {[Key.F1, Key.F2, Key.F3, Key.F4].map((key) => {
-                return (
-                  <Button
-                    key={key}
-                    onClick={() => this.onClick(key)}
-                    className={`action ${key}`}
-                    content={key.toUpperCase()}
-                    size="medium"
-                    active={this.state.active[key]}
-                  />
-                );
-              })}
-            </div>
-          </div>
-        </div>
+        <KeyControls onData={this.onKeyData} />
         <Segment>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <Form.Field>
