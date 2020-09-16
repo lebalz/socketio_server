@@ -1,7 +1,7 @@
 import React from 'react';
 import { Checkbox } from 'semantic-ui-react';
 import { DataType } from 'src/Shared/SharedTypings';
-import ISensorDevice from './ISensorDevice';
+import SensorDevice from './SensorDevice';
 
 export interface AccelerationData {
   type: DataType.Acceleration;
@@ -17,7 +17,7 @@ interface Props {
   onData: (data: AccelerationData) => void;
 }
 
-class MotionDevice extends ISensorDevice<AccelerationData> {
+class MotionDevice extends SensorDevice<AccelerationData> {
   requestPermission(onGrant: () => void) {
     // feature detect
     if (typeof DeviceMotionEvent.requestPermission === 'function') {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Checkbox } from 'semantic-ui-react';
 import { DataType } from 'src/Shared/SharedTypings';
-import ISensorDevice from './ISensorDevice';
+import SensorDevice from './SensorDevice';
 
 export interface GyroData {
   type: DataType.Gyro;
@@ -17,7 +17,7 @@ interface Props {
   onData: (data: GyroData) => void;
 }
 
-class OrientationDevice extends ISensorDevice<GyroData> {
+class OrientationDevice extends SensorDevice<GyroData> {
   requestPermission(onGrant: () => void) {
     // feature detect
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {

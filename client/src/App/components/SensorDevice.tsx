@@ -1,18 +1,18 @@
 import { Component } from 'react';
 import MotionSimulator from '../models/MotionSimulator';
+import IController, { Props as IControllerProps } from './IController';
 
-interface Props<T> {
+interface Props<T> extends IControllerProps<T> {
   on: boolean;
   simulate: boolean;
   sensorEventName: 'devicemotion' | 'deviceorientation';
-  onData: (data: T) => void;
 }
 
 interface State {
   on: boolean;
 }
 
-class ISensorDevice<T> extends Component<Props<T>> {
+class SensorDevice<T> extends Component<Props<T>> implements IController<T> {
   state: State = {
     on: false,
   };
@@ -96,4 +96,4 @@ class ISensorDevice<T> extends Component<Props<T>> {
   };
 }
 
-export default ISensorDevice;
+export default SensorDevice;
