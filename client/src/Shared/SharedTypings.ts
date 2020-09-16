@@ -207,6 +207,49 @@ export interface DeviceIdPkg {
   device_id: string;
 }
 
+export enum Movement {
+  Controlled = 'controlled',
+  Uncontrolled = 'uncontrolled',
+}
+
+export enum SpriteForm {
+  Round = 'round',
+  Rectangle = 'rectangle',
+}
+
+export interface SpriteBase {
+  id: string;
+  pos_x: number;
+  pos_y: number;
+  width: number;
+  height: number;
+  form: SpriteForm;
+  color: string;
+}
+
+export interface ControlledSprite extends SpriteBase {
+  movement: Movement.Controlled;
+}
+
+export interface UncontrolledSprite extends SpriteBase {
+  movement: Movement.Uncontrolled;
+  direction: number[];
+  speed: number;
+  distance?: number;
+  time_span?: number;
+  collision_detection?: boolean;
+}
+
+export type Sprite = ControlledSprite | UncontrolledSprite;
+
+export interface ControlledSpriteMsg extends DataMsg, ControlledSprite {
+  // type: DataType.Sprite;
+}
+export interface UncontrolledSpriteMsg extends DataMsg, UncontrolledSprite {
+  // type: DataType.Sprite;
+}
+export type SpriteMsg = ControlledSpriteMsg | UncontrolledSpriteMsg;
+
 export interface Acc {
   x: number;
   y: number;
