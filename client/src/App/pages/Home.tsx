@@ -46,6 +46,9 @@ class Home extends Component<Props> {
               onClick={this.enableNoSleep}
             />
           </Link>
+          <Link to={'./playground'}>
+            <Button className="screen-link" icon="play" content="Playground" onClick={this.enableNoSleep} />
+          </Link>
         </div>
       </div>
     );

@@ -13,6 +13,7 @@ import NoSleep from 'nosleep.js';
 import NotificationList from './components/NotificationList';
 import InputPromptContainer from './components/InputPromptContainer';
 import DeviceIdPrompt from './components/DeviceIdPrompt';
+import PlaygroundContainer from './components/PlaygroundContainer';
 
 interface State {
   deviceId: string;
@@ -143,6 +144,10 @@ class App extends Component {
           <Route path="/color_panel/:device_id?" component={() => <ColorPanel socket={this.socket} />} />
           <Route path="/color_grid/:device_id?" component={() => <ColorGrid socket={this.socket} />} />
           <Route path="/admin/:device_id?" component={() => <Admin socket={this.socket} />} />
+          <Route
+            path="/playground/:device_id?"
+            component={() => <PlaygroundContainer socket={this.socket} />}
+          />
         </Switch>
       </div>
     );
