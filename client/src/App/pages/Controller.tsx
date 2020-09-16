@@ -96,6 +96,7 @@ class Controller extends Component<Props> {
   render() {
     return (
       <Fragment>
+        <h1>Controller</h1>
         <KeyControls onData={this.onKeyData} />
         <Segment>
           <div style={{ display: 'flex', flexDirection: 'column' }}>

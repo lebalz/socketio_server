@@ -42,6 +42,9 @@ class KeyControls extends Component<Props> implements IController<KeyData> {
   }
 
   onData(action: Key) {
+    if (!this.keys.has(action)) {
+      return;
+    }
     const data: KeyData = {
       key: action,
       type: DataType.Key,
@@ -107,7 +110,6 @@ class KeyControls extends Component<Props> implements IController<KeyData> {
   render() {
     return (
       <div className="control">
-        <h1>Controller</h1>
         <div className="actions">
           {this.arrowControls.length > 0 &&
             this.arrowControls.map((key) => {
