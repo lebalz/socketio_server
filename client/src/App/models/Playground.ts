@@ -7,7 +7,6 @@ import { IBoundingBox } from './BoundingBox';
 import { Sprite as SpriteModel } from './Sprite';
 
 export const REFRESH_RATE = 5;
-export const DISPLAY_REFRESH_RATE = 35;
 
 export class Playground implements IBoundingBox {
   width: number = 100;
