@@ -13,7 +13,7 @@ import NoSleep from 'nosleep.js';
 import NotificationList from './components/NotificationList';
 import InputPromptContainer from './components/InputPromptContainer';
 import DeviceIdPrompt from './components/DeviceIdPrompt';
-import PlaygroundContainer from './components/PlaygroundContainer';
+import PlaygroundContainer from './pages/PlaygroundContainer';
 
 interface State {
   deviceId: string;

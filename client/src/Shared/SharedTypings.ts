@@ -26,6 +26,8 @@ export enum DataType {
   Unknown = 'unknown',
   AllData = 'all_data',
   AlertConfirm = 'alert_confirm',
+  Sprite = 'sprite',
+  SpriteCollision = 'sprite_collision',
 }
 
 export interface DataStore {
@@ -217,6 +219,20 @@ export enum SpriteForm {
   Rectangle = 'rectangle',
 }
 
+export interface Playground {
+  width: number;
+  height: number;
+  shift_x?: number;
+  shift_y?: number;
+}
+
+export interface SpriteCollision {
+  type: DataType.SpriteCollision;
+  sprites: string[]; // [spriteA: string, spriteB: string],
+  time_stamp: number;
+  overlap: 'in' | 'out';
+}
+
 export interface SpriteBase {
   id: string;
   pos_x: number;
@@ -243,10 +259,10 @@ export interface UncontrolledSprite extends SpriteBase {
 export type Sprite = ControlledSprite | UncontrolledSprite;
 
 export interface ControlledSpriteMsg extends DataMsg, ControlledSprite {
-  // type: DataType.Sprite;
+  type: DataType.Sprite;
 }
 export interface UncontrolledSpriteMsg extends DataMsg, UncontrolledSprite {
-  // type: DataType.Sprite;
+  type: DataType.Sprite;
 }
 export type SpriteMsg = ControlledSpriteMsg | UncontrolledSpriteMsg;
 

@@ -11,6 +11,7 @@ export default class UncontrolledSprite extends Sprite {
   collisionDetection?: boolean;
   initX: number;
   initY: number;
+
   onDone: (sprite: UncontrolledSprite) => void;
   constructor(sprite: UncontrolledSpriteProps, onDone: (sprite: UncontrolledSprite) => void) {
     super(sprite);
@@ -28,17 +29,15 @@ export default class UncontrolledSprite extends Sprite {
     if (this.timeSpan && timeStamp() - this.startTime > this.timeSpan) {
       return this.onDone(this);
     }
-    this.posX += this.direction[0] * this.speed;
-    this.posY += this.direction[1] * this.speed;
-  }
-
-  isOutside(left: number, top: number, right: number, bottom: number) {
-    if (this.posX + this.width < left || this.posX - this.width > right) {
-      return true;
+    this.posX = this.initX + this.direction[0] * this.speed * (timeStamp() - this.startTime) * 10;
+    this.posY = this.initY + this.direction[1] * this.speed * (timeStamp() - this.startTime) * 10;
+    if (this.distance) {
+      const dX = this.initX - this.posX;
+      const dY = this.initY - this.posY;
+      const distance = Math.sqrt(dX * dX + dY * dY);
+      if (distance >= this.distance) {
+        this.onDone(this);
+      }
     }
-    if (this.posY + this.height < bottom || this.posY - this.height > top) {
-      return true;
-    }
-    return false;
   }
 }

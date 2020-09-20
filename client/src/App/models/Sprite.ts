@@ -1,4 +1,5 @@
 import { Movement, SpriteForm, Sprite as SpriteProps } from '../../Shared/SharedTypings';
+import { BoundingBox } from './BoundingBox';
 
 export interface ISprite {
   movement: Movement;
@@ -11,7 +12,7 @@ export interface ISprite {
   color: string;
 }
 
-export class Sprite implements ISprite {
+export class Sprite extends BoundingBox implements ISprite {
   movement: Movement;
   id: string;
   posX: number;
@@ -21,6 +22,7 @@ export class Sprite implements ISprite {
   form: SpriteForm;
   color: string;
   constructor(sprite: SpriteProps) {
+    super({ ...sprite, x: sprite.pos_x, y: sprite.pos_y });
     this.id = sprite.id;
     this.movement = sprite.movement;
     this.posX = sprite.pos_x;

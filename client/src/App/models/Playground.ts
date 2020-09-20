@@ -1,100 +1,36 @@
-import { Movement, Sprite, SpriteForm } from '../../Shared/SharedTypings';
+import { Movement, Sprite } from '../../Shared/SharedTypings';
 import ControlledSprite from './ControlledSprite';
 import UncontrolledSprite from './UncontrolledSprite';
 import { timeStamp } from '../SocketData';
+import { testControlledSprites, testSprites } from './_TestSprites';
+import { IBoundingBox } from './BoundingBox';
+import { Sprite as SpriteModel } from './Sprite';
 
-export class Playground {
+export const REFRESH_RATE = 5;
+export const DISPLAY_REFRESH_RATE = 35;
+
+export class Playground implements IBoundingBox {
   width: number = 100;
   height: number = 100;
-  controlledSprites: ControlledSprite[] = [
-  ];
+  controlledSprites: ControlledSprite[] = [];
   uncontrolledSprites: UncontrolledSprite[] = [];
   updateTimer?: NodeJS.Timeout;
   updateKey: number = timeStamp();
   shiftX: number = 0;
   shiftY: number = 0;
-  onUpdate: (key: number) => void;
 
-  constructor(onUpdate: (key: number) => void) {
-    this.updateTimer = setInterval(this.update, 33);
+  // onUpdate: (key: number, collisions: [SpriteModel, SpriteModel][]) => void;
+  onUpdate: (key: number, collisions: SpriteModel[][]) => void;
+
+  constructor(onUpdate: (timeStamp: number, collisions: SpriteModel[][]) => void) {
+    this.updateTimer = setInterval(this.update, REFRESH_RATE);
     this.onUpdate = onUpdate;
-    this.uncontrolledSprites.push(
-      new UncontrolledSprite(
-        {
-          color: 'red',
-          direction: [1, 1],
-          form: SpriteForm.Round,
-          height: 10,
-          width: 10,
-          id: 'bubble',
-          movement: Movement.Uncontrolled,
-          pos_x: 0,
-          pos_y: 0,
-          speed: 1,
-        },
-        this.onDone
-      ),
-      new UncontrolledSprite(
-        {
-          color: 'blue',
-          direction: [1, 1],
-          form: SpriteForm.Round,
-          height: 10,
-          width: 10,
-          id: 'bubble',
-          movement: Movement.Uncontrolled,
-          pos_x: 0,
-          pos_y: 0,
-          speed: 0.5,
-        },
-        this.onDone
-      ),
-      new UncontrolledSprite(
-        {
-          color: 'green',
-          direction: [1, 1],
-          form: SpriteForm.Round,
-          height: 10,
-          width: 10,
-          id: 'bubble',
-          movement: Movement.Uncontrolled,
-          pos_x: 0,
-          pos_y: 0,
-          speed: 0.25,
-        },
-        this.onDone
-      ),
-      new UncontrolledSprite(
-        {
-          color: 'yellow',
-          direction: [1, 1],
-          form: SpriteForm.Round,
-          height: 10,
-          width: 10,
-          id: 'bubble',
-          movement: Movement.Uncontrolled,
-          pos_x: 0,
-          pos_y: 0,
-          speed: 0.125,
-        },
-        this.onDone
-      ),
-      new UncontrolledSprite(
-        {
-          color: 'orange',
-          direction: [1, 1],
-          form: SpriteForm.Round,
-          height: 10,
-          width: 10,
-          id: 'bubble',
-          movement: Movement.Uncontrolled,
-          pos_x: 0,
-          pos_y: 0,
-          speed: 0.0625,
-        },
-        this.onDone
-      )
-    );
+    this.uncontrolledSprites.push(...testSprites(this.onDone));
+    this.controlledSprites.push(...testControlledSprites());
+  }
+
+  get sprites() {
+    return [...this.controlledSprites, ...this.uncontrolledSprites];
   }
 
   stop() {
@@ -131,18 +67,44 @@ export class Playground {
       sprite.update();
     });
     const toRemove = this.uncontrolledSprites.filter((sprite) => {
-      return sprite.isOutside(
-        this.shiftX,
-        this.height,
-        this.width,
-        this.shiftY
-      );
+      return sprite.hasNoOverlap(this);
     });
     toRemove.forEach((sprite) => {
       this.onDone(sprite);
     });
 
+    // const collisions: [SpriteModel, SpriteModel][] = [];
+    const collisions: SpriteModel[][] = [];
+
+    this.controlledSprites.forEach((sprite) => {
+      const overlap = this.sprites.find((s) => {
+        return s !== sprite && sprite.hasOverlap(s);
+      });
+      if (overlap) {
+        collisions.push([sprite, overlap]);
+      }
+    });
+
     this.updateKey = timeStamp();
-    this.onUpdate(this.updateKey);
+    this.onUpdate(this.updateKey, collisions);
   };
+
+  get left() {
+    return -this.shiftX;
+  }
+  get right() {
+    return this.shiftX + this.width;
+  }
+  get top() {
+    return this.shiftY + this.height;
+  }
+  get bottom() {
+    return -this.shiftY;
+  }
+
+  hasOverlap(other: IBoundingBox): boolean {
+    const xOverlap = this.right < other.left || other.right > this.left;
+    const yOverlap = this.bottom < other.top || other.bottom > this.top;
+    return xOverlap && yOverlap;
+  }
 }
