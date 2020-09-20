@@ -86,13 +86,13 @@ export function testControlledSprites() {
   return [
     new ControlledSprite({
       color: 'red',
-      form: SpriteForm.Round,
+      form: SpriteForm.Rectangle,
       height: 10,
       width: 10,
       id: 'control1',
       movement: Movement.Controlled,
-      pos_x: 50,
-      pos_y: 50,
+      pos_x: 45,
+      pos_y: 45,
     }),
     new ControlledSprite({
       color: 'red',
@@ -101,8 +101,8 @@ export function testControlledSprites() {
       width: 10,
       id: 'control2',
       movement: Movement.Controlled,
-      pos_x: 80,
-      pos_y: 80,
+      pos_x: 0,
+      pos_y: 0,
     }),
   ];
 }

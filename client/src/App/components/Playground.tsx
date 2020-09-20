@@ -19,15 +19,11 @@ class Playground extends React.Component<Props> {
           position: 'relative',
           width: '100%',
           paddingTop: `${100 * this.props.heightRatio}%`,
-          border: '1px dotted red',
           background: 'lightgray',
         }}
       >
         <Fragment>
-          <div style={{position: "absolute", bottom: 0, left: 0}}>
-
-          {this.props.playground.updateKey}
-          </div>
+          <div style={{ position: 'absolute', bottom: 0, left: 0 }}>{this.props.playground.updateKey}</div>
           {uncontrolledSprites.map((sprite, idx) => {
             return (
               <Sprite

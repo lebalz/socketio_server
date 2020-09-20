@@ -15,8 +15,8 @@ export class Playground implements IBoundingBox {
   uncontrolledSprites: UncontrolledSprite[] = [];
   updateTimer?: NodeJS.Timeout;
   updateKey: number = timeStamp();
-  shiftX: number = 0;
-  shiftY: number = 0;
+  shiftX: number = 50;
+  shiftY: number = 50;
 
   // onUpdate: (key: number, collisions: [SpriteModel, SpriteModel][]) => void;
   onUpdate: (key: number, collisions: SpriteModel[][]) => void;

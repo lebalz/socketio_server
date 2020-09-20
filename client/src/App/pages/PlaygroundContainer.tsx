@@ -1,13 +1,23 @@
-import React from 'react';
-import { DataType, SpriteCollision } from 'src/Shared/SharedTypings';
+import React, { Fragment } from 'react';
+import { DataMsg, DataType, SpriteCollision } from 'src/Shared/SharedTypings';
 import { Playground as PlaygroundModel } from '../models/Playground';
 import { Sprite as SpriteModel } from '../models/Sprite';
 import SocketData from '../SocketData';
 import Playground from '../components/Playground';
+import AccelerationSensor, { AccelerationData } from '../components/Controls/Sensors/AccelerationSensor';
+import GyroSensor, { GyroData } from '../components/Controls/Sensors/GyroSensor';
+import { Checkbox } from 'semantic-ui-react';
+import KeyControls, { KeyControlListener, KeyData } from '../components/Controls/KeyControls';
 
 interface Props {
   socket: SocketData;
 }
+
+type IOverload = {
+  (data: AccelerationData): void;
+  (data: GyroData): void;
+  (data: KeyData): void;
+};
 
 class PlaygroundContainer extends React.Component<Props> {
   containerRef = React.createRef<HTMLDivElement>();
@@ -19,6 +29,8 @@ class PlaygroundContainer extends React.Component<Props> {
     updateKey: 0,
     width: 100,
     height: 100,
+    simulateSensor: false,
+    keyControls: true,
   };
 
   onUpdate = (timeStamp: number, collisions: SpriteModel[][]) => {
@@ -109,24 +121,52 @@ class PlaygroundContainer extends React.Component<Props> {
     return this.width / this.playgroundRatio;
   }
 
+  onData: IOverload = (data: any) => {
+    this.props.socket.addData(data);
+  };
+
+  toggleSimulateSensor = () => {
+    const simulate = !this.state.simulateSensor;
+    this.setState({ simulateSensor: simulate });
+    localStorage.setItem('simulate_sensor', simulate ? 'yes' : 'no');
+  };
+
+  toggleKeyControls = () => {
+    const keyControls = !this.state.keyControls;
+    this.setState({ keyControls: keyControls });
+  };
+
   render() {
     return (
-      <div
-        className="playground-container"
-        ref={this.containerRef}
-        style={{
-          width: `${this.state.width}px`,
-          height: `${this.state.height}px`,
-          border: '1px dotted black',
-        }}
-      >
-        <Playground
-          playground={this.playground}
-          scaleX={this.state.scaleX}
-          key={this.state.updateKey}
-          heightRatio={this.state.heightRatio}
-        />
-      </div>
+      <Fragment>
+        <div style={{ display: 'flex', justifyItems: 'flex-start' }}>
+          <Checkbox
+            checked={this.state.simulateSensor}
+            onClick={this.toggleSimulateSensor}
+            label="Simulate Sensors"
+          />
+          <AccelerationSensor simulate={this.state.simulateSensor} onData={this.onData} on />
+          <GyroSensor simulate={this.state.simulateSensor} onData={this.onData} on />
+          <Checkbox checked={this.state.keyControls} onClick={this.toggleKeyControls} label="Keys" />
+          <KeyControlListener onData={this.onData} />
+        </div>
+
+        <div
+          className="playground-container"
+          ref={this.containerRef}
+          style={{
+            width: `${this.state.width}px`,
+            height: `${this.state.height}px`,
+          }}
+        >
+          <Playground
+            playground={this.playground}
+            scaleX={this.state.scaleX}
+            key={this.state.updateKey}
+            heightRatio={this.state.heightRatio}
+          />
+        </div>
+      </Fragment>
     );
   }
 }

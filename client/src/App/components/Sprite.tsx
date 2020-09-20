@@ -20,8 +20,8 @@ class Sprite extends React.Component<Props> {
           height: height * scaleX,
           background: color,
           position: 'absolute',
-          left: posX * scaleX + shiftX,
-          bottom: posY * scaleX + shiftY,
+          left: (posX + shiftX) * scaleX,
+          bottom: (posY + shiftY) * scaleX,
         }}
         className={cls}
       />

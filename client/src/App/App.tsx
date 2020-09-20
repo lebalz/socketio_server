@@ -26,7 +26,7 @@ interface State {
 class App extends Component {
   state: State = {
     valid: true,
-    deviceId: '',
+    deviceId: `Device${Math.floor(Math.random() * 899) + 100}`,
     deviceNr: -1,
     noSleep: false,
     deviceIdPromptOpen: false,

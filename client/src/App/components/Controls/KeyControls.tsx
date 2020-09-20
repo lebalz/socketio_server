@@ -1,11 +1,13 @@
-import React, { Component } from 'react';
-import { Button, IconProps } from 'semantic-ui-react';
+import React, { Component, Fragment } from 'react';
+import { Button, Checkbox, IconProps } from 'semantic-ui-react';
 import { Key, DataType } from '../../../Shared/SharedTypings';
 import { SemanticShorthandItem } from 'semantic-ui-react/dist/commonjs/generic';
 import IController from './IController';
+import { throws } from 'assert';
 
 interface Props {
   keys?: Key[];
+  hideControls?: boolean;
   onData: (data: KeyData) => void;
 }
 
@@ -30,9 +32,11 @@ class KeyControls extends Component<Props> implements IController<KeyData> {
 
   componentDidMount() {
     window.addEventListener('keyup', this.onKey);
+    window.addEventListener('keydown', this.onKeyDown);
   }
   componentWillUnmount() {
     window.removeEventListener('keyup', this.onKey);
+    window.removeEventListener('keydown', this.onKeyDown);
   }
 
   setActive(key: Key, active: boolean) {
@@ -69,6 +73,20 @@ class KeyControls extends Component<Props> implements IController<KeyData> {
         return undefined;
     }
   }
+  onKeyDown = (e: KeyboardEvent) => {
+    switch (e.code) {
+      case 'Space':
+      case 'ArrowRight':
+      case 'ArrowLeft':
+      case 'ArrowUp':
+      case 'ArrowDown':
+      case 'F1':
+      case 'F2':
+      case 'F3':
+      case 'F4':
+        return e.preventDefault();
+    }
+  };
   onKey = (e: KeyboardEvent) => {
     switch (e.code) {
       case 'Space':
@@ -108,6 +126,9 @@ class KeyControls extends Component<Props> implements IController<KeyData> {
   }
 
   render() {
+    if (this.props.hideControls) {
+      return <div className="controls" />;
+    }
     return (
       <div className="control">
         <div className="actions">
@@ -146,3 +167,25 @@ class KeyControls extends Component<Props> implements IController<KeyData> {
 }
 
 export default KeyControls;
+interface KeyListenerProps {
+  onData: (data: KeyData) => void;
+}
+export class KeyControlListener extends Component<KeyListenerProps> implements IController<KeyData> {
+  state = { on: true };
+  onData(data: KeyData) {
+    this.props.onData(data);
+  }
+
+  toggle = () => {
+    this.setState({ on: !this.state.on });
+  };
+
+  render() {
+    return (
+      <Fragment>
+        {this.state.on && <KeyControls hideControls onData={(data: KeyData) => this.onData(data)} />}
+        <Checkbox checked={this.state.on} onClick={this.toggle} label="Key" />
+      </Fragment>
+    );
+  }
+}

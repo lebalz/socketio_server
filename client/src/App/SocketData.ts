@@ -193,7 +193,6 @@ export default class SocketData {
   }
 
   addData(data: SendDataPkg) {
-    console.log(data);
     this.emit(SocketEvents.NewData, data);
   }
 

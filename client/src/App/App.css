@@ -20,3 +20,13 @@
   background: #2184d04b;
   font-style: italic;
 }
+
+.playground-container {
+  border: 1px dotted black;
+  overflow: hidden;
+}
+
+.playground-container .playground {
+  position: relative;
+  width: 100%;
+}
