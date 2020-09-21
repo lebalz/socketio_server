@@ -12,6 +12,8 @@ import {
   NotificationMsg,
   InputPromptMsg,
   SendDataPkg,
+  PlaygroundConfiguration,
+  SpriteMsg,
 } from '../Shared/SharedTypings';
 
 const WS_PORT = process.env.NODE_ENV === 'production' ? '' : ':5000';
@@ -66,6 +68,20 @@ export default class SocketData {
    */
   onData: ((data: ClientDataMsg) => void)[] = [];
 
+  onSprite?: (data: SpriteMsg) => void;
+  onSprites?: (data: SpriteMsg[]) => void;
+
+  lastPlaygroundConfig: PlaygroundConfiguration = {
+    width: 100,
+    height: 100,
+    shift_x: 0,
+    shift_y: 0,
+  };
+  /**
+   * @param {Array<event => void)>}
+   */
+  onPlaygroundConfig?: (data: PlaygroundConfiguration) => void = undefined;
+
   /**
    * @param {Array<event => void)>}
    */
@@ -98,6 +114,7 @@ export default class SocketData {
       this.devices = data.devices;
       this.onDevices.forEach((callback) => callback(data.devices));
     });
+
     this.socket.on(SocketEvents.Device, (data: Device) => {
       this.deviceNr = data.device_nr;
       if (this.onDevice) {
@@ -105,6 +122,7 @@ export default class SocketData {
       }
       this.refreshData();
     });
+
     this.socket.on(SocketEvents.AllData, (data: AllDataPkg) => {
       const allData: ClientDataMsg[] = data.all_data;
       if (data.device_id === this.deviceId) {
@@ -114,22 +132,42 @@ export default class SocketData {
       }
       this.onAllData.forEach((callback) => callback({ ...data, all_data: allData }));
     });
+
     this.socket.on(SocketEvents.NewData, (data: ClientDataMsg) => {
       if (data.device_id === this.deviceId) {
         this.myData.push(data);
       } else if (data.device_id) {
         this.otherData.push(data);
       }
+
       if (data.type === DataType.Notification) {
         if (this.onNotification) {
           this.onNotification((data as any) as NotificationMsg);
         }
       }
+
       if (data.type === DataType.InputPrompt) {
         if (this.onInputPrompt) {
           this.onInputPrompt((data as any) as InputPromptMsg);
         }
       }
+
+      if (data.type === DataType.Sprite) {
+        if (this.onSprite) {
+          this.onSprite((data as any) as SpriteMsg);
+        }
+      }
+      if (data.type === DataType.Sprites) {
+        if (this.onSprites) {
+          this.onSprites((data as any) as SpriteMsg[]);
+        }
+      }
+      if (data.type === DataType.PlaygroundConfig) {
+        if (this.onPlaygroundConfig) {
+          this.onPlaygroundConfig((data as any) as PlaygroundConfiguration);
+        }
+      }
+
       this.onData.forEach((callback) => {
         callback(data);
       });

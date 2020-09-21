@@ -1,4 +1,12 @@
-import { Movement, Sprite } from '../../Shared/SharedTypings';
+import { PlaygroundConfiguration } from './../../Shared/SharedTypings';
+import {
+  Movement,
+  Sprite as SpriteProps,
+  SpriteForm,
+  SpriteMsg,
+  UncontrolledSprite as UncontrolledSpriteProps,
+  ControlledSprite as ControlledSpriteProps,
+} from '../../Shared/SharedTypings';
 import ControlledSprite from './ControlledSprite';
 import UncontrolledSprite from './UncontrolledSprite';
 import { timeStamp } from '../SocketData';
@@ -7,6 +15,29 @@ import { IBoundingBox } from './BoundingBox';
 import { Sprite as SpriteModel } from './Sprite';
 
 export const REFRESH_RATE = 5;
+
+const DEFAULT_UNCONTROLLED: UncontrolledSpriteProps = {
+  id: 'bubble',
+  color: 'red',
+  direction: [0, 0],
+  form: SpriteForm.Rectangle,
+  height: 5,
+  width: 5,
+  pos_x: 0,
+  pos_y: 0,
+  movement: Movement.Uncontrolled,
+  speed: 0,
+};
+const DEFAULT_CONTROLLED: ControlledSpriteProps = {
+  id: 'bubble',
+  color: 'red',
+  form: SpriteForm.Rectangle,
+  movement: Movement.Controlled,
+  height: 5,
+  width: 5,
+  pos_x: 0,
+  pos_y: 0,
+};
 
 export class Playground implements IBoundingBox {
   width: number = 100;
@@ -21,11 +52,17 @@ export class Playground implements IBoundingBox {
   // onUpdate: (key: number, collisions: [SpriteModel, SpriteModel][]) => void;
   onUpdate: (key: number, collisions: SpriteModel[][]) => void;
 
-  constructor(onUpdate: (timeStamp: number, collisions: SpriteModel[][]) => void) {
+  onSpriteOut: (id: string) => void;
+
+  constructor(
+    onUpdate: (timeStamp: number, collisions: SpriteModel[][]) => void,
+    onSpriteOut: (id: string) => void
+  ) {
     this.updateTimer = setInterval(this.update, REFRESH_RATE);
     this.onUpdate = onUpdate;
-    this.uncontrolledSprites.push(...testSprites(this.onDone));
-    this.controlledSprites.push(...testControlledSprites());
+    this.onSpriteOut = onSpriteOut;
+    // this.uncontrolledSprites.push(...testSprites(this.onDone));
+    // this.controlledSprites.push(...testControlledSprites());
   }
 
   get sprites() {
@@ -39,7 +76,29 @@ export class Playground implements IBoundingBox {
     }
   }
 
-  addSprite(sprite: Sprite) {
+  addOrUpdateSprite(sprite: SpriteProps) {
+    switch (sprite.movement) {
+      case Movement.Controlled:
+        const thisSprite = this.controlledSprites.find((sprite) => sprite.id === sprite.id);
+        if (thisSprite) {
+          thisSprite.update(sprite);
+        } else {
+          this.addSprite({ ...DEFAULT_CONTROLLED, ...sprite });
+        }
+        break;
+      case Movement.Uncontrolled:
+        this.addSprite({ ...DEFAULT_UNCONTROLLED, ...sprite });
+        break;
+    }
+  }
+
+  addOrUpdateSprites(sprites: SpriteProps[]) {
+    sprites.forEach((sprite) => {
+      this.addOrUpdateSprite(sprite);
+    });
+  }
+
+  addSprite(sprite: SpriteProps) {
     switch (sprite.movement) {
       case Movement.Controlled:
         const toDeleteIdx = this.controlledSprites.findIndex((s) => s.id === sprite.id);
@@ -59,6 +118,7 @@ export class Playground implements IBoundingBox {
     if (idx >= 0) {
       delete this.uncontrolledSprites[idx];
     }
+    this.onSpriteOut(sprite.id);
   };
 
   update = () => {
@@ -87,6 +147,13 @@ export class Playground implements IBoundingBox {
     this.updateKey = timeStamp();
     this.onUpdate(this.updateKey, collisions);
   };
+
+  updateConfig(config: PlaygroundConfiguration) {
+    this.height = config.height ?? this.height;
+    this.width = config.width ?? this.width;
+    this.shiftX = config.shift_x ?? this.shiftX;
+    this.shiftY = config.shift_y ?? this.shiftY;
+  }
 
   get left() {
     return -this.shiftX;

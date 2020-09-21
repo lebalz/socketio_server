@@ -1,13 +1,19 @@
 import React, { Fragment } from 'react';
-import { DataMsg, DataType, SpriteCollision } from 'src/Shared/SharedTypings';
+import {
+  DataType,
+  PlaygroundConfiguration,
+  SpriteCollision,
+  SpriteMsg,
+  SpriteOut,
+} from 'src/Shared/SharedTypings';
 import { Playground as PlaygroundModel } from '../models/Playground';
 import { Sprite as SpriteModel } from '../models/Sprite';
-import SocketData from '../SocketData';
+import SocketData, { timeStamp } from '../SocketData';
 import Playground from '../components/Playground';
 import AccelerationSensor, { AccelerationData } from '../components/Controls/Sensors/AccelerationSensor';
 import GyroSensor, { GyroData } from '../components/Controls/Sensors/GyroSensor';
 import { Checkbox } from 'semantic-ui-react';
-import KeyControls, { KeyControlListener, KeyData } from '../components/Controls/KeyControls';
+import { KeyControlListener, KeyData } from '../components/Controls/KeyControls';
 
 interface Props {
   socket: SocketData;
@@ -44,7 +50,7 @@ class PlaygroundContainer extends React.Component<Props> {
       }
       const data: SpriteCollision = {
         type: DataType.SpriteCollision,
-        sprites: [sprites[0].id, sprites[1].id],
+        sprite_ids: [sprites[0].id, sprites[1].id],
         time_stamp: timeStamp,
         overlap: 'in',
       };
@@ -54,7 +60,7 @@ class PlaygroundContainer extends React.Component<Props> {
     undetected.forEach((un) => {
       const data: SpriteCollision = {
         type: DataType.SpriteCollision,
-        sprites: un.split('::::'),
+        sprite_ids: un.split('::::'),
         time_stamp: timeStamp,
         overlap: 'out',
       };
@@ -65,18 +71,46 @@ class PlaygroundContainer extends React.Component<Props> {
 
   constructor(props: Props) {
     super(props);
-    this.playground = new PlaygroundModel(this.onUpdate);
+    this.playground = new PlaygroundModel(this.onUpdate, this.onSpriteOut);
   }
+
+  onSpriteOut = (id: string) => {
+    const data: SpriteOut = {
+      sprite_id: id,
+      time_stamp: timeStamp(),
+      type: DataType.SpriteOut,
+    };
+    this.props.socket.addData(data);
+  };
 
   componentDidMount() {
     window.addEventListener('resize', this.onResize);
     this.updateSize();
+    this.props.socket.onPlaygroundConfig = this.onConfiguration;
+    this.props.socket.onSprite = this.onSprite;
+    this.props.socket.onSprites = this.onSprites;
   }
 
   componentWillUnmount() {
     this.playground.stop();
     window.removeEventListener('resize', this.onResize);
+    this.props.socket.onSprite = undefined;
+    this.props.socket.onSprites = undefined;
+    this.props.socket.onPlaygroundConfig = undefined;
   }
+
+  onSprite = (data: SpriteMsg) => {
+    this.playground.addOrUpdateSprite(data.sprite);
+  };
+
+  onSprites = (sprites: any) => {
+    this.playground.addOrUpdateSprites(sprites.sprites);
+  };
+
+  onConfiguration = (config: PlaygroundConfiguration) => {
+    this.playground.updateConfig(config);
+    this.updateSize();
+  };
 
   onResize = (ev: UIEvent) => {
     this.updateSize();

@@ -27,7 +27,10 @@ export enum DataType {
   AllData = 'all_data',
   AlertConfirm = 'alert_confirm',
   Sprite = 'sprite',
+  Sprites = 'sprites',
   SpriteCollision = 'sprite_collision',
+  SpriteOut = 'sprite_out',
+  PlaygroundConfig = 'playground_config',
 }
 
 export interface DataStore {
@@ -226,11 +229,24 @@ export interface Playground {
   shift_y?: number;
 }
 
+export interface PlaygroundConfiguration {
+  width?: number;
+  height?: number;
+  shift_x?: number;
+  shift_y?: number;
+}
+
 export interface SpriteCollision {
   type: DataType.SpriteCollision;
-  sprites: string[]; // [spriteA: string, spriteB: string],
+  sprite_ids: string[]; // [spriteA: string, spriteB: string],
   time_stamp: number;
   overlap: 'in' | 'out';
+}
+
+export interface SpriteOut {
+  type: DataType.SpriteOut;
+  sprite_id: string;
+  time_stamp: number;
 }
 
 export interface SpriteBase {
@@ -241,6 +257,16 @@ export interface SpriteBase {
   height: number;
   form: SpriteForm;
   color: string;
+}
+
+export interface SpriteUpdateMsg {
+  id: string;
+  pos_x?: number;
+  pos_y?: number;
+  width?: number;
+  height?: number;
+  form?: SpriteForm;
+  color?: string;
 }
 
 export interface ControlledSprite extends SpriteBase {
@@ -258,12 +284,17 @@ export interface UncontrolledSprite extends SpriteBase {
 
 export type Sprite = ControlledSprite | UncontrolledSprite;
 
-export interface ControlledSpriteMsg extends DataMsg, ControlledSprite {
+export interface ControlledSpriteMsg extends DataMsg, Partial<ControlledSprite> {
+  id: string;
   type: DataType.Sprite;
+  sprite: ControlledSprite;
 }
-export interface UncontrolledSpriteMsg extends DataMsg, UncontrolledSprite {
+export interface UncontrolledSpriteMsg extends DataMsg, Partial<UncontrolledSprite> {
+  id: string;
   type: DataType.Sprite;
+  sprite: UncontrolledSprite;
 }
+
 export type SpriteMsg = ControlledSpriteMsg | UncontrolledSpriteMsg;
 
 export interface Acc {
