@@ -181,7 +181,6 @@ class PlaygroundContainer extends React.Component<Props> {
           />
           <AccelerationSensor simulate={this.state.simulateSensor} onData={this.onData} on />
           <GyroSensor simulate={this.state.simulateSensor} onData={this.onData} on />
-          <Checkbox checked={this.state.keyControls} onClick={this.toggleKeyControls} label="Keys" />
           <KeyControlListener onData={this.onData} />
         </div>
 
