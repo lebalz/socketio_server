@@ -79,7 +79,7 @@ export class Playground implements IBoundingBox {
   addOrUpdateSprite(sprite: SpriteProps) {
     switch (sprite.movement) {
       case Movement.Controlled:
-        const thisSprite = this.controlledSprites.find((sprite) => sprite.id === sprite.id);
+        const thisSprite = this.controlledSprites.find((s) => s.id === sprite.id);
         if (thisSprite) {
           thisSprite.update(sprite);
         } else {
@@ -102,7 +102,7 @@ export class Playground implements IBoundingBox {
     switch (sprite.movement) {
       case Movement.Controlled:
         const toDeleteIdx = this.controlledSprites.findIndex((s) => s.id === sprite.id);
-        if (toDeleteIdx) {
+        if (toDeleteIdx >= 0) {
           delete this.controlledSprites[toDeleteIdx];
         }
         this.controlledSprites.push(new ControlledSprite(sprite));
