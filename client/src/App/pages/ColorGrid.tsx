@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import SocketData, { ClientDataMsg, timeStamp } from '../SocketData';
-import { DataType, PointerContext, GridPointer } from '../../Shared/SharedTypings';
+import SocketData, { timeStamp } from '../SocketData';
+import { DataType, PointerContext, GridPointer, ClientDataMsg } from '../../Shared/SharedTypings';
 
 interface Props {
   socket: SocketData;
@@ -83,7 +83,7 @@ class ColorGrid extends Component<Props> {
 
   onData = (data: ClientDataMsg) => {
     if (this._isMounted && data.type === DataType.Grid) {
-      const grid = data.grid!;
+            const grid = data.grid;
       const first_row = grid[0];
       if (first_row.length === 0) {
         // an empty row was provided, set the screen to white
