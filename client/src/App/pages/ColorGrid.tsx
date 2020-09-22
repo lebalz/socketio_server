@@ -100,16 +100,13 @@ class ColorGrid extends Component<Props> {
   onClick(row: number, column: number) {
     const rowColors = this.state.grid[row] || [];
     this.setState({ activeCell: undefined });
-    const pkg: GridPointer = {
+        this.socket.addData<GridPointer>({
+            type: DataType.Pointer,
+            context: PointerContext.Grid,
       row: row,
       column: column,
       color: rowColors[column],
       displayed_at: this.state.displayedAt ?? timeStamp(),
-    };
-    this.socket.addData({
-      type: DataType.Pointer,
-      context: PointerContext.Grid,
-      ...pkg,
     });
   }
 

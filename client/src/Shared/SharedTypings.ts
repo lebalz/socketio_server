@@ -87,7 +87,7 @@ export interface SelectionPrompt extends InputPromptMsg {
 }
 
 export interface InputResponse {
-    response: string | number | Date;
+    response?: string | number | Date;
     displayed_at: number;
 }
 
@@ -179,6 +179,10 @@ export enum SocketEvents {
     InformationMsg = 'information_msg',
 }
 
+interface UnknownMsg extends DataMsg {
+    type: DataType.Unknown;
+}
+
 export type ClientDataMsg =
     | KeyMsg
     | GridMsg
@@ -196,7 +200,8 @@ export type ClientDataMsg =
     | SpritesMsg
     | SpriteCollisionMsg
     | SpriteOutMsg
-    | PlaygroundConfigMsg;
+    | PlaygroundConfigMsg
+    | UnknownMsg;
 
 export interface AllDataMsg extends DataMsg {
     device_id: string;

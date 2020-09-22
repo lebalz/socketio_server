@@ -54,12 +54,12 @@ export class InputPrompt {
         this.onDone(this);
     }
 
-    cancel() {
-        this.socket.addData({
+    cancel(displayedAt: number) {
+        this.socket.addData<InputResponse>({
             type: DataType.InputResponse,
             time_stamp: this.prompt.time_stamp,
             caller_id: this.prompt.response_id,
-            response: undefined,
+            displayed_at: displayedAt ?? this.prompt.time_stamp,
         });
         this.onDone(this);
     }

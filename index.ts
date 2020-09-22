@@ -329,7 +329,9 @@ io.on('connection', (socket) => {
         if (dataStore[device_id].length >= THRESHOLD) {
             dataStore[device_id].shift();
         }
-        if (data.type === undefined) {
+
+        // dont crash when someone does not add type info
+        if ((data as any).type === undefined) {
             data.type = DataType.Unknown;
         }
         if (data.type === DataType.InputPrompt) {

@@ -23,14 +23,11 @@ class NotificationList extends React.Component<Props> {
             if (notification.alert) {
                 const ts = timeStamp();
                 window.alert(notification.message);
-                const pkg: AlertConfirm = {
-                    displayed_at: ts,
-                };
-                this.props.socket.addData({
+                this.props.socket.addData<AlertConfirm>({
                     type: DataType.AlertConfirm,
                     time_stamp: notification.time_stamp,
                     caller_id: notification.response_id,
-                    ...pkg,
+                    displayed_at: ts,
                 });
             } else {
                 const ntfs = this.state.notifications.slice();

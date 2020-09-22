@@ -58,18 +58,15 @@ class ColorPanel extends Component<Props> {
     onClick = (event: React.PointerEvent<HTMLDivElement>) => {
         const rect = (event.target as HTMLDivElement).getBoundingClientRect();
         this.setState({ touched: undefined });
-        const pkg: ColorPointer = {
+        this.socket.addData<ColorPointer>({
+            type: DataType.Pointer,
+            context: PointerContext.Color,
             x: event.clientX - rect.left,
             y: event.clientY - rect.top,
             width: rect.width,
             height: rect.height,
             color: this.state.color,
             displayed_at: this.state.displayedAt ?? timeStamp(),
-        };
-        this.socket.addData({
-            ...pkg,
-            type: DataType.Pointer,
-            context: PointerContext.Color,
         });
     };
 
