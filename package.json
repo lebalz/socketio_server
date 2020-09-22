@@ -7,7 +7,7 @@
   "scripts": {
     "start": "npx ts-node index.ts",
     "build": "npx tsc",
-    "heroku-postbuild": "cd client && npm install --only=dev && npm install && npm run build"
+    "heroku-postbuild": "cd client && yarn install --only=dev && yarn install && yarn run build"
   },
   "keywords": [],
   "license": "MIT",
