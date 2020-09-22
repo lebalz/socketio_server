@@ -27,7 +27,7 @@ interface GridState {
 
 class ColorGrid extends Component<Props> {
     _isMounted = false;
-    grid: Grid = new Grid({ grid: '90\n09', base_color: ColorName.Black });
+    grid: Grid = new Grid({ grid: '90\n09', base_color: ColorName.Red });
     state: GridState = {
         dimensions: [0, 0],
         grid: this.grid.grid,
@@ -127,7 +127,8 @@ class ColorGrid extends Component<Props> {
     }
 
     get maxWidth() {
-        const { rowCount, columnCount } = this.grid;
+        const rowCount = this.state.dimensions[0];
+        const columnCount = this.state.dimensions[1];
         const maxCellW = window.innerWidth / columnCount;
         const maxCellH = window.innerHeight / rowCount;
         return Math.min(maxCellH, maxCellW) * columnCount;
