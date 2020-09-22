@@ -1,32 +1,32 @@
 .App {
-  text-align: center;
+    text-align: center;
 }
 
 .clickable {
-  cursor: pointer;
+    cursor: pointer;
 }
 
 #notification-container {
-  position: absolute;
-  bottom: 0px;
-  right: 0px;
-  min-width: 20em;
-  max-width: 90vw;
-  max-height: 80vh;
-  overflow: auto;
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+    min-width: 20em;
+    max-width: 90vw;
+    max-height: 80vh;
+    overflow: auto;
 }
 
 .notification-header {
-  background: #2184d04b;
-  font-style: italic;
+    background: #2184d04b;
+    font-style: italic;
 }
 
 .playground-container {
-  border: 1px dotted black;
-  overflow: hidden;
+    border: 1px dotted black;
+    overflow: hidden;
 }
 
 .playground-container .playground {
-  position: relative;
-  width: 100%;
+    position: relative;
+    width: 100%;
 }

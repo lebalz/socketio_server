@@ -122,7 +122,7 @@ export interface ColorPointerMsg extends PointerDataMsg, ColorPointer {
 export interface GridPointer {
     row: number;
     column: number;
-    color: string;
+    color?: ColorSpecification;
     displayed_at: number;
 }
 
@@ -130,12 +130,14 @@ export interface GridPointerMsg extends PointerDataMsg, GridPointer {
     context: PointerContext.Grid;
 }
 
-export type ColorSpecification = string | number;
+export type ColorSpecification = string | number | undefined;
 
-export interface GridMsg extends DataMsg {
-    type: DataType.Grid;
+export interface Grid {
     grid: ColorSpecification[][] | string[] | string;
     base_color?: RGB | ColorName;
+}
+export interface GridMsg extends DataMsg, Grid {
+    type: DataType.Grid;
 }
 
 export interface GridUpdateMsg extends DataMsg {

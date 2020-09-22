@@ -1,78 +1,85 @@
 body {
-  margin: 0;
-  padding: 0;
-  font-family: sans-serif;
-  /* prevent double touch zooming */
-  touch-action: manipulation;
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    /* prevent double touch zooming */
+    touch-action: manipulation;
 }
 
 .control > .actions {
-  display: grid;
-  grid-template-areas:
-    '. up .'
-    'left home right'
-    '. down .'
-    'fkeys fkeys fkeys';
-  gap: 1rem;
+    display: grid;
+    grid-template-areas:
+        '. up .'
+        'left home right'
+        '. down .'
+        'fkeys fkeys fkeys';
+    gap: 1rem;
 }
 
 .action.up {
-  grid-area: up;
+    grid-area: up;
 }
 .action.left {
-  grid-area: left;
+    grid-area: left;
 }
 .action.right {
-  grid-area: right;
+    grid-area: right;
 }
 .action.down {
-  grid-area: down;
+    grid-area: down;
 }
 .action.home {
-  grid-area: home;
+    grid-area: home;
 }
 .function-keys {
-  grid-area: fkeys;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+    grid-area: fkeys;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
 }
 #color-panel {
-  height: 100vh;
-  width: 100vw;
+    height: 100vh;
+    width: 100vw;
 }
 
 .screen-link {
-  margin: 4px !important;
+    margin: 4px !important;
 }
 
 .header-bar {
-  width: 100vw;
-  padding: 0 1%;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  flex-wrap: wrap;
+    width: 100vw;
+    padding: 0 1%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    flex-wrap: wrap;
 }
 
 .spacer {
-  flex-grow: 1;
-  flex-shrink: 1;
-  flex-basis: 0;
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
 }
 
 .cell-index-popup {
-  position: absolute;
-  height: 2rem;
-  text-align: center;
-  padding: 4px;
-  line-break: strict;
-  background: rgba(255, 217, 0, 0.534);
-  border: 1px solid black;
-  border-radius: 4px;
-  z-index: 999;
+    position: absolute;
+    height: 2rem;
+    text-align: center;
+    padding: 4px;
+    line-break: strict;
+    background: rgba(255, 217, 0, 0.534);
+    border: 1px solid black;
+    border-radius: 4px;
+    z-index: 999;
+}
+
+.grid-cell {
+    width: 100%;
+    padding-top: 100%;
+    position: relative;
+    user-select: none;
 }
 
 .sprite.round {
-  border-radius: 50%; 
+    border-radius: 50%;
 }
