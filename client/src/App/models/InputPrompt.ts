@@ -6,6 +6,7 @@ export class InputPrompt {
     prompt: InputPromptMsg;
     socket: SocketData;
     onDone: (n: InputPrompt) => void;
+    submitted: boolean = false;
 
     constructor(prompt: InputPromptMsg, socket: SocketData, onDone: (n: InputPrompt) => void) {
         this.prompt = prompt;
@@ -43,24 +44,30 @@ export class InputPrompt {
     }
 
     respond(response: string | number | Date, displayedAt: number) {
-        this.socket.addData<InputResponse>({
-            type: DataType.InputResponse,
-            time_stamp: this.prompt.time_stamp,
-            caller_id: this.prompt.response_id,
-            response: response,
-            displayed_at: displayedAt,
-        });
+        if (!this.submitted) {
+            this.socket.addData<InputResponse>({
+                type: DataType.InputResponse,
+                time_stamp: this.prompt.time_stamp,
+                caller_id: this.prompt.response_id,
+                response: response,
+                displayed_at: displayedAt,
+            });
+            this.submitted = true;
+        }
 
         this.onDone(this);
     }
 
     cancel(displayedAt: number) {
-        this.socket.addData<InputResponse>({
-            type: DataType.InputResponse,
-            time_stamp: this.prompt.time_stamp,
-            caller_id: this.prompt.response_id,
-            displayed_at: displayedAt ?? this.prompt.time_stamp,
-        });
+        if (!this.submitted) {
+            this.socket.addData<InputResponse>({
+                type: DataType.InputResponse,
+                time_stamp: this.prompt.time_stamp,
+                caller_id: this.prompt.response_id,
+                displayed_at: displayedAt ?? this.prompt.time_stamp,
+            });
+            this.submitted = true;
+        }
         this.onDone(this);
     }
 }

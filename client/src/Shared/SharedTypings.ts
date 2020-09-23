@@ -1,4 +1,150 @@
-import { ColorName, RGB } from './../App/models/Color';
+export type RGB = [number, number, number];
+export type RGBA = [number, number, number, number];
+export enum ColorName {
+    Aliceblue = 'aliceblue',
+    Antiquewhite = 'antiquewhite',
+    Aqua = 'aqua',
+    Aquamarine = 'aquamarine',
+    Azure = 'azure',
+    Beige = 'beige',
+    Bisque = 'bisque',
+    Black = 'black',
+    Blanchedalmond = 'blanchedalmond',
+    Blue = 'blue',
+    Blueviolet = 'blueviolet',
+    Brown = 'brown',
+    Burlywood = 'burlywood',
+    Cadetblue = 'cadetblue',
+    Chartreuse = 'chartreuse',
+    Chocolate = 'chocolate',
+    Coral = 'coral',
+    Cornflowerblue = 'cornflowerblue',
+    Cornsilk = 'cornsilk',
+    Crimson = 'crimson',
+    Cyan = 'cyan',
+    Darkblue = 'darkblue',
+    Darkcyan = 'darkcyan',
+    Darkgoldenrod = 'darkgoldenrod',
+    Darkgray = 'darkgray',
+    Darkgreen = 'darkgreen',
+    Darkkhaki = 'darkkhaki',
+    Darkmagenta = 'darkmagenta',
+    Darkolivegreen = 'darkolivegreen',
+    Darkorange = 'darkorange',
+    Darkorchid = 'darkorchid',
+    Darkred = 'darkred',
+    Darksalmon = 'darksalmon',
+    Darkseagreen = 'darkseagreen',
+    Darkslateblue = 'darkslateblue',
+    Darkslategray = 'darkslategray',
+    Darkturquoise = 'darkturquoise',
+    Darkviolet = 'darkviolet',
+    Deeppink = 'deeppink',
+    Deepskyblue = 'deepskyblue',
+    Dimgray = 'dimgray',
+    Dodgerblue = 'dodgerblue',
+    Firebrick = 'firebrick',
+    Floralwhite = 'floralwhite',
+    Forestgreen = 'forestgreen',
+    Fuchsia = 'fuchsia',
+    Gainsboro = 'gainsboro',
+    Ghostwhite = 'ghostwhite',
+    Gold = 'gold',
+    Goldenrod = 'goldenrod',
+    Gray = 'gray',
+    Green = 'green',
+    Greenyellow = 'greenyellow',
+    Honeydew = 'honeydew',
+    Hotpink = 'hotpink',
+    Indianred = 'indianred',
+    Indigo = 'indigo',
+    Ivory = 'ivory',
+    Khaki = 'khaki',
+    Lavender = 'lavender',
+    Lavenderblush = 'lavenderblush',
+    Lawngreen = 'lawngreen',
+    Lemonchiffon = 'lemonchiffon',
+    Lightblue = 'lightblue',
+    Lightcoral = 'lightcoral',
+    Lightcyan = 'lightcyan',
+    Lightgoldenrodyellow = 'lightgoldenrodyellow',
+    Lightgrey = 'lightgrey',
+    Lightgreen = 'lightgreen',
+    Lightpink = 'lightpink',
+    Lightsalmon = 'lightsalmon',
+    Lightseagreen = 'lightseagreen',
+    Lightskyblue = 'lightskyblue',
+    Lightslategray = 'lightslategray',
+    Lightsteelblue = 'lightsteelblue',
+    Lightyellow = 'lightyellow',
+    Lime = 'lime',
+    Limegreen = 'limegreen',
+    Linen = 'linen',
+    Magenta = 'magenta',
+    Maroon = 'maroon',
+    Mediumaquamarine = 'mediumaquamarine',
+    Mediumblue = 'mediumblue',
+    Mediumorchid = 'mediumorchid',
+    Mediumpurple = 'mediumpurple',
+    Mediumseagreen = 'mediumseagreen',
+    Mediumslateblue = 'mediumslateblue',
+    Mediumspringgreen = 'mediumspringgreen',
+    Mediumturquoise = 'mediumturquoise',
+    Mediumvioletred = 'mediumvioletred',
+    Midnightblue = 'midnightblue',
+    Mintcream = 'mintcream',
+    Mistyrose = 'mistyrose',
+    Moccasin = 'moccasin',
+    Navajowhite = 'navajowhite',
+    Navy = 'navy',
+    Oldlace = 'oldlace',
+    Olive = 'olive',
+    Olivedrab = 'olivedrab',
+    Orange = 'orange',
+    Orangered = 'orangered',
+    Orchid = 'orchid',
+    Palegoldenrod = 'palegoldenrod',
+    Palegreen = 'palegreen',
+    Paleturquoise = 'paleturquoise',
+    Palevioletred = 'palevioletred',
+    Papayawhip = 'papayawhip',
+    Peachpuff = 'peachpuff',
+    Peru = 'peru',
+    Pink = 'pink',
+    Plum = 'plum',
+    Powderblue = 'powderblue',
+    Purple = 'purple',
+    Rebeccapurple = 'rebeccapurple',
+    Red = 'red',
+    Rosybrown = 'rosybrown',
+    Royalblue = 'royalblue',
+    Saddlebrown = 'saddlebrown',
+    Salmon = 'salmon',
+    Sandybrown = 'sandybrown',
+    Seagreen = 'seagreen',
+    Seashell = 'seashell',
+    Sienna = 'sienna',
+    Silver = 'silver',
+    Skyblue = 'skyblue',
+    Slateblue = 'slateblue',
+    Slategray = 'slategray',
+    Snow = 'snow',
+    Springgreen = 'springgreen',
+    Steelblue = 'steelblue',
+    Tan = 'tan',
+    Teal = 'teal',
+    Thistle = 'thistle',
+    Tomato = 'tomato',
+    Turquoise = 'turquoise',
+    Violet = 'violet',
+    Wheat = 'wheat',
+    White = 'white',
+    Whitesmoke = 'whitesmoke',
+    Yellow = 'yellow',
+    Yellowgreen = 'yellowgreen',
+}
+export type CssColor = ColorName | string | number | RGB | RGBA;
+
 export interface Device {
     device_id: string;
     socket_id: string;
@@ -43,11 +189,6 @@ export interface DataPkg {
     type: DataType;
     unicast_to?: number;
     broadcast?: boolean;
-    caller_id?: string;
-    response_id?: string;
-    alert?: boolean;
-    sprites?: SpriteMsg[];
-    sprite?: ControlledSprite | UncontrolledSprite;
 }
 
 export interface SendDataPkg extends DataPkg {
@@ -65,8 +206,15 @@ export interface NotificationMsg extends DataMsg {
     response_id?: string;
 }
 
+export interface ErrorMsg {
+    type: SocketEvents;
+    err: string;
+    msg: string;
+}
+
 export interface AlertConfirm {
     displayed_at: number;
+    caller_id?: string;
 }
 
 export interface AlertConfirmMsg extends DataMsg, AlertConfirm {
@@ -122,7 +270,7 @@ export interface ColorPointerMsg extends PointerDataMsg, ColorPointer {
 export interface GridPointer {
     row: number;
     column: number;
-    color?: ColorSpecification;
+    color?: CssColor;
     displayed_at: number;
 }
 
@@ -130,10 +278,8 @@ export interface GridPointerMsg extends PointerDataMsg, GridPointer {
     context: PointerContext.Grid;
 }
 
-export type ColorSpecification = string | number | undefined;
-
 export interface Grid {
-    grid: ColorSpecification[][] | string[] | string;
+    grid: CssColor[][] | string[] | string;
     base_color?: RGB | ColorName;
 }
 export interface GridMsg extends DataMsg, Grid {
@@ -144,7 +290,7 @@ export interface GridUpdateMsg extends DataMsg {
     type: DataType.GridUpdate;
     row: number;
     column: number;
-    color: ColorSpecification | string;
+    color: CssColor;
     base_color?: RGB | ColorName;
 }
 
@@ -284,7 +430,7 @@ export interface PlaygroundConfigMsg extends DataMsg {
 }
 
 export interface SpriteCollision {
-    sprite_ids: [spriteA: string, spriteB: string];
+    sprite_ids: [string, string];
     overlap: 'in' | 'out';
 }
 
@@ -318,7 +464,7 @@ export interface ControlledSprite extends SpriteBase {
 
 export interface UncontrolledSprite extends SpriteBase {
     movement: Movement.Uncontrolled;
-    direction: number[];
+    direction: [number, number];
     speed: number;
     distance?: number;
     time_span?: number;
@@ -343,6 +489,16 @@ export type SpriteMsg = ControlledSpriteMsg | UncontrolledSpriteMsg;
 export interface SpritesMsg extends DataMsg {
     type: DataType.Sprites;
     sprites: SpriteMsg[];
+}
+
+export interface UpdateSprite {
+    id: string;
+    pos_x?: number;
+    pos_y?: number;
+    width?: number;
+    height?: number;
+    form?: SpriteForm;
+    color?: string;
 }
 
 export interface Acc {

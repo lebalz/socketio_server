@@ -7,7 +7,9 @@
   "scripts": {
     "start": "npx ts-node index.ts",
     "build": "npx tsc",
-    "heroku-postbuild": "cd client && yarn install --only=dev && yarn install && yarn run build"
+    "heroku-postbuild": "cd client && yarn install --only=dev && yarn install && yarn run build",
+    "infer-types": "yarn run quicktype client/src/Shared/SharedTypings.ts -o client/src/Shared/.justTypes.ts --just-types",
+    "to-py": "yarn run infer-types && yarn run quicktype --python-version 3.7 --just-types client/src/Shared/.justTypes.ts -o client/src/Shared/api_types.py && rm client/src/Shared/.justTypes.ts"
   },
   "keywords": [],
   "license": "MIT",
@@ -27,6 +29,7 @@
     "typescript": "^4.0.3"
   },
   "devDependencies": {
+    "quicktype": "^15.0.258",
     "tslint-config-airbnb": "^5.11.2",
     "tslint-react": "^5.0.0"
   },

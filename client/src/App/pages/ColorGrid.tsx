@@ -1,14 +1,7 @@
 import React, { Component } from 'react';
 import SocketData, { timeStamp } from '../SocketData';
-import {
-    DataType,
-    PointerContext,
-    GridPointer,
-    ClientDataMsg,
-    ColorSpecification,
-} from '../../Shared/SharedTypings';
-import { Grid } from '../models/Grid';
-import { ColorName } from '../models/Color';
+import { DataType, PointerContext, GridPointer, ClientDataMsg, ColorName } from '../../Shared/SharedTypings';
+import { Grid, ColorGrid as ColorGridType } from '../models/Grid';
 
 interface Props {
     socket: SocketData;
@@ -22,7 +15,7 @@ interface GridState {
     width: number;
     height: number;
     dimensions: [row: number, col: number];
-    grid: ColorSpecification[][];
+    grid: ColorGridType;
 }
 
 class ColorGrid extends Component<Props> {

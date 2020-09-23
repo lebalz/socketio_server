@@ -1,12 +1,12 @@
-import { Grid as GridProps, ColorSpecification, GridUpdateMsg } from './../../Shared/SharedTypings';
-import { ColorName, RGB, toCssColor, colorToRgb } from './Color';
+import { Grid as GridProps, GridUpdateMsg, ColorName, CssColor } from './../../Shared/SharedTypings';
+import { RGB, toCssColor, colorToRgb } from './Color';
 
-type ColorGrid = (string | undefined)[][];
+export type ColorGrid = (string | undefined)[][];
 const DEFAULT_GRID = [['white']];
 
 export class Grid {
     grid: ColorGrid;
-    rawColorGrid: ColorSpecification[][];
+    rawColorGrid: CssColor[][];
     baseColor?: RGB;
 
     constructor(data: GridProps) {
@@ -16,7 +16,7 @@ export class Grid {
         this.unifyColumnSizes();
     }
 
-    to2dArray(grid: ColorSpecification[][] | string[] | string): ColorSpecification[][] {
+    to2dArray(grid: CssColor[][] | CssColor[] | string): CssColor[][] {
         if (typeof grid === 'string') {
             const colorGrid = grid
                 .split('\n')
@@ -31,10 +31,10 @@ export class Grid {
             const colorGrid = (grid as string[]).map((line) => [...line]);
             return this.to2dArray(colorGrid);
         }
-        return grid as ColorSpecification[][];
+        return grid as CssColor[][];
     }
 
-    sanitize(grid: ColorSpecification[][], baseColor: ColorName | RGB = ColorName.Red): ColorGrid {
+    sanitize(grid: CssColor[][], baseColor: ColorName | RGB = ColorName.Red): ColorGrid {
         return grid.map((line) => line.map((color) => toCssColor(color, baseColor)));
     }
 
@@ -50,7 +50,7 @@ export class Grid {
         return [this.rowCount, this.columnCount];
     }
 
-    rawAt(rowIdx: number, columnIdx: number): ColorSpecification {
+    rawAt(rowIdx: number, columnIdx: number): CssColor | undefined {
         const row = this.rawColorGrid[rowIdx];
         if (!row) {
             return;

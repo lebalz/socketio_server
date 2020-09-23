@@ -7,9 +7,15 @@ interface Props {
     prompt?: InputPromptModel;
 }
 
+interface State {
+    open: boolean;
+    response?: string;
+    displayedAt: number;
+}
+
 class InputPrompt extends React.Component<Props> {
     inputRef = React.createRef<Input>();
-    state = { open: true, response: '', displayedAt: timeStamp() };
+    state: State = { open: true, response: undefined, displayedAt: timeStamp() };
 
     componentDidMount() {
         this.inputRef.current?.focus();
@@ -18,6 +24,7 @@ class InputPrompt extends React.Component<Props> {
 
     onMount = () => {
         window.addEventListener('keyup', this.onEnter);
+        this.setState({ response: this.props.prompt?.defaultValue });
     };
 
     onClose = () => {
@@ -27,10 +34,17 @@ class InputPrompt extends React.Component<Props> {
 
     onEnter = (e: KeyboardEvent) => {
         if (e.key === 'Enter') {
-            this.props.prompt?.respond(this.state.response, this.state.displayedAt);
-            this.props.prompt?.cancel(this.state.displayedAt);
+            this.respond();
         }
+        // this.props.prompt?.cancel(this.state.displayedAt);
     };
+
+    respond() {
+        this.props.prompt?.respond(
+            this.state.response ?? this.props.prompt.defaultValue ?? '',
+            this.state.displayedAt
+        );
+    }
 
     componentDidUpdate(prevProps: Props) {
         if (this.props.prompt !== prevProps.prompt) {
@@ -89,7 +103,7 @@ class InputPrompt extends React.Component<Props> {
                             content="Send"
                             labelPosition="right"
                             icon="send"
-                            onClick={() => prompt?.respond(this.state.response, this.state.displayedAt)}
+                            onClick={() => this.respond()}
                             positive
                         />
                     </Button.Group>

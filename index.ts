@@ -14,6 +14,8 @@ import {
     NotificationMsg,
     InputPromptMsg,
     ClientDataMsg,
+    InputResponseMsg,
+    AlertConfirmMsg,
 } from './client/src/Shared/SharedTypings';
 import express from 'express';
 import path from 'path';
@@ -347,7 +349,7 @@ io.on('connection', (socket) => {
 
         // socket.to(...) --> sends to all but self
         // io.to(...) --> sends to all in room
-        if (data.caller_id) {
+        if ((data as any).caller_id) {
             try {
                 if (data.type === DataType.InputResponse) {
                     const prompt = undeliveredPrompts.find(
@@ -364,7 +366,10 @@ io.on('connection', (socket) => {
                         undeliveredNotifications.splice(undeliveredNotifications.indexOf(notification), 1);
                     }
                 }
-                io.to(data.caller_id).emit(SocketEvents.NewData, data);
+                io.to((data as InputResponseMsg | AlertConfirmMsg).caller_id!).emit(
+                    SocketEvents.NewData,
+                    data
+                );
             } catch (e: any) {
                 console.error(e);
             }
