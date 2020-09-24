@@ -1,13 +1,14 @@
 import React, { Component } from 'react';
 import SocketData, { timeStamp } from '../SocketData';
 import { DataType, PointerContext, ColorPointer, ClientDataMsg } from '../../Shared/SharedTypings';
+import { toCssColor } from '../models/Color';
 
 interface Props {
     socket: SocketData;
 }
 
 interface ColorState {
-    color: string;
+    color?: string;
     touched: boolean;
     displayedAt?: number;
 }
@@ -49,7 +50,7 @@ class ColorPanel extends Component<Props> {
     onData = (data: ClientDataMsg) => {
         if (this._isMounted && data.type === DataType.Color) {
             this.setState({
-                color: data.color!,
+                color: toCssColor(data.color),
                 displayedAt: undefined,
             });
         }
@@ -65,7 +66,7 @@ class ColorPanel extends Component<Props> {
             y: event.clientY - rect.top,
             width: rect.width,
             height: rect.height,
-            color: this.state.color,
+            color: this.state.color || 'white',
             displayed_at: this.state.displayedAt ?? timeStamp(),
         });
     };

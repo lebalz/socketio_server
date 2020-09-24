@@ -20,7 +20,7 @@ interface GridState {
 
 class ColorGrid extends Component<Props> {
     _isMounted = false;
-    grid: Grid = new Grid({ grid: '90\n09', base_color: ColorName.Red });
+    grid: Grid = new Grid({ grid: '90\n09' });
     state: GridState = {
         dimensions: [0, 0],
         grid: this.grid.grid,
@@ -37,6 +37,7 @@ class ColorGrid extends Component<Props> {
     constructor(props: Props) {
         super(props);
         this.socket = props.socket;
+        this.updateSize;
     }
 
     componentDidUpdate(prevProps: Props, prevState: GridState) {
@@ -59,12 +60,9 @@ class ColorGrid extends Component<Props> {
                 grid: this.grid.grid,
             });
         } else {
-            this.setState({
-                width: window.innerWidth,
-                height: window.innerHeight,
-            });
+            this.updateSize();
         }
-        window.addEventListener('resize', this.onresize);
+        window.addEventListener('resize', this.updateSize);
     }
 
     componentWillUnmount() {
@@ -73,10 +71,10 @@ class ColorGrid extends Component<Props> {
         if (callbackFun >= 0) {
             this.socket.onData.splice(callbackFun, callbackFun);
         }
-        window.removeEventListener('resize', this.onresize);
+        window.removeEventListener('resize', this.updateSize);
     }
 
-    onresize = (ev: UIEvent) => {
+    updateSize = () => {
         this.setState({
             width: window.innerWidth,
             height: window.innerHeight,

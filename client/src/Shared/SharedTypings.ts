@@ -351,6 +351,8 @@ export type ClientDataMsg =
     | PlaygroundConfigMsg
     | UnknownMsg;
 
+export type PartialDataMsg = Partial<ClientDataMsg>;
+
 export interface AllDataMsg extends DataMsg {
     device_id: string;
     type: DataType.AllData;

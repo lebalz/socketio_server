@@ -444,7 +444,7 @@ class GridUpdateMsgType(Enum):
 @dataclass
 class GridUpdateMsg:
     base_color: Union[List[float], ColorName, None]
-    color: Union[List[float], float, str]
+    color: Union[List[float], float, None, str]
     column: float
     device_id: str
     device_nr: float
@@ -627,6 +627,61 @@ class ClientDataMsg:
     sprites: Optional[List[SpriteMsg]] = None
     time: Optional[float] = None
     time_span: Optional[float] = None
+    unicast_to: Optional[float] = None
+    width: Optional[float] = None
+    x: Optional[float] = None
+    y: Optional[float] = None
+    z: Optional[float] = None
+
+
+@dataclass
+class PartialDataMsg:
+    base_color: Union[List[float], ColorName, None]
+    color: Union[List[float], float, None, str]
+    grid: Union[List[Union[List[Union[List[float], float, str]], str]], None, str]
+    response: Union[float, None, str]
+    absolute: Optional[bool] = None
+    alert: Optional[bool] = None
+    all_data: Optional[List[ClientDataMsg]] = None
+    alpha: Optional[float] = None
+    beta: Optional[float] = None
+    broadcast: Optional[bool] = None
+    caller_id: Optional[str] = None
+    collision_detection: Optional[bool] = None
+    column: Optional[float] = None
+    config: Optional[PlaygroundConfig] = None
+    context: Optional[PointerContext] = None
+    device_id: Optional[str] = None
+    device_nr: Optional[float] = None
+    direction: Optional[List[float]] = None
+    displayed_at: Optional[float] = None
+    distance: Optional[float] = None
+    form: Optional[SpriteForm] = None
+    gamma: Optional[float] = None
+    height: Optional[float] = None
+    id: Optional[str] = None
+    input_type: Optional[ClientDataMsgInputType] = None
+    interval: Optional[float] = None
+    key: Optional[Key] = None
+    message: Optional[str] = None
+    movement: Optional[Movement] = None
+    notification_type: Optional[NotificationType] = None
+    options: Optional[List[str]] = None
+    overlap: Optional[Overlap] = None
+    pos_x: Optional[float] = None
+    pos_y: Optional[float] = None
+    question: Optional[str] = None
+    response_id: Optional[str] = None
+    row: Optional[float] = None
+    speed: Optional[float] = None
+    sprite: Optional[SpriteObject] = None
+    sprite_id: Optional[str] = None
+    sprite_ids: Optional[List[str]] = None
+    sprites: Optional[List[SpriteMsg]] = None
+    time: Optional[float] = None
+    time_span: Optional[float] = None
+    time_stamp: Optional[float] = None
+    type: Optional[DataType] = None
     unicast_to: Optional[float] = None
     width: Optional[float] = None
     x: Optional[float] = None
@@ -957,4 +1012,254 @@ class GyroMsg:
     time_stamp: float
     type: GyroMsgType
     broadcast: Optional[bool] = None
+    unicast_to: Optional[float] = None
+
+
+@dataclass
+class PartialNotificationMsg:
+    alert: Optional[bool] = None
+    broadcast: Optional[bool] = None
+    device_id: Optional[str] = None
+    device_nr: Optional[float] = None
+    message: Optional[str] = None
+    notification_type: Optional[NotificationType] = None
+    response_id: Optional[str] = None
+    time: Optional[float] = None
+    time_stamp: Optional[float] = None
+    type: Optional[NotificationMsgType] = None
+    unicast_to: Optional[float] = None
+
+
+@dataclass
+class PartialAlertConfirmMsg:
+    broadcast: Optional[bool] = None
+    caller_id: Optional[str] = None
+    device_id: Optional[str] = None
+    device_nr: Optional[float] = None
+    displayed_at: Optional[float] = None
+    time_stamp: Optional[float] = None
+    type: Optional[AlertConfirmMsgType] = None
+    unicast_to: Optional[float] = None
+
+
+@dataclass
+class PartialInputPromptMsg:
+    broadcast: Optional[bool] = None
+    device_id: Optional[str] = None
+    device_nr: Optional[float] = None
+    input_type: Optional[ClientDataMsgInputType] = None
+    options: Optional[List[str]] = None
+    question: Optional[str] = None
+    response_id: Optional[str] = None
+    time_stamp: Optional[float] = None
+    type: Optional[InputPromptMsgType] = None
+    unicast_to: Optional[float] = None
+
+
+@dataclass
+class PartialInputResponseMsg:
+    response: Union[float, None, str]
+    broadcast: Optional[bool] = None
+    caller_id: Optional[str] = None
+    device_id: Optional[str] = None
+    device_nr: Optional[float] = None
+    displayed_at: Optional[float] = None
+    time_stamp: Optional[float] = None
+    type: Optional[InputResponseMsgType] = None
+    unicast_to: Optional[float] = None
+
+
+@dataclass
+class PartialPointerDataMsg:
+    broadcast: Optional[bool] = None
+    context: Optional[PointerContext] = None
+    device_id: Optional[str] = None
+    device_nr: Optional[float] = None
+    time_stamp: Optional[float] = None
+    type: Optional[PointerDataMsgType] = None
+    unicast_to: Optional[float] = None
+
+
+@dataclass
+class PartialGridMsg:
+    base_color: Union[List[float], ColorName, None]
+    grid: Union[List[Union[List[Union[List[float], float, str]], str]], None, str]
+    broadcast: Optional[bool] = None
+    device_id: Optional[str] = None
+    device_nr: Optional[float] = None
+    time_stamp: Optional[float] = None
+    type: Optional[GridPointerMsgContext] = None
+    unicast_to: Optional[float] = None
+
+
+@dataclass
+class PartialGridUpdateMsg:
+    base_color: Union[List[float], ColorName, None]
+    color: Union[List[float], float, None, str]
+    broadcast: Optional[bool] = None
+    column: Optional[float] = None
+    device_id: Optional[str] = None
+    device_nr: Optional[float] = None
+    row: Optional[float] = None
+    time_stamp: Optional[float] = None
+    type: Optional[GridUpdateMsgType] = None
+    unicast_to: Optional[float] = None
+
+
+@dataclass
+class PartialColorMsg:
+    broadcast: Optional[bool] = None
+    color: Optional[str] = None
+    device_id: Optional[str] = None
+    device_nr: Optional[float] = None
+    time_stamp: Optional[float] = None
+    type: Optional[ColorPointerMsgContext] = None
+    unicast_to: Optional[float] = None
+
+
+@dataclass
+class PartialUnknownMsg:
+    broadcast: Optional[bool] = None
+    device_id: Optional[str] = None
+    device_nr: Optional[float] = None
+    time_stamp: Optional[float] = None
+    type: Optional[UnknownMsgType] = None
+    unicast_to: Optional[float] = None
+
+
+@dataclass
+class PartialKeyMsg:
+    broadcast: Optional[bool] = None
+    device_id: Optional[str] = None
+    device_nr: Optional[float] = None
+    key: Optional[Key] = None
+    time_stamp: Optional[float] = None
+    type: Optional[KeyMsgType] = None
+    unicast_to: Optional[float] = None
+
+
+@dataclass
+class PartialAccMsg:
+    broadcast: Optional[bool] = None
+    device_id: Optional[str] = None
+    device_nr: Optional[float] = None
+    interval: Optional[float] = None
+    time_stamp: Optional[float] = None
+    type: Optional[AccMsgType] = None
+    unicast_to: Optional[float] = None
+    x: Optional[float] = None
+    y: Optional[float] = None
+    z: Optional[float] = None
+
+
+@dataclass
+class PartialGyroMsg:
+    absolute: Optional[bool] = None
+    alpha: Optional[float] = None
+    beta: Optional[float] = None
+    broadcast: Optional[bool] = None
+    device_id: Optional[str] = None
+    device_nr: Optional[float] = None
+    gamma: Optional[float] = None
+    time_stamp: Optional[float] = None
+    type: Optional[GyroMsgType] = None
+    unicast_to: Optional[float] = None
+
+
+@dataclass
+class PartialAllDataMsg:
+    all_data: Optional[List[ClientDataMsg]] = None
+    broadcast: Optional[bool] = None
+    device_id: Optional[str] = None
+    device_nr: Optional[float] = None
+    time_stamp: Optional[float] = None
+    type: Optional[AllDataMsgType] = None
+    unicast_to: Optional[float] = None
+
+
+@dataclass
+class PartialControlledSpriteMsg:
+    broadcast: Optional[bool] = None
+    color: Optional[str] = None
+    device_id: Optional[str] = None
+    device_nr: Optional[float] = None
+    form: Optional[SpriteForm] = None
+    height: Optional[float] = None
+    id: Optional[str] = None
+    movement: Optional[ControlledSpriteMovement] = None
+    pos_x: Optional[float] = None
+    pos_y: Optional[float] = None
+    sprite: Optional[ControlledSprite] = None
+    time_stamp: Optional[float] = None
+    type: Optional[SpriteMsgType] = None
+    unicast_to: Optional[float] = None
+    width: Optional[float] = None
+
+
+@dataclass
+class PartialUncontrolledSpriteMsg:
+    broadcast: Optional[bool] = None
+    collision_detection: Optional[bool] = None
+    color: Optional[str] = None
+    device_id: Optional[str] = None
+    device_nr: Optional[float] = None
+    direction: Optional[List[float]] = None
+    distance: Optional[float] = None
+    form: Optional[SpriteForm] = None
+    height: Optional[float] = None
+    id: Optional[str] = None
+    movement: Optional[UncontrolledSpriteMovement] = None
+    pos_x: Optional[float] = None
+    pos_y: Optional[float] = None
+    speed: Optional[float] = None
+    sprite: Optional[UncontrolledSprite] = None
+    time_span: Optional[float] = None
+    time_stamp: Optional[float] = None
+    type: Optional[SpriteMsgType] = None
+    unicast_to: Optional[float] = None
+    width: Optional[float] = None
+
+
+@dataclass
+class PartialSpritesMsg:
+    broadcast: Optional[bool] = None
+    device_id: Optional[str] = None
+    device_nr: Optional[float] = None
+    sprites: Optional[List[SpriteMsg]] = None
+    time_stamp: Optional[float] = None
+    type: Optional[SpritesMsgType] = None
+    unicast_to: Optional[float] = None
+
+
+@dataclass
+class PartialSpriteCollisionMsg:
+    broadcast: Optional[bool] = None
+    device_id: Optional[str] = None
+    device_nr: Optional[float] = None
+    overlap: Optional[Overlap] = None
+    sprite_ids: Optional[List[str]] = None
+    time_stamp: Optional[float] = None
+    type: Optional[SpriteCollisionMsgType] = None
+    unicast_to: Optional[float] = None
+
+
+@dataclass
+class PartialSpriteOutMsg:
+    broadcast: Optional[bool] = None
+    device_id: Optional[str] = None
+    device_nr: Optional[float] = None
+    sprite_id: Optional[str] = None
+    time_stamp: Optional[float] = None
+    type: Optional[SpriteOutMsgType] = None
+    unicast_to: Optional[float] = None
+
+
+@dataclass
+class PartialPlaygroundConfigMsg:
+    broadcast: Optional[bool] = None
+    config: Optional[PlaygroundConfig] = None
+    device_id: Optional[str] = None
+    device_nr: Optional[float] = None
+    time_stamp: Optional[float] = None
+    type: Optional[PlaygroundConfigMsgType] = None
     unicast_to: Optional[float] = None
