@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import SocketData, { timeStamp } from '../SocketData';
-import { DataType, PointerContext, GridPointer, ClientDataMsg, ColorName } from '../../Shared/SharedTypings';
+import { DataType, PointerContext, GridPointer, ClientDataMsg } from '../../Shared/SharedTypings';
 import { Grid, ColorGrid as ColorGridType } from '../models/Grid';
 
 interface Props {
@@ -37,10 +37,10 @@ class ColorGrid extends Component<Props> {
     constructor(props: Props) {
         super(props);
         this.socket = props.socket;
-        this.updateSize;
+        this.updateSize();
     }
 
-    componentDidUpdate(prevProps: Props, prevState: GridState) {
+    componentDidUpdate(_prevProps: Props, prevState: GridState) {
         if (this.state.grid !== prevState.grid) {
             this.setState({ displayedAt: timeStamp() });
         }
