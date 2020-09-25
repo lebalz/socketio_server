@@ -14,7 +14,6 @@ interface GridState {
     displayedAt?: number;
     width: number;
     height: number;
-    dimensions: [row: number, col: number];
     grid: ColorGridType;
 }
 
@@ -22,7 +21,6 @@ class ColorGrid extends Component<Props> {
     _isMounted = false;
     grid: Grid = new Grid({ grid: '90\n09' });
     state: GridState = {
-        dimensions: [0, 0],
         grid: this.grid.grid,
         activeCell: undefined,
         x: 0,
@@ -118,15 +116,15 @@ class ColorGrid extends Component<Props> {
     }
 
     get maxWidth() {
-        const rowCount = this.state.dimensions[0];
-        const columnCount = this.state.dimensions[1];
+        const rowCount = this.state.grid.length;
+        const columnCount = (this.state.grid[0] || []).length;
         const maxCellW = window.innerWidth / columnCount;
         const maxCellH = window.innerHeight / rowCount;
         return Math.min(maxCellH, maxCellW) * columnCount;
     }
 
     render() {
-        const { dimensions, activeCell, grid } = this.state;
+        const { activeCell, grid } = this.state;
         return (
             <div
                 id="color-grid"
@@ -135,10 +133,9 @@ class ColorGrid extends Component<Props> {
                     maxWidth: `${this.maxWidth}px`,
                     display: 'grid',
                     gridAutoFlow: 'row',
-                    gridTemplateColumns: `repeat(${dimensions[1]}, 1fr)`,
+                    gridTemplateColumns: `repeat(${(this.state.grid[0] || []).length}, 1fr)`,
                     outline: '1px dashed lightgrey',
                 }}
-                key={`grid-${dimensions}`}
             >
                 {grid.map((row, rowIdx) => {
                     return (typeof row === 'string' ? [row] : row).map((cell, colIdx) => {
