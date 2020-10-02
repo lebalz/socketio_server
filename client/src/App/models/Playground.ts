@@ -63,8 +63,8 @@ export class Playground implements IBoundingBox {
 
     constructor(socket: SocketData) {
         this.socket = socket;
-        this.controlledSprites.push(...testControlledSprites(socket));
-        this.uncontrolledSprites.push(...testSprites(socket, this.onSpriteDone));
+        // this.controlledSprites.push(...testControlledSprites(socket));
+        // this.uncontrolledSprites.push(...testSprites(socket, this.onSpriteDone));
     }
 
     @computed
