@@ -1,28 +1,40 @@
-import { Movement, Sprite as SpriteProps } from 'src/Shared/SharedTypings';
+import { action, observable } from 'mobx';
+import { DataType, SpriteCollision } from 'src/Shared/SharedTypings';
+import { timeStamp } from '../SocketData';
 import { Sprite } from './Sprite';
 
 export default class ControlledSprite extends Sprite {
-  update(sprite: SpriteProps) {
-    if (sprite.movement !== Movement.Controlled || sprite.id !== this.id) {
-      return;
+    overlaps = observable.set<Sprite>();
+
+    @action
+    reportCollisions(overlaps: Set<Sprite>) {
+        if (this.overlaps.size === 0 && overlaps.size === 0) {
+            return;
+        }
+        const reportIn = [...overlaps].filter((sprite) => !this.overlaps.has(sprite));
+        const reportOut = [...this.overlaps].filter((sprite) => !overlaps.has(sprite));
+        const ts = timeStamp();
+        reportIn.forEach((sprite) => {
+            if (sprite.id === this.id) {
+                return;
+            }
+            this.overlaps.add(sprite);
+            this.socket.addData<SpriteCollision>({
+                type: DataType.SpriteCollision,
+                sprite_ids: [this.id, sprite.id],
+                time_stamp: ts,
+                overlap: 'in',
+            });
+        });
+        reportOut.forEach((sprite) => {
+            if (this.overlaps.delete(sprite)) {
+                this.socket.addData<SpriteCollision>({
+                    type: DataType.SpriteCollision,
+                    sprite_ids: [this.id, sprite.id],
+                    time_stamp: ts,
+                    overlap: 'out',
+                });
+            }
+        });
     }
-    if (sprite.pos_x !== undefined) {
-      this.posX = sprite.pos_x;
-    }
-    if (sprite.pos_y !== undefined) {
-      this.posY = sprite.pos_y;
-    }
-    if (sprite.color !== undefined) {
-      this.color = sprite.color;
-    }
-    if (sprite.form !== undefined) {
-      this.form = sprite.form;
-    }
-    if (sprite.height !== undefined) {
-      this.height = sprite.height;
-    }
-    if (sprite.width !== undefined) {
-      this.width = sprite.width;
-    }
-  }
 }

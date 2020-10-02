@@ -1,57 +1,42 @@
 import React, { Component, Fragment } from 'react';
 import { Checkbox, Segment, Form } from 'semantic-ui-react';
 import MotionSimulator from '../models/MotionSimulator';
-import SocketData, { timeStamp } from '../SocketData';
+import { timeStamp } from '../SocketData';
 import { Acc, Gyro, Key } from '../../Shared/SharedTypings';
 import AccelerationSensor, { AccelerationData } from '../components/Controls/Sensors/AccelerationSensor';
 import GyroSensor, { GyroData } from '../components/Controls/Sensors/GyroSensor';
 import KeyControls, { KeyData } from '../components/Controls/KeyControls';
+import { inject, observer } from 'mobx-react';
+import DataStore from '../stores/data_store';
+import ViewStateStore from '../stores/view_state_store';
+import { computed } from 'mobx';
 
-interface Props {
-    socket: SocketData;
+interface InjectedProps {
+    dataStore: DataStore;
+    viewStateStore: ViewStateStore;
 }
 
-interface ControllerState {
-    streamSenensor: boolean;
-    simulateSensor: boolean;
-    acceleration: boolean;
-    gyro: boolean;
-    lastAcceleration?: AccelerationData;
-    lastGyro?: GyroData;
-    lastCommands: { timeStamp: number; key: Key }[];
-    showLogs: boolean;
+interface StateProps {
     active: {
         [key in Key]?: boolean;
     };
 }
 
-class Controller extends Component<Props> {
-    state: ControllerState = {
-        streamSenensor: false,
-        simulateSensor: false,
-        acceleration: true,
-        gyro: true,
-        lastAcceleration: undefined,
-        lastGyro: undefined,
-        lastCommands: [],
-        showLogs: true,
-        active: {},
-    };
-    simulator = new MotionSimulator();
-    socket: SocketData;
-
-    // Initialize the state
-    constructor(props: Props) {
-        super(props);
-        this.socket = props.socket;
+@inject('dataStore', 'viewStateStore')
+@observer
+class Controller extends Component {
+    state: StateProps = { active: {} };
+    get injected() {
+        return this.props as InjectedProps;
     }
+    simulator = new MotionSimulator();
 
     componentDidMount() {
         if (localStorage.getItem('stream_sensor') === 'on') {
-            this.setState({ streamSenensor: true });
+            this.controllerState.streamSenensor = true;
         }
         if (localStorage.getItem('simulate_sensor') === 'yes') {
-            this.setState({ simulateSensor: true });
+            this.controllerState.simulateSensor = true;
         }
     }
 
@@ -61,8 +46,18 @@ class Controller extends Component<Props> {
         this.setState({ active: activeState });
     }
 
+    @computed
+    get controllerState() {
+        return this.injected.viewStateStore.controllerState;
+    }
+
+    @computed
+    get socket() {
+        return this.injected.dataStore.socket;
+    }
+
     onKeyData = (data: KeyData) => {
-        const cmds = this.state.lastCommands;
+        const cmds = this.controllerState.lastCommands;
         if (cmds.length > 5) {
             cmds.shift();
         }
@@ -72,15 +67,13 @@ class Controller extends Component<Props> {
     };
 
     toggleSensorStream = () => {
-        const stream = !this.state.streamSenensor;
-        this.setState({ streamSenensor: stream });
-        localStorage.setItem('stream_sensor', stream ? 'on' : 'off');
+        this.controllerState.streamSenensor = !this.controllerState.streamSenensor;
+        localStorage.setItem('stream_sensor', this.controllerState.streamSenensor ? 'on' : 'off');
     };
 
     toggleSimulateSensor = () => {
-        const simulate = !this.state.simulateSensor;
-        this.setState({ simulateSensor: simulate });
-        localStorage.setItem('simulate_sensor', simulate ? 'yes' : 'no');
+        this.controllerState.simulateSensor = !this.controllerState.simulateSensor;
+        localStorage.setItem('simulate_sensor', this.controllerState.simulateSensor ? 'yes' : 'no');
     };
 
     onAccelerationData = (data: AccelerationData) => {
@@ -94,6 +87,7 @@ class Controller extends Component<Props> {
     };
 
     render() {
+        const showStreamLogs = this.controllerState.showLogs && this.controllerState.streamSenensor;
         return (
             <Fragment>
                 <h1>Controller</h1>
@@ -102,27 +96,27 @@ class Controller extends Component<Props> {
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <Form.Field>
                             <Checkbox
-                                checked={this.state.streamSenensor}
+                                checked={this.controllerState.streamSenensor}
                                 onClick={this.toggleSensorStream}
                                 label="Sensoren Streamen"
                             />
                         </Form.Field>
-                        {this.state.streamSenensor && (
+                        {this.controllerState.streamSenensor && (
                             <Fragment>
                                 <Checkbox
-                                    checked={this.state.simulateSensor}
+                                    checked={this.controllerState.simulateSensor}
                                     onClick={this.toggleSimulateSensor}
                                     label="Simulate Sensors"
                                 />
                                 <AccelerationSensor
-                                    simulate={this.state.simulateSensor}
+                                    simulate={this.controllerState.simulateSensor}
                                     onData={this.onAccelerationData}
-                                    on={this.state.streamSenensor}
+                                    on={this.controllerState.streamSenensor}
                                 />
                                 <GyroSensor
-                                    simulate={this.state.simulateSensor}
+                                    simulate={this.controllerState.simulateSensor}
                                     onData={this.onGyroData}
-                                    on={this.state.streamSenensor}
+                                    on={this.controllerState.streamSenensor}
                                 />
                             </Fragment>
                         )}
@@ -131,12 +125,12 @@ class Controller extends Component<Props> {
                 <Segment style={{ width: '100%' }}>
                     <Checkbox
                         label="Logs Anzeigen"
-                        checked={this.state.showLogs}
-                        onClick={() => this.setState({ showLogs: !this.state.showLogs })}
+                        checked={this.controllerState.showLogs}
+                        onClick={() => this.setState({ showLogs: !this.controllerState.showLogs })}
                     />
-                    {this.state.showLogs && (
+                    {this.controllerState.showLogs && (
                         <div style={{ margin: '1em' }}>
-                            {this.state.lastCommands
+                            {this.controllerState.lastCommands
                                 .slice()
                                 .reverse()
                                 .map((cmd) => {
@@ -153,17 +147,17 @@ class Controller extends Component<Props> {
                                 })}
                         </div>
                     )}
-                    {this.state.showLogs && this.state.streamSenensor && this.state.acceleration && (
+                    {showStreamLogs && this.controllerState.acceleration && (
                         <div style={{ margin: '1em' }}>
                             <pre>
-                                <code>{JSON.stringify(this.state.lastAcceleration, null, 2)}</code>
+                                <code>{JSON.stringify(this.controllerState.lastAcceleration, null, 2)}</code>
                             </pre>
                         </div>
                     )}
-                    {this.state.showLogs && this.state.streamSenensor && this.state.gyro && (
+                    {showStreamLogs && this.controllerState.gyro && (
                         <div style={{ margin: '1em' }}>
                             <pre>
-                                <code>{JSON.stringify(this.state.lastGyro, null, 2)}</code>
+                                <code>{JSON.stringify(this.controllerState.lastGyro, null, 2)}</code>
                             </pre>
                         </div>
                     )}

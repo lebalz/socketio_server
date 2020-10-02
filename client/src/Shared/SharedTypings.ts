@@ -178,7 +178,9 @@ export enum DataType {
     Sprites = 'sprites',
     SpriteCollision = 'sprite_collision',
     SpriteOut = 'sprite_out',
+    SpriteClicked = 'sprite_clicked',
     PlaygroundConfig = 'playground_config',
+    BorderOverlap = 'border_overlap',
 }
 
 export interface DataStore {
@@ -265,6 +267,14 @@ export interface ColorPointer {
 
 export interface ColorPointerMsg extends PointerDataMsg, ColorPointer {
     context: PointerContext.Color;
+}
+
+export interface ColorPanel {
+    color: CssColor;
+}
+
+export interface ColorPanelMsg extends DataMsg, ColorPanel {
+    type: DataType.Color;
 }
 
 export interface GridPointer {
@@ -444,20 +454,32 @@ export interface SpriteCollisionMsg extends DataMsg, SpriteCollision {
 export interface SpriteOut {
     sprite_id: string;
 }
+export interface SpriteClicked {
+    sprite_id: string;
+    text?: string;
+    x: number;
+    y: number;
+}
 
 export interface SpriteOutMsg extends DataMsg, SpriteOut {
     type: DataType.SpriteOut;
     time_stamp: number;
 }
 
-export interface SpriteBase {
+export interface RequiredSpriteBase {
     id: string;
+    movement: Movement;
+}
+
+export interface SpriteBase extends RequiredSpriteBase {
     pos_x: number;
     pos_y: number;
     width: number;
     height: number;
     form: SpriteForm;
     color: string;
+    clickable?: boolean;
+    text?: string;
 }
 
 export interface ControlledSprite extends SpriteBase {
@@ -471,26 +493,25 @@ export interface UncontrolledSprite extends SpriteBase {
     distance?: number;
     time_span?: number;
     collision_detection?: boolean;
+    reset_time?: boolean;
 }
 
 export type Sprite = ControlledSprite | UncontrolledSprite;
 
-export interface ControlledSpriteMsg extends DataMsg, Partial<ControlledSprite> {
-    id: string;
+export interface ControlledSpriteMsg extends DataMsg {
     type: DataType.Sprite;
-    sprite: ControlledSprite;
+    sprite: Partial<ControlledSprite> & RequiredSpriteBase;
 }
-export interface UncontrolledSpriteMsg extends DataMsg, Partial<UncontrolledSprite> {
-    id: string;
+export interface UncontrolledSpriteMsg extends DataMsg {
     type: DataType.Sprite;
-    sprite: UncontrolledSprite;
+    sprite: Partial<UncontrolledSprite> & RequiredSpriteBase;
 }
 
 export type SpriteMsg = ControlledSpriteMsg | UncontrolledSpriteMsg;
 
 export interface SpritesMsg extends DataMsg {
     type: DataType.Sprites;
-    sprites: SpriteMsg[];
+    sprites: Sprite[];
 }
 
 export interface UpdateSprite {
@@ -501,6 +522,25 @@ export interface UpdateSprite {
     height?: number;
     form?: SpriteForm;
     color?: string;
+}
+
+export enum BorderSide {
+    Left = 'left',
+    Right = 'right',
+    Top = 'top',
+    Bottom = 'bottom',
+}
+
+export interface BorderOverlap {
+    border: BorderSide;
+    x: number;
+    y: number;
+    id: string;
+}
+
+export interface BorderOverlapMsg extends DataMsg {
+    type: DataType.BorderOverlap;
+    border_overlap: BorderOverlap;
 }
 
 export interface Acc {

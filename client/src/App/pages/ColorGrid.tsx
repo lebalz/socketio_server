@@ -1,201 +1,74 @@
 import React, { Component } from 'react';
-import SocketData, { timeStamp } from '../SocketData';
-import { DataType, PointerContext, GridPointer, ClientDataMsg } from '../../Shared/SharedTypings';
-import { Grid, ColorGrid as ColorGridType } from '../models/Grid';
+import { timeStamp } from '../SocketData';
+import { ColorGrid as ColorGridModel } from '../models/ColorGrid/ColorGrid';
+import { inject, observer } from 'mobx-react';
+import ViewStateStore from '../stores/view_state_store';
+import DataStore from '../stores/data_store';
+import { action, computed } from 'mobx';
+import ColorGridRow from './ColorGridRow';
+import GridCellPopup from '../components/GridCellPopup';
 
-interface Props {
-    socket: SocketData;
+interface InjectedProps {
+    viewStateStore: ViewStateStore;
+    dataStore: DataStore;
 }
 
-interface GridState {
-    activeCell?: string;
-    x: number;
-    y: number;
-    displayedAt?: number;
-    width: number;
-    height: number;
-    grid: ColorGridType;
-}
-
-class ColorGrid extends Component<Props> {
-    _isMounted = false;
-    grid: Grid = new Grid({ grid: '90\n09' });
-    state: GridState = {
-        grid: this.grid.grid,
-        activeCell: undefined,
-        x: 0,
-        y: 0,
-        displayedAt: timeStamp(),
-        width: 500,
-        height: 200,
-    };
-    // Initialize the state
-    socket: SocketData;
-
-    constructor(props: Props) {
-        super(props);
-        this.socket = props.socket;
-        this.updateSize();
+@inject('viewStateStore', 'dataStore')
+@observer
+class ColorGrid extends Component {
+    get injected() {
+        return this.props as InjectedProps;
     }
 
-    componentDidUpdate(_prevProps: Props, prevState: GridState) {
-        if (this.state.grid !== prevState.grid) {
-            this.setState({ displayedAt: timeStamp() });
+    @computed
+    get grid(): ColorGridModel {
+        return this.injected.dataStore.socket.colorGrid;
+    }
+
+    @computed
+    get viewState() {
+        return this.injected.viewStateStore.gridState;
+    }
+
+    componentDidUpdate(_prevProps: any, _prevState: any) {
+        if (this.grid.displayedAt) {
+            this.grid.displayedAt = timeStamp();
         }
     }
 
     componentDidMount() {
-        this._isMounted = true;
-        this.socket.onData.push(this.onData);
-        const grids = this.socket.getData(DataType.Grid);
-        const latestGrid = grids[grids.length - 1];
-        if (latestGrid && latestGrid.grid && latestGrid.grid.length > 0 && latestGrid.grid[0].length > 0) {
-            this.grid = new Grid(latestGrid);
-            this.setState({
-                displayedAt: timeStamp(),
-                width: window.innerWidth,
-                height: window.innerHeight,
-                grid: this.grid.grid,
-            });
-        } else {
-            this.updateSize();
-        }
+        this.updateSize();
         window.addEventListener('resize', this.updateSize);
     }
 
     componentWillUnmount() {
-        this._isMounted = false;
-        const callbackFun = this.socket.onData.indexOf((f: any) => f === this.onData);
-        if (callbackFun >= 0) {
-            this.socket.onData.splice(callbackFun, callbackFun);
-        }
         window.removeEventListener('resize', this.updateSize);
     }
 
-    updateSize = () => {
-        this.setState({
-            width: window.innerWidth,
-            height: window.innerHeight,
-        });
-    };
-
-    onData = (data: ClientDataMsg) => {
-        if (!this._isMounted) {
-            return;
-        }
-        switch (data.type) {
-            case DataType.Grid:
-                this.grid = new Grid(data);
-                this.setState({
-                    dimensions: this.grid.dimensions,
-                    grid: this.grid.grid,
-                    displayedAt: undefined,
-                });
-                break;
-            case DataType.GridUpdate:
-                this.grid.update(data);
-                this.setState({
-                    dimensions: this.grid.dimensions,
-                    grid: this.grid.grid,
-                    displayedAt: undefined,
-                });
-                break;
-        }
-    };
-
-    onClick(row: number, column: number) {
-        this.setState({ activeCell: undefined });
-        this.socket.addData<GridPointer>({
-            type: DataType.Pointer,
-            context: PointerContext.Grid,
-            row: row,
-            column: column,
-            color: this.grid.rawAt(row, column),
-            displayed_at: this.state.displayedAt ?? timeStamp(),
-        });
-    }
+    updateSize = action(() => {
+        this.injected.viewStateStore.gridState.height = window.innerHeight;
+        this.injected.viewStateStore.gridState.width = window.innerWidth;
+    });
 
     get maxWidth() {
-        const rowCount = this.state.grid.length;
-        const columnCount = (this.state.grid[0] || []).length;
-        const maxCellW = window.innerWidth / columnCount;
-        const maxCellH = window.innerHeight / rowCount;
-        return Math.min(maxCellH, maxCellW) * columnCount;
+        const maxCellW = this.injected.viewStateStore.gridState.width / this.grid.columnCount;
+        const maxCellH = this.injected.viewStateStore.gridState.height / this.grid.rowCount;
+        return Math.min(maxCellH, maxCellW) * this.grid.columnCount;
     }
 
     render() {
-        const { activeCell, grid } = this.state;
         return (
             <div
                 id="color-grid"
                 style={{
-                    width: '100%',
                     maxWidth: `${this.maxWidth}px`,
-                    display: 'grid',
-                    gridAutoFlow: 'row',
-                    gridTemplateColumns: `repeat(${(this.state.grid[0] || []).length}, 1fr)`,
-                    outline: '1px dashed lightgrey',
+                    gridTemplateColumns: `repeat(${this.grid.columnCount}, 1fr)`,
                 }}
             >
-                {grid.map((row, rowIdx) => {
-                    return (typeof row === 'string' ? [row] : row).map((cell, colIdx) => {
-                        const key = `cell_${rowIdx}_${colIdx}`;
-                        const isActive = key === activeCell;
-                        const label = `[${rowIdx}, ${colIdx}]`;
-                        return (
-                            <div
-                                key={key}
-                                className="grid-cell"
-                                style={{
-                                    background: cell,
-                                    gridRowStart: rowIdx + 1,
-                                    gridRowEnd: rowIdx + 1,
-                                    gridColumnStart: colIdx + 1,
-                                    gridColumnEnd: colIdx + 1,
-                                    outline: isActive ? '3px solid grey' : undefined,
-                                    outlineOffset: isActive ? '-3px' : undefined,
-                                }}
-                                onPointerDown={(e) => {
-                                    const rect = e.currentTarget.getBoundingClientRect();
-                                    this.setState({
-                                        activeCell: key,
-                                        x: e.clientX - rect.left,
-                                        y: e.clientY - rect.top,
-                                    });
-                                }}
-                                onPointerUp={() => this.onClick(rowIdx, colIdx)}
-                                onPointerCancel={() => this.setState({ activeCell: undefined })}
-                                onPointerOut={(e) => {
-                                    if (isActive) {
-                                        /** do hit test with the center of the pointer */
-                                        const rect = e.currentTarget.getBoundingClientRect();
-                                        if (
-                                            e.clientX < rect.left ||
-                                            e.clientX > rect.right ||
-                                            e.clientY < rect.top ||
-                                            e.clientY > rect.bottom
-                                        ) {
-                                            this.setState({ activeCell: undefined });
-                                        }
-                                    }
-                                }}
-                            >
-                                {isActive && (
-                                    <div
-                                        className="cell-index-popup"
-                                        style={{
-                                            width: `${label.length / 1.5}em`,
-                                            top: `calc(${this.state.y}px - 6rem)`,
-                                            left: `calc(${this.state.x}px - ${label.length / 3}em)`,
-                                        }}
-                                    >
-                                        {label}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    });
+                {this.grid.rows.map((row, rowIdx) => {
+                    return <ColorGridRow key={rowIdx} row={row} />;
                 })}
+                <GridCellPopup />
             </div>
         );
     }

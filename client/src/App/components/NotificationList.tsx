@@ -1,55 +1,69 @@
 import React from 'react';
-import { AlertConfirm, DataType, NotificationMsg } from '../../Shared/SharedTypings';
+import { AlertConfirm, DataType } from '../../Shared/SharedTypings';
 import { Notification as NotificationModel } from '../models/Notification';
 import Notification from './Notification';
-import SocketData, { timeStamp } from '../SocketData';
+import { timeStamp } from '../SocketData';
 import { Icon } from 'semantic-ui-react';
+import { inject, observer } from 'mobx-react';
+import DataStore from '../stores/data_store';
+import { computed, IReactionDisposer, reaction } from 'mobx';
 
-interface Props {
-    socket: SocketData;
+interface InjectedProps {
+    dataStore: DataStore;
 }
-interface State {
-    notifications: NotificationModel[];
-}
 
-class NotificationList extends React.Component<Props> {
-    state: State = {
-        notifications: [],
-    };
+@inject('dataStore')
+@observer
+class NotificationList extends React.Component {
+    get injected() {
+        return this.props as InjectedProps;
+    }
+    reactionDisposer: IReactionDisposer;
 
-    constructor(props: Props) {
+    constructor(props: any) {
         super(props);
-        props.socket.onNotification = (notification: NotificationMsg) => {
-            if (notification.alert) {
-                const ts = timeStamp();
-                window.alert(notification.message);
-                this.props.socket.addData<AlertConfirm>({
-                    type: DataType.AlertConfirm,
-                    time_stamp: notification.time_stamp,
-                    caller_id: notification.response_id,
-                    displayed_at: ts,
-                });
-            } else {
-                const ntfs = this.state.notifications.slice();
-                ntfs.push(new NotificationModel(notification, this.onDismissNotification));
-                this.setState({ notifications: ntfs });
+        const { socket } = this.injected.dataStore;
+        this.reactionDisposer = reaction(
+            () => socket.notifications.length,
+            (length) => {
+                if (length > 0) {
+                    const notification = socket.notifications[0];
+                    if (notification?.alert) {
+                        const ts = timeStamp();
+                        window.alert(notification.message);
+                        socket.addData<AlertConfirm>({
+                            type: DataType.AlertConfirm,
+                            time_stamp: notification.timeStamp,
+                            caller_id: notification.responseId,
+                            displayed_at: ts,
+                        });
+                        socket.notifications.remove(notification);
+                    }
+                }
             }
-        };
+        );
+    }
+
+    componentWillUnmount() {
+        this.reactionDisposer();
     }
 
     onDismissNotification = (notification: NotificationModel) => {
-        const ntfs = this.state.notifications.slice();
-        if (!ntfs.includes(notification)) {
-            return;
-        }
-        ntfs.splice(ntfs.indexOf(notification), 1);
-        this.setState({ notifications: ntfs });
+        this.injected.dataStore.socket.notifications.remove(notification);
     };
+
+    @computed
+    get notifications(): NotificationModel[] {
+        const notifics = this.injected.dataStore.socket.notifications.filter(
+            (notification) => !notification.alert
+        );
+        return notifics.sort((a, b) => b.timeStamp - a.timeStamp);
+    }
 
     render() {
         return (
             <div id="notification-container">
-                {this.state.notifications.length > 1 && (
+                {this.notifications.length > 1 && (
                     <div
                         style={{
                             display: 'flex',
@@ -57,18 +71,16 @@ class NotificationList extends React.Component<Props> {
                             cursor: 'pointer',
                         }}
                         onClick={() => {
-                            this.setState({ notifications: [] });
+                            this.injected.dataStore.socket.notifications.clear();
                         }}
                     >
                         <div>Alle schliessen</div>
                         <Icon name="close" className="clickable" />
                     </div>
                 )}
-                {this.state.notifications
-                    .sort((a, b) => b.timeStamp - a.timeStamp)
-                    .map((n, idx) => {
-                        return <Notification notification={n} key={idx} />;
-                    })}
+                {this.notifications.map((notification, idx) => {
+                    return <Notification notification={notification} key={idx} />;
+                })}
             </div>
         );
     }

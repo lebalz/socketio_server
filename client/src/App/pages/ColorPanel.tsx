@@ -1,91 +1,49 @@
 import React, { Component } from 'react';
-import SocketData, { timeStamp } from '../SocketData';
-import { DataType, PointerContext, ColorPointer, ClientDataMsg } from '../../Shared/SharedTypings';
-import { toCssColor } from '../models/Color';
+import { timeStamp } from '../SocketData';
+import { ColorPanel as ColorPanelModel } from '../models/ColorPanel';
+import ViewStateStore from '../stores/view_state_store';
+import DataStore from '../stores/data_store';
+import { inject, observer } from 'mobx-react';
+import { computed } from 'mobx';
 
-interface Props {
-    socket: SocketData;
+interface InjectedProps {
+    viewStateStore: ViewStateStore;
+    dataStore: DataStore;
 }
 
-interface ColorState {
-    color?: string;
-    touched: boolean;
-    displayedAt?: number;
-}
-
-class ColorPanel extends Component<Props> {
-    _isMounted = false;
-    state: ColorState = { color: '#aaffff', touched: false, displayedAt: timeStamp() };
-    socket: SocketData;
-
-    // Initialize the state
-    constructor(props: Props) {
-        super(props);
-        this.socket = props.socket;
+@inject('viewStateStore', 'dataStore')
+@observer
+class ColorPanel extends Component {
+    get injected() {
+        return this.props as InjectedProps;
     }
 
-    componentDidUpdate(prevProps: Props, prevState: ColorState) {
-        if (this.state.color !== prevState.color) {
-            this.setState({ displayedAt: timeStamp() });
+    componentDidUpdate(_prevProps: InjectedProps, _prevState: any) {
+        if (this.injected.dataStore.socket.colorPanel.displayedAt === undefined) {
+            this.injected.dataStore.socket.colorPanel.displayedAt = timeStamp();
         }
     }
 
-    componentDidMount() {
-        this._isMounted = true;
-        this.socket.onData.push(this.onData);
+    @computed
+    get colorPanel(): ColorPanelModel {
+        return this.injected.dataStore.socket.colorPanel;
     }
-
-    componentWillUnmount() {
-        this._isMounted = false;
-        const callbackFun = this.socket.onData.indexOf((f: any) => f === this.onData);
-        if (callbackFun >= 0) {
-            this.socket.onData.splice(callbackFun, callbackFun);
-            const colors = this.socket.getData(DataType.Color);
-            if (colors.length > 0) {
-                this.setState({ color: colors[colors.length - 1] });
-            }
-        }
-    }
-
-    onData = (data: ClientDataMsg) => {
-        if (this._isMounted && data.type === DataType.Color) {
-            this.setState({
-                color: toCssColor(data.color),
-                displayedAt: undefined,
-            });
-        }
-    };
-
-    onClick = (event: React.PointerEvent<HTMLDivElement>) => {
-        const rect = (event.target as HTMLDivElement).getBoundingClientRect();
-        this.setState({ touched: undefined });
-        this.socket.addData<ColorPointer>({
-            type: DataType.Pointer,
-            context: PointerContext.Color,
-            x: event.clientX - rect.left,
-            y: event.clientY - rect.top,
-            width: rect.width,
-            height: rect.height,
-            color: this.state.color || 'white',
-            displayed_at: this.state.displayedAt ?? timeStamp(),
-        });
-    };
 
     render() {
         return (
             <div
                 id="color-panel"
                 style={{
-                    background: this.state.color,
+                    background: this.colorPanel.color,
                     position: 'relative',
                     userSelect: 'none',
                 }}
-                onPointerDown={() => this.setState({ touched: true })}
-                onPointerUp={this.onClick}
-                onPointerCancel={() => this.setState({ touched: undefined })}
-                onPointerOut={() => this.setState({ touched: undefined })}
+                onPointerDown={(e) => this.colorPanel.onClick(e)}
+                onPointerUp={() => (this.colorPanel.touched = false)}
+                onPointerCancel={() => (this.colorPanel.touched = false)}
+                onPointerOut={() => (this.colorPanel.touched = false)}
             >
-                {this.state.touched && (
+                {this.colorPanel.touched && (
                     <div
                         style={{
                             borderRadius: '50%',

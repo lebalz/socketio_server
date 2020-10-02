@@ -1,3 +1,4 @@
+import { ColorGrid as ColorGridModel, defaultGrid } from './models/ColorGrid/ColorGrid';
 import socketioClient from 'socket.io-client';
 import * as _ from 'lodash';
 import {
@@ -20,22 +21,76 @@ import {
     ClientDataMsg,
     SpritesMsg,
 } from '../Shared/SharedTypings';
+import { Notification } from './models/Notification';
+import { InputPrompt } from './models/InputPrompt';
+import { ColorPanel as ColorPanelModel, defaultColorPanelMsg } from './models/ColorPanel';
 
+import { action, observable, reaction } from 'mobx';
+import { Playground } from './models/Playground';
 const WS_PORT = process.env.NODE_ENV === 'production' ? '' : ':5000';
 
+export const GLOBAL_LISTENER = 'GLOBAL_LISTENER';
 export function timeStamp(): number {
     return Date.now() / 1000.0;
 }
+
+function randomDeviceNr() {
+    return `Device${Math.floor(Math.random() * 899) + 100}`;
+}
+
 export interface ClientsAllDataPkg extends AllDataMsg {
     all_data: ClientDataMsg[];
 }
+
+const MESSAGE_THRESHOLD = 50;
+
+class ClientData {
+    @observable
+    deviceId: string;
+    data = observable<ClientDataMsg>([]);
+
+    @observable
+    show: boolean = true;
+
+    constructor(clientId: string) {
+        this.deviceId = clientId;
+    }
+
+    @action
+    addData(...msgs: ClientDataMsg[]) {
+        const newData = msgs.filter((msg) => msg.device_id === this.deviceId);
+        if (this.data.length > MESSAGE_THRESHOLD && newData.length > 0) {
+            const toRemoveCnt = this.data.length + newData.length - MESSAGE_THRESHOLD;
+            this.data.replace([...this.data.slice(toRemoveCnt), ...newData]);
+        } else {
+            this.data.push(...newData);
+        }
+    }
+}
+
 export default class SocketData {
     socket: SocketIOClient.Socket;
+
+    @observable
+    isAdmin: boolean = false;
     /**
      *
      * @param {string} deviceId
      */
-    deviceId = '';
+    @observable
+    deviceId = localStorage.getItem('device_id') ?? randomDeviceNr();
+
+    notifications = observable<Notification>([]);
+    inputPrompts = observable<InputPrompt>([]);
+
+    @observable
+    colorPanel: ColorPanelModel = new ColorPanelModel(defaultColorPanelMsg, this);
+
+    @observable
+    colorGrid: ColorGridModel = new ColorGridModel(defaultGrid, this);
+
+    @observable.ref
+    playground: Playground = new Playground(this);
 
     /**
      *
@@ -53,14 +108,14 @@ export default class SocketData {
      *
      * @param {Array<any>} data from other clients
      */
-    otherData: ClientDataMsg[] = [];
+    dataStore = observable<ClientData>([]);
 
     /**
      *
      * @param {Array<{device_id: string, device_nr: number, is_client: boolean, socket_id: string}>}
      *        all connected devices
      */
-    devices: Device[] = [];
+    devices = observable<Device>([]);
     startTime = timeStamp();
 
     /**
@@ -97,9 +152,6 @@ export default class SocketData {
      */
     onDevice?: (deviceNr: number) => void;
 
-    onNotification?: (notification: NotificationMsg) => void;
-    onInputPrompt?: (question: InputPromptMsg) => void;
-
     constructor() {
         const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
         const ws_url = `${protocol}://${window.location.hostname}${WS_PORT}`;
@@ -107,11 +159,50 @@ export default class SocketData {
             transports: ['websocket', 'polling'],
         });
         this.configureAndConnect();
+        reaction(
+            () => this.isAdmin,
+            (isAdmin) => {
+                this.setGloablListener(isAdmin);
+            }
+        );
+    }
+
+    private setGloablListener = action((on: boolean) => {
+        if (on) {
+            this.socket.on(
+                SocketEvents.DataStore,
+                action((data: DataStore) => {
+                    this.dataStore.replace([]);
+                    Object.keys(data).forEach((clientId) => {
+                        this.prepareNewClient(clientId);
+                        this.clientsData(clientId)?.addData(...data[clientId]);
+                    });
+                })
+            );
+            this.socket.emit(SocketEvents.DataStore);
+            this.setDeviceId(GLOBAL_LISTENER, false);
+        } else {
+            this.socket.off(SocketEvents.DataStore);
+            this.setDeviceId(localStorage.getItem('device_id') ?? randomDeviceNr(), false);
+            this.dataStore.replace([]);
+        }
+    });
+
+    @action
+    prepareNewClient(deviceId: string) {
+        if (!this.clientsData(deviceId)) {
+            this.dataStore.push(new ClientData(deviceId));
+        }
+    }
+
+    @action
+    clientsData(deviceId: string): ClientData | undefined {
+        return this.dataStore.find((client) => client.deviceId === deviceId);
     }
 
     configureAndConnect() {
         this.socket.on(SocketEvents.Devices, (data: DevicesPkg) => {
-            this.devices = data.devices;
+            this.devices.replace(data.devices);
             this.onDevices.forEach((callback) => callback(data.devices));
         });
 
@@ -128,57 +219,81 @@ export default class SocketData {
             if (data.device_id === this.deviceId) {
                 this.myData = allData;
             } else {
-                this.otherData.push(...allData);
+                let cData = this.clientsData(data.device_id);
+                if (!cData) {
+                    this.prepareNewClient(data.device_id);
+                    cData = this.clientsData(data.device_id);
+                }
+                cData?.addData(...allData);
             }
-            this.onAllData.forEach((callback) => callback({ ...data, all_data: allData }));
         });
 
-        this.socket.on(SocketEvents.NewData, (data: ClientDataMsg) => {
-            if (data.device_id === this.deviceId) {
-                this.myData.push(data);
-            } else if (data.device_id) {
-                this.otherData.push(data);
-            }
-
-            if (data.type === DataType.Notification) {
-                if (this.onNotification) {
-                    this.onNotification((data as any) as NotificationMsg);
+        this.socket.on(
+            SocketEvents.NewData,
+            action((data: ClientDataMsg) => {
+                if (data.device_id === this.deviceId) {
+                    this.myData.push(data);
+                } else if (data.device_id) {
+                    let cData = this.clientsData(data.device_id);
+                    if (!cData) {
+                        this.prepareNewClient(data.device_id);
+                        cData = this.clientsData(data.device_id);
+                    }
+                    cData?.addData(data);
                 }
-            }
-
-            if (data.type === DataType.InputPrompt) {
-                if (this.onInputPrompt) {
-                    this.onInputPrompt((data as any) as InputPromptMsg);
+                switch (data.type) {
+                    case DataType.Notification:
+                        if (this.isAdmin) {
+                            return;
+                        }
+                        this.notifications.push(
+                            new Notification(data, (notification: Notification) => {
+                                this.notifications.remove(notification);
+                            })
+                        );
+                        break;
+                    case DataType.InputPrompt:
+                        if (this.isAdmin) {
+                            return;
+                        }
+                        this.inputPrompts.push(
+                            new InputPrompt(data, this, (prompt: InputPrompt) =>
+                                this.inputPrompts.remove(prompt)
+                            )
+                        );
+                        break;
+                    case DataType.Sprite:
+                        this.playground.addOrUpdateSprite(data.sprite);
+                        break;
+                    case DataType.Sprites:
+                        this.playground.addOrUpdateSprites(...data.sprites);
+                        if (this.onSprites) {
+                            this.onSprites((data as any) as SpriteMsg[]);
+                        }
+                        break;
+                    case DataType.PlaygroundConfig:
+                        this.playground.updateConfig(data.config);
+                        if (this.onPlaygroundConfig) {
+                            this.onPlaygroundConfig((data as any) as PlaygroundConfig);
+                        }
+                        break;
+                    case DataType.Color:
+                        this.colorPanel = new ColorPanelModel(data, this);
+                        break;
+                    case DataType.Grid:
+                        this.colorGrid = new ColorGridModel(data, this);
+                        break;
+                    case DataType.GridUpdate:
+                        this.colorGrid.update(data);
+                        break;
                 }
-            }
-
-            if (data.type === DataType.Sprite) {
-                if (this.onSprite) {
-                    this.onSprite((data as any) as SpriteMsg);
-                }
-            }
-            if (data.type === DataType.Sprites) {
-                if (this.onSprites) {
-                    this.onSprites((data as any) as SpriteMsg[]);
-                }
-            }
-            if (data.type === DataType.PlaygroundConfig) {
-                if (this.onPlaygroundConfig) {
-                    this.onPlaygroundConfig((data as any) as PlaygroundConfig);
-                }
-            }
-
-            this.onData.forEach((callback) => {
-                callback(data);
-            });
-        });
+                this.onData.forEach((callback) => {
+                    callback(data);
+                });
+            })
+        );
         this.connect();
-    }
-
-    wakeUp() {
-        if (!this.socket.connected) {
-            this.connect();
-        }
+        this.setDeviceId(this.deviceId, false);
     }
 
     get isDisabled() {
@@ -197,9 +312,12 @@ export default class SocketData {
         return this.myData.filter((d) => d.type === type);
     }
 
-    setDeviceId = _.debounce((deviceId) => {
+    setDeviceId = _.debounce((deviceId: string, saveToLocalStorage: boolean = true) => {
         const oldId = this.deviceId;
         this.deviceId = deviceId;
+        if (saveToLocalStorage) {
+            localStorage.setItem('device_id', deviceId);
+        }
         this.emit(SocketEvents.NewDevice, {
             device_id: deviceId,
             old_device_id: oldId,
@@ -249,30 +367,6 @@ export default class SocketData {
     disconnect() {
         this.socket.disconnect();
     }
-}
-
-export class AdminSocketData extends SocketData {
-    dataStore = {};
-
-    /**
-     * @param {undefined | (data) => void}
-     */
-    onDataStore?: (ds: DataStore) => void;
-    constructor() {
-        super();
-        this.deviceId = 'GLOBAL_LISTENER';
-        this.emit(SocketEvents.NewDevice, {
-            device_id: this.deviceId,
-            is_client: false,
-        });
-
-        this.socket.on(SocketEvents.DataStore, (data: DataStore) => {
-            this.dataStore = data;
-            if (this.onDataStore) {
-                this.onDataStore(data);
-            }
-        });
-    }
 
     removeAllData() {
         this.emit(SocketEvents.RemoveAll);
@@ -280,18 +374,5 @@ export class AdminSocketData extends SocketData {
 
     getDataStore() {
         this.emit(SocketEvents.DataStore);
-    }
-
-    get allEvents() {
-        return _.orderBy(this.otherData, ['time_stamp'], 'desc');
-    }
-
-    destroy() {
-        this.onAllData = [];
-        this.onData = [];
-        this.onDevices = [];
-        this.onDataStore = undefined;
-        this.onDevice = undefined;
-        this.disconnect();
     }
 }

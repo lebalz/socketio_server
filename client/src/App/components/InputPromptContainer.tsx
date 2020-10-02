@@ -1,46 +1,29 @@
 import React from 'react';
-import { InputPromptMsg } from '../../Shared/SharedTypings';
 import { InputPrompt as InputPromptModel } from '../models/InputPrompt';
+import { inject, observer } from 'mobx-react';
+import DataStore from '../stores/data_store';
 import InputPrompt from './InputPrompt';
-import SocketData from '../SocketData';
+import { computed } from 'mobx';
 
-interface Props {
-  socket: SocketData;
+interface InjectedProps {
+    dataStore: DataStore;
 }
 
-interface State {
-  prompts: InputPromptModel[];
-}
-class InputPromptContainer extends React.Component<Props> {
-  state: State = {
-    prompts: [],
-  };
-  constructor(props: Props) {
-    super(props);
-
-    props.socket.onInputPrompt = (prompt: InputPromptMsg) => {
-      const ntfs = this.state.prompts.slice();
-      ntfs.push(new InputPromptModel(prompt, this.props.socket, this.onResponded));
-      this.setState({ prompts: ntfs });
-    };
-  }
-
-  onResponded = (prompt: InputPromptModel) => {
-    const prompts = this.state.prompts.slice();
-    if (!prompts.includes(prompt)) {
-      return;
+@inject('dataStore')
+@observer
+class InputPromptContainer extends React.Component {
+    get injected() {
+        return this.props as InjectedProps;
     }
-    prompts.splice(prompts.indexOf(prompt), 1);
-    this.setState({ prompts: prompts });
-  };
 
-  render() {
-    return (
-      <div>
-        <InputPrompt prompt={this.state.prompts[0]} />
-      </div>
-    );
-  }
+    @computed
+    get inputPrompts(): InputPromptModel[] {
+        return this.injected.dataStore.socket.inputPrompts;
+    }
+
+    render() {
+        return <div>{this.inputPrompts.length > 0 && <InputPrompt prompt={this.inputPrompts[0]} />}</div>;
+    }
 }
 
 export default InputPromptContainer;
