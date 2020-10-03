@@ -8,7 +8,8 @@ import GyroSensor, { GyroData } from '../components/Controls/Sensors/GyroSensor'
 import KeyControls, { KeyData } from '../components/Controls/KeyControls';
 import { inject, observer } from 'mobx-react';
 import ViewStateStore from '../stores/view_state_store';
-import { computed } from 'mobx';
+import { computed, runInAction } from 'mobx';
+import LineGraph from '../components/LineGraph';
 
 interface InjectedProps {
     socketDataStore: SocketDataStore;
@@ -19,6 +20,8 @@ interface StateProps {
     active: {
         [key in Key]?: boolean;
     };
+    lastAcc?: AccelerationData;
+    lastGyro?: GyroData;
 }
 
 @inject('socketDataStore', 'viewStateStore')
@@ -77,16 +80,19 @@ class Controller extends Component {
 
     onAccelerationData = (data: AccelerationData) => {
         this.socket.emitData<Acc>(data);
-        this.setState({ lastAcceleration: data });
+        this.controllerState.addAccFrame(data);
+        this.setState({ lastAcc: data });
     };
 
     onGyroData = (data: GyroData) => {
         this.socket.emitData<Gyro>(data);
+        this.controllerState.addGyroFrame(data);
         this.setState({ lastGyro: data });
     };
 
     render() {
         const showStreamLogs = this.controllerState.showLogs && this.controllerState.streamSenensor;
+        const { lastAcc, lastGyro } = this.state;
         return (
             <Fragment>
                 <h1>Controller</h1>
@@ -111,11 +117,13 @@ class Controller extends Component {
                                     simulate={this.controllerState.simulateSensor}
                                     onData={this.onAccelerationData}
                                     on={this.controllerState.streamSenensor}
+                                    onChangeActive={(on) => (this.controllerState.acceleration = on)}
                                 />
                                 <GyroSensor
                                     simulate={this.controllerState.simulateSensor}
                                     onData={this.onGyroData}
                                     on={this.controllerState.streamSenensor}
+                                    onChangeActive={(on) => (this.controllerState.gyro = on)}
                                 />
                             </Fragment>
                         )}
@@ -146,18 +154,29 @@ class Controller extends Component {
                                 })}
                         </div>
                     )}
+
                     {showStreamLogs && this.controllerState.acceleration && (
                         <div style={{ margin: '1em' }}>
+                            <h3>Acceleration</h3>
                             <pre>
-                                <code>{JSON.stringify(this.controllerState.lastAcceleration, null, 2)}</code>
+                                <code>
+                                    {`[${lastAcc?.x.toFixed(5)}, ${lastAcc?.y.toFixed(
+                                        5
+                                    )}, ${lastAcc?.z.toFixed(5)}]`}
+                                </code>
                             </pre>
+                            <LineGraph type="acc" />
                         </div>
                     )}
                     {showStreamLogs && this.controllerState.gyro && (
                         <div style={{ margin: '1em' }}>
+                            <h3>Gyro</h3>
                             <pre>
-                                <code>{JSON.stringify(this.controllerState.lastGyro, null, 2)}</code>
+                                <code>{`[${lastGyro?.alpha.toFixed(5)}, ${lastGyro?.beta.toFixed(
+                                    5
+                                )}, ${lastGyro?.gamma.toFixed(5)}]`}</code>
                             </pre>
+                            <LineGraph type="gyro" />
                         </div>
                     )}
                 </Segment>

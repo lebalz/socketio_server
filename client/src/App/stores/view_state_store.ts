@@ -5,23 +5,37 @@ import { AccelerationData } from '../components/Controls/Sensors/AccelerationSen
 import { GyroData } from '../components/Controls/Sensors/GyroSensor';
 import { timeStamp } from './socket_data_store';
 
+const MAX_SENSOR_VALUES = 50;
 class ControllerState {
     @observable
     streamSenensor: boolean = false;
     @observable
     simulateSensor: boolean = false;
     @observable
-    acceleration: boolean = true;
+    acceleration: boolean = localStorage.getItem('devicemotion') === 'on';
     @observable
-    gyro: boolean = true;
-    @observable
-    lastAcceleration?: AccelerationData;
-    @observable
-    lastGyro?: GyroData;
+    gyro: boolean = localStorage.getItem('deviceorientation') === 'on';
+    lastAccValues = observable<AccelerationData>([]);
+    lastGyroValues = observable<GyroData>([]);
     @observable
     lastCommands: { timeStamp: number; key: Key }[] = observable([]);
     @observable
     showLogs: boolean = true;
+
+    @action
+    addAccFrame(acc: AccelerationData) {
+        if (this.lastAccValues.length > MAX_SENSOR_VALUES) {
+            this.lastAccValues.pop();
+        }
+        this.lastAccValues.unshift(acc);
+    }
+    @action
+    addGyroFrame(gyro: GyroData) {
+        if (this.lastGyroValues.length > MAX_SENSOR_VALUES) {
+            this.lastGyroValues.pop();
+        }
+        this.lastGyroValues.unshift(gyro);
+    }
 }
 
 class State {
