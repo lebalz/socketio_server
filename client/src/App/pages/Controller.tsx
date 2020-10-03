@@ -8,7 +8,7 @@ import GyroSensor, { GyroData } from '../components/Controls/Sensors/GyroSensor'
 import KeyControls, { KeyData } from '../components/Controls/KeyControls';
 import { inject, observer } from 'mobx-react';
 import ViewStateStore from '../stores/view_state_store';
-import { computed, runInAction } from 'mobx';
+import { action, computed } from 'mobx';
 import LineGraph from '../components/LineGraph';
 
 interface InjectedProps {
@@ -78,11 +78,11 @@ class Controller extends Component {
         localStorage.setItem('simulate_sensor', this.controllerState.simulateSensor ? 'yes' : 'no');
     };
 
-    onAccelerationData = (data: AccelerationData) => {
+    onAccelerationData = action((data: AccelerationData) => {
         this.socket.emitData<Acc>(data);
         this.controllerState.addAccFrame(data);
         this.setState({ lastAcc: data });
-    };
+    });
 
     onGyroData = (data: GyroData) => {
         this.socket.emitData<Gyro>(data);
@@ -156,27 +156,39 @@ class Controller extends Component {
                     )}
 
                     {showStreamLogs && this.controllerState.acceleration && (
-                        <div style={{ margin: '1em' }}>
-                            <h3>Acceleration</h3>
-                            <pre>
-                                <code>
-                                    {`[${lastAcc?.x.toFixed(5)}, ${lastAcc?.y.toFixed(
-                                        5
-                                    )}, ${lastAcc?.z.toFixed(5)}]`}
-                                </code>
-                            </pre>
-                            <LineGraph type="acc" />
+                        <div style={{ display: 'flex', margin: '1em', flexWrap: 'wrap' }}>
+                            <div
+                                style={{ flexGrow: 0, flexShrink: 1, flexBasis: '250px', maxWidth: '250px' }}
+                            >
+                                <h3>Acceleration</h3>
+                                <pre>
+                                    <code>{JSON.stringify(this.state.lastAcc, null, 2)}</code>
+                                </pre>
+                            </div>
+                            <div style={{ flexGrow: 1, flexShrink: 1, flexBasis: '200px' }}>
+                                <LineGraph
+                                    type="acc"
+                                    data={this.injected.viewStateStore.controllerState.lastAccValues}
+                                />
+                            </div>
                         </div>
                     )}
                     {showStreamLogs && this.controllerState.gyro && (
-                        <div style={{ margin: '1em' }}>
-                            <h3>Gyro</h3>
-                            <pre>
-                                <code>{`[${lastGyro?.alpha.toFixed(5)}, ${lastGyro?.beta.toFixed(
-                                    5
-                                )}, ${lastGyro?.gamma.toFixed(5)}]`}</code>
-                            </pre>
-                            <LineGraph type="gyro" />
+                        <div style={{ display: 'flex', margin: '1em', flexWrap: 'wrap' }}>
+                            <div
+                                style={{ flexGrow: 0, flexShrink: 1, flexBasis: '250px', maxWidth: '250px' }}
+                            >
+                                <h3>Gyro</h3>
+                                <pre>
+                                    <code>{JSON.stringify(this.state.lastGyro, null, 2)}</code>
+                                </pre>
+                            </div>
+                            <div style={{ flexGrow: 1, flexShrink: 1, flexBasis: '200px' }}>
+                                <LineGraph
+                                    type="gyro"
+                                    data={this.injected.viewStateStore.controllerState.lastGyroValues}
+                                />
+                            </div>
                         </div>
                     )}
                 </Segment>

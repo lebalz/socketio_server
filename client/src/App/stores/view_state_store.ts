@@ -25,16 +25,18 @@ class ControllerState {
     @action
     addAccFrame(acc: AccelerationData) {
         if (this.lastAccValues.length > MAX_SENSOR_VALUES) {
-            this.lastAccValues.pop();
+            this.lastAccValues.replace([...this.lastAccValues.slice(1), acc]);
+        } else {
+            this.lastAccValues.push(acc);
         }
-        this.lastAccValues.unshift(acc);
     }
     @action
     addGyroFrame(gyro: GyroData) {
         if (this.lastGyroValues.length > MAX_SENSOR_VALUES) {
-            this.lastGyroValues.pop();
+            this.lastGyroValues.replace([...this.lastGyroValues.slice(1), gyro]);
+        } else {
+            this.lastGyroValues.push(gyro);
         }
-        this.lastGyroValues.unshift(gyro);
     }
 }
 

@@ -5,7 +5,7 @@ import ViewStateStore from '../stores/view_state_store';
 import SocketDataStore, { GLOBAL_LISTENER } from '../stores/socket_data_store';
 import Nosleep from '../components/Nosleep';
 import { action, computed } from 'mobx';
-import { ClientDataMsg } from 'src/Shared/SharedTypings';
+import LineGraph from '../components/LineGraph';
 
 interface InjectedProps {
     viewStateStore: ViewStateStore;
@@ -94,7 +94,12 @@ class Admin extends Component {
                         return (
                             <div
                                 key={deviceId}
-                                style={{ maxHeight: '60vh', overflowY: 'auto', marginTop: '8px' }}
+                                style={{
+                                    maxHeight: '60vh',
+                                    overflowY: 'auto',
+                                    marginTop: '8px',
+                                    width: '100%',
+                                }}
                                 className="data-store-tables"
                             >
                                 <Table celled striped compact unstackable color="blue">
@@ -112,59 +117,67 @@ class Admin extends Component {
                                     </Table.Header>
                                     {store.show && (
                                         <Table.Body>
-                                            {[...store.rawData.values()]
-                                                .reduce(
-                                                    (flat, data) => [...flat, ...data],
-                                                    [] as ClientDataMsg[]
-                                                )
-                                                .sort((a, b) => b.time_stamp - a.time_stamp)
-                                                .map((event, idx) => {
-                                                    const ts = new Date(event.time_stamp * 1000);
-                                                    let to = event.device_id;
-                                                    if (event.broadcast) {
-                                                        to = 'broadcast';
-                                                    }
-                                                    if (typeof event.unicast_to === 'number') {
-                                                        to = `${event.unicast_to}`;
-                                                    }
-                                                    return (
-                                                        <Table.Row key={idx}>
-                                                            <Table.Cell collapsing>
-                                                                {event.device_id}:{event.device_nr}
-                                                            </Table.Cell>
-                                                            <Table.Cell
-                                                                collapsing
-                                                            >{`${ts.toLocaleTimeString()}.${`${ts.getMilliseconds()}`.padEnd(
-                                                                3,
-                                                                '0'
-                                                            )}`}</Table.Cell>
-                                                            <Table.Cell collapsing>{to}</Table.Cell>
-                                                            <Table.Cell collapsing>{event.type}</Table.Cell>
-                                                            <Table.Cell collapsing>
-                                                                <pre
-                                                                    style={{
-                                                                        overflowY: 'auto',
-                                                                        maxHeight: '10em',
-                                                                    }}
-                                                                >
-                                                                    <code>
-                                                                        {JSON.stringify(
-                                                                            {
-                                                                                ...event,
-                                                                                type: undefined,
-                                                                                time_stamp: undefined,
-                                                                                device_id: undefined,
-                                                                                device_nr: undefined,
-                                                                            },
-                                                                            null,
-                                                                            1
-                                                                        )}
-                                                                    </code>
-                                                                </pre>
-                                                            </Table.Cell>
-                                                        </Table.Row>
-                                                    );
-                                                })}
+                                            {store.hasRawAcc && (
+                                                <Table.Row>
+                                                    <Table.HeaderCell colspan="5">
+                                                        <LineGraph type="acc" data={store.rawAccData} />
+                                                    </Table.HeaderCell>
+                                                </Table.Row>
+                                            )}
+                                            {store.hasRawGyro && (
+                                                <Table.Row>
+                                                    <Table.HeaderCell colspan="5">
+                                                        <LineGraph type="gyro" data={store.rawGyroData} />
+                                                    </Table.HeaderCell>
+                                                </Table.Row>
+                                            )}
+                                            {store.unchartableRawData.map((event, idx) => {
+                                                const ts = new Date(event.time_stamp * 1000);
+                                                let to = event.device_id;
+                                                if (event.broadcast) {
+                                                    to = 'broadcast';
+                                                }
+                                                if (typeof event.unicast_to === 'number') {
+                                                    to = `${event.unicast_to}`;
+                                                }
+                                                return (
+                                                    <Table.Row key={idx}>
+                                                        <Table.Cell collapsing>
+                                                            {event.device_id}:{event.device_nr}
+                                                        </Table.Cell>
+                                                        <Table.Cell
+                                                            collapsing
+                                                        >{`${ts.toLocaleTimeString()}.${`${ts.getMilliseconds()}`.padEnd(
+                                                            3,
+                                                            '0'
+                                                        )}`}</Table.Cell>
+                                                        <Table.Cell collapsing>{to}</Table.Cell>
+                                                        <Table.Cell collapsing>{event.type}</Table.Cell>
+                                                        <Table.Cell collapsing>
+                                                            <pre
+                                                                style={{
+                                                                    overflowY: 'auto',
+                                                                    maxHeight: '10em',
+                                                                }}
+                                                            >
+                                                                <code>
+                                                                    {JSON.stringify(
+                                                                        {
+                                                                            ...event,
+                                                                            type: undefined,
+                                                                            time_stamp: undefined,
+                                                                            device_id: undefined,
+                                                                            device_nr: undefined,
+                                                                        },
+                                                                        null,
+                                                                        1
+                                                                    )}
+                                                                </code>
+                                                            </pre>
+                                                        </Table.Cell>
+                                                    </Table.Row>
+                                                );
+                                            })}
                                         </Table.Body>
                                     )}
                                 </Table>
@@ -172,22 +185,6 @@ class Admin extends Component {
                         );
                     })}
                 </div>
-                <Checkbox
-                    toggle
-                    onClick={action(() => {
-                        this.injected.viewStateStore.adminState.showRaw = !showRaw;
-                    })}
-                    label="show raw"
-                    checked={showRaw}
-                />
-                <div style={{ marginBottom: '2em' }} />
-                {showRaw && (
-                    <Segment style={{ maxHeight: '70vh', overflowY: 'auto' }}>
-                        <pre>
-                            <code>{JSON.stringify(this.injected.socketDataStore.dataStore, null, 2)}</code>
-                        </pre>
-                    </Segment>
-                )}
             </div>
         );
     }

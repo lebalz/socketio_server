@@ -1,6 +1,7 @@
+import { GyroMsg } from './../../Shared/SharedTypings';
 import { Playground } from './Playground';
-import { action, observable } from 'mobx';
-import { ClientDataMsg, DataType } from '../../Shared/SharedTypings';
+import { action, computed, observable } from 'mobx';
+import { AccMsg, ClientDataMsg, DataType } from '../../Shared/SharedTypings';
 import { ColorGrid, defaultGrid } from './ColorGrid/ColorGrid';
 import { ColorPanel, defaultColorPanelMsg } from './ColorPanel';
 import { Notification } from './Notification';
@@ -12,6 +13,39 @@ export default class ClientData {
     deviceId: string;
     socket: SocketDataStore;
     rawData = observable.map<string, ClientDataMsg[]>({});
+
+    @computed
+    get rawAccData(): AccMsg[] {
+        return ((this.rawData.get(DataType.Acceleration) ?? []) as AccMsg[]).sort(
+            (a, b) => a.time_stamp - b.time_stamp
+        );
+    }
+
+    @computed
+    get rawGyroData(): GyroMsg[] {
+        return ((this.rawData.get(DataType.Gyro) ?? []) as GyroMsg[]).sort(
+            (a, b) => a.time_stamp - b.time_stamp
+        );
+    }
+    @computed
+    get unchartableRawData(): ClientDataMsg[] {
+        const raw: ClientDataMsg[] = [];
+        this.rawData.forEach((data, key) => {
+            if (key === DataType.Acceleration || key === DataType.Gyro) {
+                return;
+            }
+            raw.push(...data);
+        });
+        return raw.sort((a, b) => b.time_stamp - a.time_stamp);
+    }
+    @computed
+    get hasRawAcc(): boolean {
+        return this.rawData.has(DataType.Acceleration);
+    }
+    @computed
+    get hasRawGyro(): boolean {
+        return this.rawData.has(DataType.Gyro);
+    }
 
     @observable
     show: boolean = true;
