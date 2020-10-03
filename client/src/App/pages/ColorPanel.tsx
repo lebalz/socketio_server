@@ -1,17 +1,16 @@
 import React, { Component } from 'react';
-import { timeStamp } from '../SocketData';
+import SocketDataStore, { timeStamp } from '../stores/socket_data_store';
 import { ColorPanel as ColorPanelModel } from '../models/ColorPanel';
 import ViewStateStore from '../stores/view_state_store';
-import DataStore from '../stores/data_store';
 import { inject, observer } from 'mobx-react';
 import { computed } from 'mobx';
 
 interface InjectedProps {
     viewStateStore: ViewStateStore;
-    dataStore: DataStore;
+    socketDataStore: SocketDataStore;
 }
 
-@inject('viewStateStore', 'dataStore')
+@inject('viewStateStore', 'socketDataStore')
 @observer
 class ColorPanel extends Component {
     get injected() {
@@ -19,14 +18,14 @@ class ColorPanel extends Component {
     }
 
     componentDidUpdate(_prevProps: InjectedProps, _prevState: any) {
-        if (this.injected.dataStore.socket.colorPanel.displayedAt === undefined) {
-            this.injected.dataStore.socket.colorPanel.displayedAt = timeStamp();
+        if (this.injected.socketDataStore.data.colorPanel.displayedAt === undefined) {
+            this.injected.socketDataStore.data.colorPanel.displayedAt = timeStamp();
         }
     }
 
     @computed
     get colorPanel(): ColorPanelModel {
-        return this.injected.dataStore.socket.colorPanel;
+        return this.injected.socketDataStore.data.colorPanel;
     }
 
     render() {

@@ -1,19 +1,19 @@
 import { inject, observer } from 'mobx-react';
 import React from 'react';
 import { Button, Header, Input, InputOnChangeData, Modal } from 'semantic-ui-react';
-import DataStore from '../stores/data_store';
+import SocketDataStore from '../stores/socket_data_store';
 import ViewStateStore from '../stores/view_state_store';
 
 interface InjectedProps {
-    dataStore: DataStore;
+    socketDataStore: SocketDataStore;
     viewStateStore: ViewStateStore;
 }
 
-@inject('dataStore', 'viewStateStore')
+@inject('socketDataStore', 'viewStateStore')
 @observer
 class DeviceIdPrompt extends React.Component {
     inputRef = React.createRef<Input>();
-    state = { deviceId: this.injected.dataStore.socket.deviceId };
+    state = { deviceId: this.injected.socketDataStore.client.deviceId };
 
     get injected() {
         return this.props as InjectedProps;
@@ -23,7 +23,7 @@ class DeviceIdPrompt extends React.Component {
         this.setState({ deviceId: data.value });
     };
     onMount = () => {
-        this.setState({ deviceId: this.injected.dataStore.socket.deviceId });
+        this.setState({ deviceId: this.injected.socketDataStore.client.deviceId });
         window.addEventListener('keyup', this.onEnter);
     };
     onClose = () => {
@@ -32,7 +32,7 @@ class DeviceIdPrompt extends React.Component {
     };
     onEnter = (e: KeyboardEvent) => {
         if (e.key === 'Enter') {
-            this.injected.dataStore.socket.setDeviceId(this.state.deviceId);
+            this.injected.socketDataStore.setDeviceId(this.state.deviceId);
             this.onClose();
         }
     };
@@ -73,7 +73,7 @@ class DeviceIdPrompt extends React.Component {
                             labelPosition="right"
                             icon="send"
                             onClick={() => {
-                                this.injected.dataStore.socket.setDeviceId(this.state.deviceId);
+                                this.injected.socketDataStore.setDeviceId(this.state.deviceId);
                                 this.onClose();
                             }}
                             positive

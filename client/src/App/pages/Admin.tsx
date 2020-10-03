@@ -2,17 +2,17 @@ import React, { Component } from 'react';
 import { Table, Segment, Button, Checkbox } from 'semantic-ui-react';
 import { inject, observer } from 'mobx-react';
 import ViewStateStore from '../stores/view_state_store';
-import DataStore from '../stores/data_store';
-import { GLOBAL_LISTENER } from '../SocketData';
+import SocketDataStore, { GLOBAL_LISTENER } from '../stores/socket_data_store';
 import Nosleep from '../components/Nosleep';
 import { action, computed } from 'mobx';
+import { ClientDataMsg } from 'src/Shared/SharedTypings';
 
 interface InjectedProps {
     viewStateStore: ViewStateStore;
-    dataStore: DataStore;
+    socketDataStore: SocketDataStore;
 }
 
-@inject('viewStateStore', 'dataStore')
+@inject('viewStateStore', 'socketDataStore')
 @observer
 class Admin extends Component {
     _isMounted = false;
@@ -23,22 +23,24 @@ class Admin extends Component {
 
     @action
     componentDidMount() {
-        this.injected.dataStore.socket.isAdmin = true;
-        this.injected.dataStore.socket.refreshDevices();
+        this.injected.socketDataStore.isAdmin = true;
+        this.injected.socketDataStore.refreshDevices();
     }
 
     @action
     componentWillUnmount() {
-        this.injected.dataStore.socket.isAdmin = false;
+        this.injected.socketDataStore.isAdmin = false;
     }
 
     @computed
     get devices() {
-        return this.injected.dataStore.socket.devices.sort((a, b) => a.device_nr - b.device_nr);
+        return this.injected.socketDataStore.devices
+            .slice()
+            .sort((a, b) => (a.deviceNr ?? 0) - (b.deviceNr ?? 0));
     }
 
     render() {
-        const showRaw = this.injected.viewStateStore.adminState.showRaw;
+        const { showRaw } = this.injected.viewStateStore.adminState;
         return (
             <div
                 style={{
@@ -50,7 +52,7 @@ class Admin extends Component {
                 <span>
                     <Button
                         icon="trash"
-                        onClick={() => this.injected.dataStore.socket.removeAllData()}
+                        onClick={() => this.injected.socketDataStore.removeAllData()}
                         content="Clear All Data"
                         color="red"
                     />
@@ -67,26 +69,31 @@ class Admin extends Component {
                             return (
                                 <Table.Row key={idx}>
                                     <Table.Cell collapsing textAlign="right">
-                                        {device.device_nr}
+                                        {device.deviceNr}
                                     </Table.Cell>
-                                    <Table.Cell collapsing>{device.device_id}</Table.Cell>
+                                    <Table.Cell collapsing>{device.deviceId}</Table.Cell>
                                     <Table.Cell collapsing>
-                                        {device.is_client ? 'Controller' : 'Read Only'}
+                                        {device.isClient ? 'Controller' : 'Read Only'}
                                     </Table.Cell>
-                                    <Table.Cell collapsing>{device.socket_id}</Table.Cell>
+                                    <Table.Cell collapsing>{device.socketId}</Table.Cell>
                                 </Table.Row>
                             );
                         })}
                     </Table.Body>
                 </Table>
                 <div style={{ maxHeight: '90vh', overflowY: 'auto' }}>
-                    {this.injected.dataStore.socket.dataStore.map((store) => {
-                        if (store.deviceId === GLOBAL_LISTENER) {
+                    {[...this.injected.socketDataStore.dataStore.keys()].map((deviceId) => {
+                        if (deviceId === GLOBAL_LISTENER) {
+                            return null;
+                        }
+                        const store = this.injected.socketDataStore.dataStore.get(deviceId);
+                        if (!store) {
+                            console.log('no store!!', deviceId);
                             return null;
                         }
                         return (
                             <div
-                                key={store.deviceId}
+                                key={deviceId}
                                 style={{ maxHeight: '60vh', overflowY: 'auto', marginTop: '8px' }}
                                 className="data-store-tables"
                             >
@@ -96,7 +103,7 @@ class Admin extends Component {
                                         style={{ cursor: 'pointer' }}
                                     >
                                         <Table.Row>
-                                            <Table.HeaderCell>{store.deviceId}</Table.HeaderCell>
+                                            <Table.HeaderCell>{deviceId}</Table.HeaderCell>
                                             <Table.HeaderCell>Time</Table.HeaderCell>
                                             <Table.HeaderCell>To</Table.HeaderCell>
                                             <Table.HeaderCell>Type</Table.HeaderCell>
@@ -105,53 +112,59 @@ class Admin extends Component {
                                     </Table.Header>
                                     {store.show && (
                                         <Table.Body>
-                                            {store.data.reverse().map((event, idx) => {
-                                                const ts = new Date(event.time_stamp * 1000);
-                                                let to = event.device_id;
-                                                if (event.broadcast) {
-                                                    to = 'broadcast';
-                                                }
-                                                if (typeof event.unicast_to === 'number') {
-                                                    to = `${event.unicast_to}`;
-                                                }
-                                                return (
-                                                    <Table.Row key={idx}>
-                                                        <Table.Cell collapsing>
-                                                            {event.device_id}:{event.device_nr}
-                                                        </Table.Cell>
-                                                        <Table.Cell
-                                                            collapsing
-                                                        >{`${ts.toLocaleTimeString()}.${`${ts.getMilliseconds()}`.padEnd(
-                                                            3,
-                                                            '0'
-                                                        )}`}</Table.Cell>
-                                                        <Table.Cell collapsing>{to}</Table.Cell>
-                                                        <Table.Cell collapsing>{event.type}</Table.Cell>
-                                                        <Table.Cell collapsing>
-                                                            <pre
-                                                                style={{
-                                                                    overflowY: 'auto',
-                                                                    maxHeight: '10em',
-                                                                }}
-                                                            >
-                                                                <code>
-                                                                    {JSON.stringify(
-                                                                        {
-                                                                            ...event,
-                                                                            type: undefined,
-                                                                            time_stamp: undefined,
-                                                                            device_id: undefined,
-                                                                            device_nr: undefined,
-                                                                        },
-                                                                        null,
-                                                                        1
-                                                                    )}
-                                                                </code>
-                                                            </pre>
-                                                        </Table.Cell>
-                                                    </Table.Row>
-                                                );
-                                            })}
+                                            {[...store.rawData.values()]
+                                                .reduce(
+                                                    (flat, data) => [...flat, ...data],
+                                                    [] as ClientDataMsg[]
+                                                )
+                                                .sort((a, b) => b.time_stamp - a.time_stamp)
+                                                .map((event, idx) => {
+                                                    const ts = new Date(event.time_stamp * 1000);
+                                                    let to = event.device_id;
+                                                    if (event.broadcast) {
+                                                        to = 'broadcast';
+                                                    }
+                                                    if (typeof event.unicast_to === 'number') {
+                                                        to = `${event.unicast_to}`;
+                                                    }
+                                                    return (
+                                                        <Table.Row key={idx}>
+                                                            <Table.Cell collapsing>
+                                                                {event.device_id}:{event.device_nr}
+                                                            </Table.Cell>
+                                                            <Table.Cell
+                                                                collapsing
+                                                            >{`${ts.toLocaleTimeString()}.${`${ts.getMilliseconds()}`.padEnd(
+                                                                3,
+                                                                '0'
+                                                            )}`}</Table.Cell>
+                                                            <Table.Cell collapsing>{to}</Table.Cell>
+                                                            <Table.Cell collapsing>{event.type}</Table.Cell>
+                                                            <Table.Cell collapsing>
+                                                                <pre
+                                                                    style={{
+                                                                        overflowY: 'auto',
+                                                                        maxHeight: '10em',
+                                                                    }}
+                                                                >
+                                                                    <code>
+                                                                        {JSON.stringify(
+                                                                            {
+                                                                                ...event,
+                                                                                type: undefined,
+                                                                                time_stamp: undefined,
+                                                                                device_id: undefined,
+                                                                                device_nr: undefined,
+                                                                            },
+                                                                            null,
+                                                                            1
+                                                                        )}
+                                                                    </code>
+                                                                </pre>
+                                                            </Table.Cell>
+                                                        </Table.Row>
+                                                    );
+                                                })}
                                         </Table.Body>
                                     )}
                                 </Table>
@@ -171,7 +184,7 @@ class Admin extends Component {
                 {showRaw && (
                     <Segment style={{ maxHeight: '70vh', overflowY: 'auto' }}>
                         <pre>
-                            <code>{JSON.stringify(this.injected.dataStore.socket.dataStore, null, 2)}</code>
+                            <code>{JSON.stringify(this.injected.socketDataStore.dataStore, null, 2)}</code>
                         </pre>
                     </Segment>
                 )}

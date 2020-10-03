@@ -3,7 +3,7 @@ import {
     UncontrolledSprite as UncontrolledSpriteProps,
     RequiredSpriteBase,
 } from '../../Shared/SharedTypings';
-import SocketData, { timeStamp } from '../SocketData';
+import SocketDataStore, { timeStamp } from '../stores/socket_data_store';
 import { Sprite } from './Sprite';
 
 export default class UncontrolledSprite extends Sprite {
@@ -18,7 +18,7 @@ export default class UncontrolledSprite extends Sprite {
 
     onDone: (sprite: UncontrolledSprite) => void;
     constructor(
-        socket: SocketData,
+        socket: SocketDataStore,
         sprite: UncontrolledSpriteProps,
         onDone: (sprite: UncontrolledSprite) => void
     ) {

@@ -1,14 +1,14 @@
 import { DataType, InputPromptMsg, InputResponse, SelectionPrompt } from './../../Shared/SharedTypings';
-import SocketData from '../SocketData';
+import SocketDataStore from '../stores/socket_data_store';
 import { DropdownItemProps } from 'semantic-ui-react';
 
 export class InputPrompt {
     prompt: InputPromptMsg;
-    socket: SocketData;
+    socket: SocketDataStore;
     onDone: (n: InputPrompt) => void;
     submitted: boolean = false;
 
-    constructor(prompt: InputPromptMsg, socket: SocketData, onDone: (n: InputPrompt) => void) {
+    constructor(prompt: InputPromptMsg, socket: SocketDataStore, onDone: (n: InputPrompt) => void) {
         this.prompt = prompt;
         this.socket = socket;
         this.onDone = onDone;
@@ -45,7 +45,7 @@ export class InputPrompt {
 
     respond(response: string | number | Date, displayedAt: number) {
         if (!this.submitted) {
-            this.socket.addData<InputResponse>({
+            this.socket.emitData<InputResponse>({
                 type: DataType.InputResponse,
                 time_stamp: this.prompt.time_stamp,
                 caller_id: this.prompt.response_id,
@@ -60,7 +60,7 @@ export class InputPrompt {
 
     cancel(displayedAt: number) {
         if (!this.submitted) {
-            this.socket.addData<InputResponse>({
+            this.socket.emitData<InputResponse>({
                 type: DataType.InputResponse,
                 time_stamp: this.prompt.time_stamp,
                 caller_id: this.prompt.response_id,

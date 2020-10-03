@@ -5,7 +5,7 @@ import {
     DataType,
     PointerContext,
 } from './../../Shared/SharedTypings';
-import SocketData, { timeStamp } from '../SocketData';
+import SocketDataStore, { timeStamp } from '../stores/socket_data_store';
 import { action, computed, observable } from 'mobx';
 import { toCssColor } from './Color';
 
@@ -15,12 +15,12 @@ export const defaultColorPanelMsg: ColorPanelProps = {
 
 export class ColorPanel {
     rawColor: CssColor;
-    socket: SocketData;
+    socket: SocketDataStore;
     displayedAt?: number;
     @observable
     touched: boolean = false;
     id: number = Date.now();
-    constructor(data: ColorPanelProps, socket: SocketData) {
+    constructor(data: ColorPanelProps, socket: SocketDataStore) {
         this.rawColor = data.color;
         this.socket = socket;
     }
@@ -34,7 +34,7 @@ export class ColorPanel {
     onClick(event: React.PointerEvent<HTMLDivElement>) {
         const rect = (event.target as HTMLDivElement).getBoundingClientRect();
         this.touched = true;
-        this.socket.addData<ColorPointer>({
+        this.socket.emitData<ColorPointer>({
             type: DataType.Pointer,
             context: PointerContext.Color,
             x: event.clientX - rect.left,

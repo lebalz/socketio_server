@@ -1,9 +1,9 @@
 import { Movement, SpriteForm } from 'src/Shared/SharedTypings';
-import SocketData from '../SocketData';
+import SocketDataStore from '../stores/socket_data_store';
 import ControlledSprite from './ControlledSprite';
 import UncontrolledSprite from './UncontrolledSprite';
 
-export function testSprites(socket: SocketData, onDone: (sprite: UncontrolledSprite) => void) {
+export function testSprites(socket: SocketDataStore, onDone: (sprite: UncontrolledSprite) => void) {
     return [
         new UncontrolledSprite(
             socket,
@@ -94,7 +94,7 @@ export function testSprites(socket: SocketData, onDone: (sprite: UncontrolledSpr
     ];
 }
 
-export function testControlledSprites(socket: SocketData) {
+export function testControlledSprites(socket: SocketDataStore) {
     return [
         new ControlledSprite(socket, {
             color: 'red',

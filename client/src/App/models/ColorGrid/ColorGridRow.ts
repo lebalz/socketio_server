@@ -1,5 +1,5 @@
 import { computed, observable, action } from 'mobx';
-import SocketData from '../../SocketData';
+import SocketDataStore from '../../stores/socket_data_store';
 import { Grid as GridProps, ColorName, CssColor } from '../../../Shared/SharedTypings';
 import { RGB } from '../Color';
 import { GridCell } from './ColorGridCell';
@@ -13,10 +13,10 @@ export const defaultGrid: GridProps = {
 
 export class GridRow {
     cells = observable<GridCell>([]);
-    socket: SocketData;
+    socket: SocketDataStore;
     rowIdx: number;
     constructor(
-        socket: SocketData,
+        socket: SocketDataStore,
         rowIdx: number,
         row: (CssColor | undefined)[],
         baseColor?: ColorName | RGB

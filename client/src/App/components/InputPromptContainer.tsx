@@ -1,15 +1,15 @@
 import React from 'react';
 import { InputPrompt as InputPromptModel } from '../models/InputPrompt';
 import { inject, observer } from 'mobx-react';
-import DataStore from '../stores/data_store';
 import InputPrompt from './InputPrompt';
 import { computed } from 'mobx';
+import SocketDataStore from '../stores/socket_data_store';
 
 interface InjectedProps {
-    dataStore: DataStore;
+    socketDataStore: SocketDataStore;
 }
 
-@inject('dataStore')
+@inject('socketDataStore')
 @observer
 class InputPromptContainer extends React.Component {
     get injected() {
@@ -18,7 +18,7 @@ class InputPromptContainer extends React.Component {
 
     @computed
     get inputPrompts(): InputPromptModel[] {
-        return this.injected.dataStore.socket.inputPrompts;
+        return this.injected.socketDataStore.data.inputPrompts;
     }
 
     render() {

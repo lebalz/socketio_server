@@ -1,5 +1,5 @@
 import { computed, observable, action } from 'mobx';
-import SocketData from '../../SocketData';
+import SocketDataStore from '../../stores/socket_data_store';
 import { Grid as GridProps, GridUpdateMsg, CssColor } from '../../../Shared/SharedTypings';
 import { RGB, colorToRgb } from '../Color';
 import { GridRow } from './ColorGridRow';
@@ -51,11 +51,11 @@ const unifyColumnSizes = (grid: CssColor[][]) => {
 export class ColorGrid {
     rows = observable<GridRow>([]);
     baseColor?: RGB;
-    socket: SocketData;
+    socket: SocketDataStore;
     @observable
     displayedAt?: number;
 
-    constructor(data: GridProps, socket: SocketData) {
+    constructor(data: GridProps, socket: SocketDataStore) {
         this.socket = socket;
         this.baseColor = typeof data.base_color === 'string' ? colorToRgb(data.base_color) : data.base_color;
         const rawColorGrid = unifyColumnSizes(to2dArray(data.grid));

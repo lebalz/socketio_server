@@ -1,8 +1,8 @@
 import { observable, action } from 'mobx';
 import RouterStore from './router_store';
 import SessionStore from './session_store';
+import SocketDataStore from './socket_data_store';
 import ViewStateStore from './view_state_store';
-import DataStore from './data_store';
 
 export interface Store {
     cleanup: () => void;
@@ -13,7 +13,7 @@ export class RootStore implements Store {
     routing: RouterStore;
     session: SessionStore;
     viewStateStore: ViewStateStore;
-    dataStore: DataStore;
+    socketDataStore: SocketDataStore;
 
     @observable initialized = false;
 
@@ -27,8 +27,8 @@ export class RootStore implements Store {
         this.viewStateStore = new ViewStateStore(this);
         this.stores.push(this.viewStateStore);
 
-        this.dataStore = new DataStore(this);
-        this.stores.push(this.dataStore);
+        this.socketDataStore = new SocketDataStore(this);
+        this.stores.push(this.socketDataStore);
 
         this.initialized = true;
     }

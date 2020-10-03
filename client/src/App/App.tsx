@@ -21,7 +21,7 @@ const AppContent = observer(() => (
         rootStore={rootStore}
         routerStore={rootStore.routing}
         viewStateStore={rootStore.viewStateStore}
-        dataStore={rootStore.dataStore}
+        socketDataStore={rootStore.socketDataStore}
     >
         <Router history={rootStore.session.history}>
             <div
@@ -53,7 +53,7 @@ class App extends Component {
     componentDidMount() {
         const querySearchId = new URLSearchParams(window.location.search).get('device_id');
         if (querySearchId) {
-            rootStore.dataStore.setDeviceId(querySearchId, false);
+            rootStore.socketDataStore.setDeviceId(querySearchId, false);
         }
         (window as any).noSleep = new NoSleep();
     }

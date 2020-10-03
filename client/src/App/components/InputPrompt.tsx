@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, DropdownProps, Header, Input, InputOnChangeData, Modal, Select } from 'semantic-ui-react';
 import { InputPrompt as InputPromptModel } from '../models/InputPrompt';
-import { timeStamp } from '../SocketData';
+import { timeStamp } from '../stores/socket_data_store';
 
 interface Props {
     prompt?: InputPromptModel;

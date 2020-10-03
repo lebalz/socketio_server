@@ -1,10 +1,10 @@
 import { observable, action } from 'mobx';
-import SocketData, { timeStamp } from '../../SocketData';
+import SocketDataStore, { timeStamp } from '../../stores/socket_data_store';
 import { ColorName, CssColor, GridPointer, DataType, PointerContext } from '../../../Shared/SharedTypings';
 import { RGB, toCssColor } from '../Color';
 
 export class GridCell {
-    socket: SocketData;
+    socket: SocketDataStore;
     rowIdx: number;
     colIdx: number;
 
@@ -19,7 +19,7 @@ export class GridCell {
     displayedAt?: number;
 
     constructor(
-        socket: SocketData,
+        socket: SocketDataStore,
         pos: [row: number, col: number],
         color?: CssColor,
         baseColor?: ColorName | RGB
@@ -41,7 +41,7 @@ export class GridCell {
     @action
     click() {
         console.log(this.displayedAt);
-        this.socket.addData<GridPointer>({
+        this.socket.emitData<GridPointer>({
             type: DataType.Pointer,
             context: PointerContext.Grid,
             row: this.rowIdx,

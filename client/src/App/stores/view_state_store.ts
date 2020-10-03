@@ -1,9 +1,9 @@
 import { Key } from './../../Shared/SharedTypings';
 import { observable, action, computed } from 'mobx';
-import { RootStore } from './root_store';
+import { RootStore, Store } from './root_store';
 import { AccelerationData } from '../components/Controls/Sensors/AccelerationSensor';
 import { GyroData } from '../components/Controls/Sensors/GyroSensor';
-import { timeStamp } from '../SocketData';
+import { timeStamp } from './socket_data_store';
 
 class ControllerState {
     @observable
@@ -65,7 +65,7 @@ class PlaygroundState {
     innerHeight: number = 100;
 }
 
-class ViewStateStore {
+class ViewStateStore implements Store {
     private readonly root: RootStore;
     @observable.ref
     private state = new State();

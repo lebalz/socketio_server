@@ -4,7 +4,7 @@ import React from 'react';
 import { DataType, SpriteClicked } from 'src/Shared/SharedTypings';
 import { Playground } from '../models/Playground';
 import { ISprite } from '../models/Sprite';
-import DataStore from '../stores/data_store';
+import SocketDataStore from '../stores/socket_data_store';
 import ViewStateStore from '../stores/view_state_store';
 
 interface Props {
@@ -14,10 +14,10 @@ interface Props {
 
 interface InjectedProps extends Props {
     viewStateStore: ViewStateStore;
-    dataStore: DataStore;
+    socketDataStore: SocketDataStore;
 }
 
-@inject('viewStateStore', 'dataStore')
+@inject('viewStateStore', 'socketDataStore')
 @observer
 class Sprite extends React.Component<Props> {
     get injected() {
@@ -25,7 +25,7 @@ class Sprite extends React.Component<Props> {
     }
     @computed
     get playground(): Playground {
-        return this.injected.dataStore.socket.playground;
+        return this.injected.socketDataStore.data.playground;
     }
 
     @computed
@@ -40,7 +40,7 @@ class Sprite extends React.Component<Props> {
     state = { clicked: false };
     onClick = () => {
         if (this.props.sprite.clickable) {
-            this.playground.socket.addData<SpriteClicked>({
+            this.playground.socket.emitData<SpriteClicked>({
                 type: DataType.SpriteClicked,
                 sprite_id: this.props.sprite.id,
                 text: this.props.sprite.text,

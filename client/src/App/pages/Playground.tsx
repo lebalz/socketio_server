@@ -1,13 +1,12 @@
 import React, { Fragment } from 'react';
 import { Playground as PlaygroundModel } from '../models/Playground';
-import SocketData from '../SocketData';
+import SocketDataStore from '../stores/socket_data_store';
 import Sprite from '../components/Sprite';
 import AccelerationSensor, { AccelerationData } from '../components/Controls/Sensors/AccelerationSensor';
 import GyroSensor, { GyroData } from '../components/Controls/Sensors/GyroSensor';
 import { Checkbox } from 'semantic-ui-react';
 import { KeyControlListener, KeyData } from '../components/Controls/KeyControls';
 import ViewStateStore from '../stores/view_state_store';
-import DataStore from '../stores/data_store';
 import { inject, observer } from 'mobx-react';
 import { action, computed } from 'mobx';
 
@@ -19,10 +18,10 @@ type IOverload = {
 
 interface InjectedProps {
     viewStateStore: ViewStateStore;
-    dataStore: DataStore;
+    socketDataStore: SocketDataStore;
 }
 
-@inject('viewStateStore', 'dataStore')
+@inject('viewStateStore', 'socketDataStore')
 @observer
 class Playground extends React.Component {
     containerRef = React.createRef<HTMLDivElement>();
@@ -31,12 +30,12 @@ class Playground extends React.Component {
     }
 
     @computed
-    get socket(): SocketData {
-        return this.injected.dataStore.socket;
+    get socket(): SocketDataStore {
+        return this.injected.socketDataStore;
     }
     @computed
     get playground(): PlaygroundModel {
-        return this.injected.dataStore.socket.playground;
+        return this.injected.socketDataStore.data.playground;
     }
     @computed
     get playgroundState() {
@@ -99,7 +98,7 @@ class Playground extends React.Component {
     }
 
     onData: IOverload = (data: any) => {
-        this.socket.addData(data);
+        this.socket.emitData(data);
     };
 
     toggleSimulateSensor = action(() => {

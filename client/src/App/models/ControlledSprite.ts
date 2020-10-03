@@ -1,6 +1,6 @@
 import { action, observable } from 'mobx';
 import { DataType, SpriteCollision } from 'src/Shared/SharedTypings';
-import { timeStamp } from '../SocketData';
+import { timeStamp } from '../stores/socket_data_store';
 import { Sprite } from './Sprite';
 
 export default class ControlledSprite extends Sprite {
@@ -19,7 +19,7 @@ export default class ControlledSprite extends Sprite {
                 return;
             }
             this.overlaps.add(sprite);
-            this.socket.addData<SpriteCollision>({
+            this.socket.emitData<SpriteCollision>({
                 type: DataType.SpriteCollision,
                 sprite_ids: [this.id, sprite.id],
                 time_stamp: ts,
@@ -28,7 +28,7 @@ export default class ControlledSprite extends Sprite {
         });
         reportOut.forEach((sprite) => {
             if (this.overlaps.delete(sprite)) {
-                this.socket.addData<SpriteCollision>({
+                this.socket.emitData<SpriteCollision>({
                     type: DataType.SpriteCollision,
                     sprite_ids: [this.id, sprite.id],
                     time_stamp: ts,

@@ -1,13 +1,13 @@
 import { computed } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import React from 'react';
-import DataStore from '../stores/data_store';
+import SocketDataStore from '../stores/socket_data_store';
 
 interface InjectedProps {
-    dataStore: DataStore;
+    socketDataStore: SocketDataStore;
 }
 
-@inject('dataStore')
+@inject('socketDataStore')
 @observer
 class GridCellPopup extends React.Component {
     get injected() {
@@ -16,7 +16,7 @@ class GridCellPopup extends React.Component {
 
     @computed
     get activeCells() {
-        return this.injected.dataStore.socket.colorGrid.activeCells;
+        return this.injected.socketDataStore.data.colorGrid.activeCells;
     }
     render() {
         if (this.activeCells.length === 0) {

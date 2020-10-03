@@ -14,10 +14,9 @@ import {
 } from '../../Shared/SharedTypings';
 import ControlledSprite from './ControlledSprite';
 import UncontrolledSprite from './UncontrolledSprite';
-import SocketData from '../SocketData';
+import SocketDataStore from '../stores/socket_data_store';
 import { IBoundingBox } from './BoundingBox';
 import { Sprite } from './Sprite';
-import { testControlledSprites, testSprites } from './_TestSprites';
 import { action, computed, observable } from 'mobx';
 
 export const REFRESH_RATE = 5;
@@ -58,10 +57,10 @@ export class Playground implements IBoundingBox {
     controlledSprites = observable<ControlledSprite>([]);
     uncontrolledSprites = observable<UncontrolledSprite>([]);
 
-    socket: SocketData;
+    socket: SocketDataStore;
     updateTimer?: NodeJS.Timeout;
 
-    constructor(socket: SocketData) {
+    constructor(socket: SocketDataStore) {
         this.socket = socket;
         // this.controlledSprites.push(...testControlledSprites(socket));
         // this.uncontrolledSprites.push(...testSprites(socket, this.onSpriteDone));
@@ -131,7 +130,7 @@ export class Playground implements IBoundingBox {
 
     onSpriteDone = action((sprite: UncontrolledSprite) => {
         this.uncontrolledSprites.remove(sprite);
-        this.socket.addData<SpriteOut>({
+        this.socket.emitData<SpriteOut>({
             type: DataType.SpriteOut,
             sprite_id: sprite.id,
         });
@@ -158,6 +157,9 @@ export class Playground implements IBoundingBox {
 
     @action
     updateConfig(config: PlaygroundConfig) {
+        if (!config) {
+            return;
+        }
         this.height = config.height ?? this.height;
         this.width = config.width ?? this.width;
         this.shiftX = config.shift_x ?? this.shiftX;

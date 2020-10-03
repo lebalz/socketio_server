@@ -8,7 +8,7 @@ import {
     BorderOverlap,
     DataType,
 } from '../../Shared/SharedTypings';
-import SocketData from '../SocketData';
+import SocketDataStore from '../stores/socket_data_store';
 import { BoundingBox } from './BoundingBox';
 
 export interface ISprite {
@@ -35,10 +35,10 @@ export class Sprite extends BoundingBox implements ISprite {
     clickable: boolean;
     @observable
     text?: string;
-    socket: SocketData;
+    socket: SocketDataStore;
     borderOverlap?: BorderSide;
 
-    constructor(socket: SocketData, sprite: SpriteProps) {
+    constructor(socket: SocketDataStore, sprite: SpriteProps) {
         super({ ...sprite, x: sprite.pos_x, y: sprite.pos_y });
         this.socket = socket;
         this.id = sprite.id;
@@ -58,7 +58,7 @@ export class Sprite extends BoundingBox implements ISprite {
             return;
         }
         this.borderOverlap = overlap;
-        this.socket.addData<BorderOverlap>({
+        this.socket.emitData<BorderOverlap>({
             type: DataType.BorderOverlap,
             id: this.id,
             border: overlap,

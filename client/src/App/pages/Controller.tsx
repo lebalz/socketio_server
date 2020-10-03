@@ -1,18 +1,17 @@
 import React, { Component, Fragment } from 'react';
 import { Checkbox, Segment, Form } from 'semantic-ui-react';
 import MotionSimulator from '../models/MotionSimulator';
-import { timeStamp } from '../SocketData';
+import SocketDataStore, { timeStamp } from '../stores/socket_data_store';
 import { Acc, Gyro, Key } from '../../Shared/SharedTypings';
 import AccelerationSensor, { AccelerationData } from '../components/Controls/Sensors/AccelerationSensor';
 import GyroSensor, { GyroData } from '../components/Controls/Sensors/GyroSensor';
 import KeyControls, { KeyData } from '../components/Controls/KeyControls';
 import { inject, observer } from 'mobx-react';
-import DataStore from '../stores/data_store';
 import ViewStateStore from '../stores/view_state_store';
 import { computed } from 'mobx';
 
 interface InjectedProps {
-    dataStore: DataStore;
+    socketDataStore: SocketDataStore;
     viewStateStore: ViewStateStore;
 }
 
@@ -22,7 +21,7 @@ interface StateProps {
     };
 }
 
-@inject('dataStore', 'viewStateStore')
+@inject('socketDataStore', 'viewStateStore')
 @observer
 class Controller extends Component {
     state: StateProps = { active: {} };
@@ -53,7 +52,7 @@ class Controller extends Component {
 
     @computed
     get socket() {
-        return this.injected.dataStore.socket;
+        return this.injected.socketDataStore;
     }
 
     onKeyData = (data: KeyData) => {
@@ -63,7 +62,7 @@ class Controller extends Component {
         }
         cmds.push({ timeStamp: timeStamp(), key: data.key });
         this.setState({ lastCommands: cmds });
-        this.socket.addData<KeyData>(data);
+        this.socket.emitData<KeyData>(data);
     };
 
     toggleSensorStream = () => {
@@ -77,12 +76,12 @@ class Controller extends Component {
     };
 
     onAccelerationData = (data: AccelerationData) => {
-        this.socket.addData<Acc>(data);
+        this.socket.emitData<Acc>(data);
         this.setState({ lastAcceleration: data });
     };
 
     onGyroData = (data: GyroData) => {
-        this.socket.addData<Gyro>(data);
+        this.socket.emitData<Gyro>(data);
         this.setState({ lastGyro: data });
     };
 
@@ -126,7 +125,7 @@ class Controller extends Component {
                     <Checkbox
                         label="Logs Anzeigen"
                         checked={this.controllerState.showLogs}
-                        onClick={() => this.setState({ showLogs: !this.controllerState.showLogs })}
+                        onClick={() => (this.controllerState.showLogs = !this.controllerState.showLogs)}
                     />
                     {this.controllerState.showLogs && (
                         <div style={{ margin: '1em' }}>

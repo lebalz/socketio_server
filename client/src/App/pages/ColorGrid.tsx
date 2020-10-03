@@ -1,19 +1,18 @@
 import React, { Component } from 'react';
-import { timeStamp } from '../SocketData';
+import SocketDataStore, { timeStamp } from '../stores/socket_data_store';
 import { ColorGrid as ColorGridModel } from '../models/ColorGrid/ColorGrid';
 import { inject, observer } from 'mobx-react';
 import ViewStateStore from '../stores/view_state_store';
-import DataStore from '../stores/data_store';
 import { action, computed } from 'mobx';
 import ColorGridRow from './ColorGridRow';
 import GridCellPopup from '../components/GridCellPopup';
 
 interface InjectedProps {
     viewStateStore: ViewStateStore;
-    dataStore: DataStore;
+    socketDataStore: SocketDataStore;
 }
 
-@inject('viewStateStore', 'dataStore')
+@inject('viewStateStore', 'socketDataStore')
 @observer
 class ColorGrid extends Component {
     get injected() {
@@ -22,7 +21,7 @@ class ColorGrid extends Component {
 
     @computed
     get grid(): ColorGridModel {
-        return this.injected.dataStore.socket.colorGrid;
+        return this.injected.socketDataStore.data.colorGrid;
     }
 
     @computed

@@ -2,17 +2,16 @@ import React from 'react';
 import { AlertConfirm, DataType } from '../../Shared/SharedTypings';
 import { Notification as NotificationModel } from '../models/Notification';
 import Notification from './Notification';
-import { timeStamp } from '../SocketData';
+import SocketDataStore, { timeStamp } from '../stores/socket_data_store';
 import { Icon } from 'semantic-ui-react';
 import { inject, observer } from 'mobx-react';
-import DataStore from '../stores/data_store';
 import { computed, IReactionDisposer, reaction } from 'mobx';
 
 interface InjectedProps {
-    dataStore: DataStore;
+    socketDataStore: SocketDataStore;
 }
 
-@inject('dataStore')
+@inject('socketDataStore')
 @observer
 class NotificationList extends React.Component {
     get injected() {
@@ -22,22 +21,22 @@ class NotificationList extends React.Component {
 
     constructor(props: any) {
         super(props);
-        const { socket } = this.injected.dataStore;
+        const { socketDataStore } = this.injected;
         this.reactionDisposer = reaction(
-            () => socket.notifications.length,
+            () => socketDataStore.data.notifications.length,
             (length) => {
                 if (length > 0) {
-                    const notification = socket.notifications[0];
+                    const notification = socketDataStore.data.notifications[0];
                     if (notification?.alert) {
                         const ts = timeStamp();
                         window.alert(notification.message);
-                        socket.addData<AlertConfirm>({
+                        socketDataStore.emitData<AlertConfirm>({
                             type: DataType.AlertConfirm,
                             time_stamp: notification.timeStamp,
                             caller_id: notification.responseId,
                             displayed_at: ts,
                         });
-                        socket.notifications.remove(notification);
+                        socketDataStore.data.notifications.remove(notification);
                     }
                 }
             }
@@ -49,15 +48,15 @@ class NotificationList extends React.Component {
     }
 
     onDismissNotification = (notification: NotificationModel) => {
-        this.injected.dataStore.socket.notifications.remove(notification);
+        this.injected.socketDataStore.data.notifications.remove(notification);
     };
 
     @computed
     get notifications(): NotificationModel[] {
-        const notifics = this.injected.dataStore.socket.notifications.filter(
+        const notifics = this.injected.socketDataStore.data.notifications.filter(
             (notification) => !notification.alert
         );
-        return notifics.sort((a, b) => b.timeStamp - a.timeStamp);
+        return notifics.slice().sort((a, b) => b.timeStamp - a.timeStamp);
     }
 
     render() {
@@ -71,7 +70,7 @@ class NotificationList extends React.Component {
                             cursor: 'pointer',
                         }}
                         onClick={() => {
-                            this.injected.dataStore.socket.notifications.clear();
+                            this.injected.socketDataStore.data.notifications.clear();
                         }}
                     >
                         <div>Alle schliessen</div>

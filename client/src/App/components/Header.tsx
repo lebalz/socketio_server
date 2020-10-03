@@ -2,29 +2,29 @@ import { inject, observer } from 'mobx-react';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Label } from 'semantic-ui-react';
-import DataStore from '../stores/data_store';
+import SocketDataStore from '../stores/socket_data_store';
 import ViewStateStore from '../stores/view_state_store';
 
 interface InjectedProps {
     viewStateStore: ViewStateStore;
-    dataStore: DataStore;
+    socketDataStore: SocketDataStore;
 }
 
-@inject('viewStateStore', 'dataStore')
+@inject('viewStateStore', 'socketDataStore')
 @observer
 export default class Header extends React.Component {
     get injected() {
         return this.props as InjectedProps;
     }
     render() {
-        const { viewStateStore, dataStore } = this.injected;
+        const { viewStateStore, socketDataStore } = this.injected;
         return (
             <div className="header-bar">
                 <Link to="/">
                     <Label icon="home" size="small" onClick={() => viewStateStore.disableNoSleep()} />
                 </Link>
                 <div>
-                    <Label size="small" content={`Nr. ${dataStore.deviceNr}`} />
+                    <Label size="small" content={`Nr. ${socketDataStore.client.deviceNr}`} />
                 </div>
                 <div>
                     <Label
@@ -41,11 +41,14 @@ export default class Header extends React.Component {
                         DeviceID
                     </label>
                     <input
+                        disabled={this.injected.socketDataStore.isAdmin}
                         key="device-id"
                         type="string"
-                        value={dataStore.deviceId}
+                        value={socketDataStore.client.deviceId}
                         readOnly
-                        onClick={() => viewStateStore.setDeviceIdPromptOpen(true)}
+                        onClick={() =>
+                            viewStateStore.setDeviceIdPromptOpen(!this.injected.socketDataStore.isAdmin)
+                        }
                     />
                 </div>
                 <div className="spacer" />

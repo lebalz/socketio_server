@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
-import { timeStamp } from '../SocketData';
+import { timeStamp } from '../stores/socket_data_store';
 import { inject, observer } from 'mobx-react';
 import ViewStateStore from '../stores/view_state_store';
-import DataStore from '../stores/data_store';
 import { computed } from 'mobx';
 import { GridCell } from '../models/ColorGrid/ColorGridCell';
 
@@ -12,10 +11,9 @@ interface Props {
 
 interface InjectedProps extends Props {
     viewStateStore: ViewStateStore;
-    dataStore: DataStore;
 }
 
-@inject('viewStateStore', 'dataStore')
+@inject('viewStateStore')
 @observer
 class ColorGridCell extends Component<Props> {
     get injected() {
