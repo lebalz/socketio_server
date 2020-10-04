@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Table, Segment, Button, Checkbox } from 'semantic-ui-react';
+import { Table, Button } from 'semantic-ui-react';
 import { inject, observer } from 'mobx-react';
 import ViewStateStore from '../stores/view_state_store';
 import SocketDataStore, { GLOBAL_LISTENER } from '../stores/socket_data_store';
@@ -40,7 +40,6 @@ class Admin extends Component {
     }
 
     render() {
-        const { showRaw } = this.injected.viewStateStore.adminState;
         return (
             <div
                 style={{
@@ -95,7 +94,7 @@ class Admin extends Component {
                             <div
                                 key={deviceId}
                                 style={{
-                                    maxHeight: '60vh',
+                                    maxHeight: '80vh',
                                     overflowY: 'auto',
                                     marginTop: '8px',
                                     width: '100%',
@@ -119,14 +118,14 @@ class Admin extends Component {
                                         <Table.Body>
                                             {store.hasRawAcc && (
                                                 <Table.Row>
-                                                    <Table.HeaderCell colspan="5">
+                                                    <Table.HeaderCell colSpan="5">
                                                         <LineGraph type="acc" data={store.rawAccData} />
                                                     </Table.HeaderCell>
                                                 </Table.Row>
                                             )}
                                             {store.hasRawGyro && (
                                                 <Table.Row>
-                                                    <Table.HeaderCell colspan="5">
+                                                    <Table.HeaderCell colSpan="5">
                                                         <LineGraph type="gyro" data={store.rawGyroData} />
                                                     </Table.HeaderCell>
                                                 </Table.Row>

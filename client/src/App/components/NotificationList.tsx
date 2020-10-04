@@ -23,10 +23,10 @@ class NotificationList extends React.Component {
         super(props);
         const { socketDataStore } = this.injected;
         this.reactionDisposer = reaction(
-            () => socketDataStore.data.notifications.length,
+            () => socketDataStore.data?.notifications.length,
             (length) => {
-                if (length > 0) {
-                    const notification = socketDataStore.data.notifications[0];
+                if (length && length > 0) {
+                    const notification = socketDataStore.data?.notifications[0];
                     if (notification?.alert) {
                         const ts = timeStamp();
                         window.alert(notification.message);
@@ -36,7 +36,7 @@ class NotificationList extends React.Component {
                             caller_id: notification.responseId,
                             displayed_at: ts,
                         });
-                        socketDataStore.data.notifications.remove(notification);
+                        socketDataStore.data?.notifications.remove(notification);
                     }
                 }
             }
@@ -48,14 +48,17 @@ class NotificationList extends React.Component {
     }
 
     onDismissNotification = (notification: NotificationModel) => {
-        this.injected.socketDataStore.data.notifications.remove(notification);
+        this.injected.socketDataStore.data?.notifications.remove(notification);
     };
 
     @computed
     get notifications(): NotificationModel[] {
-        const notifics = this.injected.socketDataStore.data.notifications.filter(
+        const notifics = this.injected.socketDataStore.data?.notifications.filter(
             (notification) => !notification.alert
         );
+        if (!notifics) {
+            return [];
+        }
         return notifics.slice().sort((a, b) => b.timeStamp - a.timeStamp);
     }
 
@@ -70,7 +73,7 @@ class NotificationList extends React.Component {
                             cursor: 'pointer',
                         }}
                         onClick={() => {
-                            this.injected.socketDataStore.data.notifications.clear();
+                            this.injected.socketDataStore.data?.notifications.clear();
                         }}
                     >
                         <div>Alle schliessen</div>

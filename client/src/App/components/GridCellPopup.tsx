@@ -16,10 +16,11 @@ class GridCellPopup extends React.Component {
 
     @computed
     get activeCells() {
-        return this.injected.socketDataStore.data.colorGrid.activeCells;
+        return this.injected.socketDataStore.data?.colorGrid.activeCells;
     }
+
     render() {
-        if (this.activeCells.length === 0) {
+        if (!this.activeCells || this.activeCells?.length === 0) {
             return null;
         }
         const cell = this.activeCells[0];

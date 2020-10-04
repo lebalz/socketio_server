@@ -1,55 +1,65 @@
+import { action, computed } from 'mobx';
+import { inject, observer } from 'mobx-react';
 import React from 'react';
 import { Button, DropdownProps, Header, Input, InputOnChangeData, Modal, Select } from 'semantic-ui-react';
 import { InputPrompt as InputPromptModel } from '../models/InputPrompt';
-import { timeStamp } from '../stores/socket_data_store';
-
-interface Props {
-    prompt?: InputPromptModel;
-}
+import SocketDataStore, { timeStamp } from '../stores/socket_data_store';
+import ViewStateStore from '../stores/view_state_store';
 
 interface State {
-    open: boolean;
     response?: string;
     displayedAt: number;
 }
 
-class InputPrompt extends React.Component<Props> {
-    inputRef = React.createRef<Input>();
-    state: State = { open: true, response: undefined, displayedAt: timeStamp() };
+interface InjectedProps {
+    socketDataStore: SocketDataStore;
+    viewStateStore: ViewStateStore;
+}
 
-    componentDidMount() {
-        this.inputRef.current?.focus();
-        this.setState({ displayedAt: timeStamp() });
+@inject('socketDataStore', 'viewStateStore')
+@observer
+class InputPrompt extends React.Component {
+    inputRef = React.createRef<Input>();
+    state: State = { response: undefined, displayedAt: timeStamp() };
+
+    get injected() {
+        return this.props as InjectedProps;
+    }
+
+    @computed
+    get prompt(): InputPromptModel | undefined {
+        console.log(this.injected.socketDataStore.data?.inputPrompts.length);
+        return this.injected.socketDataStore.data?.inputPrompts[0];
+    }
+
+    @computed
+    get isOpen() {
+        return this.injected.socketDataStore.data?.isInputPromptOpen;
     }
 
     onMount = () => {
         window.addEventListener('keyup', this.onEnter);
-        this.setState({ response: this.props.prompt?.defaultValue });
+        this.inputRef.current?.focus();
+        this.setState({ response: this.prompt?.defaultValue });
+        if (this.prompt) {
+            this.prompt.displayedAt = timeStamp();
+        }
     };
 
-    onClose = () => {
+    onClose = action(() => {
         window.removeEventListener('keyup', this.onEnter);
-        this.props.prompt?.cancel(this.state.displayedAt);
-    };
+        this.prompt?.cancel();
+    });
 
-    onEnter = (e: KeyboardEvent) => {
+    onEnter = action((e: KeyboardEvent) => {
         if (e.key === 'Enter') {
             this.respond();
         }
-        // this.props.prompt?.cancel(this.state.displayedAt);
-    };
+    });
 
+    @action
     respond() {
-        this.props.prompt?.respond(
-            this.state.response ?? this.props.prompt.defaultValue ?? '',
-            this.state.displayedAt
-        );
-    }
-
-    componentDidUpdate(prevProps: Props) {
-        if (this.props.prompt !== prevProps.prompt) {
-            this.setState({ displayedAt: timeStamp() });
-        }
+        this.prompt?.respond(this.state.response ?? this.prompt.defaultValue ?? '');
     }
 
     onChangeSelection = (event: React.SyntheticEvent<HTMLElement, Event>, data: DropdownProps) => {
@@ -61,10 +71,12 @@ class InputPrompt extends React.Component<Props> {
     };
 
     render() {
-        const prompt = this.props.prompt;
+        if (!this.prompt) {
+            return null;
+        }
         return (
             <Modal
-                open={this.state.open && !!prompt}
+                open={this.isOpen}
                 closeOnEscape
                 closeOnDimmerClick={false}
                 closeOnDocumentClick={false}
@@ -73,22 +85,22 @@ class InputPrompt extends React.Component<Props> {
             >
                 <Modal.Content>
                     <Modal.Description>
-                        <Header>{prompt?.question}</Header>
-                        {prompt?.inputType === 'select' ? (
+                        <Header>{this.prompt.question}</Header>
+                        {this.prompt.inputType === 'select' ? (
                             <Select
                                 fluid
-                                options={prompt.selectOptions}
-                                defaultValue={prompt.defaultValue}
+                                options={this.prompt.selectOptions}
+                                defaultValue={this.prompt.defaultValue}
                                 placeholder="Select an Option"
                                 onChange={this.onChangeSelection}
                             />
                         ) : (
                             <Input
                                 ref={this.inputRef}
-                                type={prompt?.inputType}
+                                type={this.prompt.inputType}
                                 fluid
                                 onChange={this.onChange}
-                                placeholder={prompt?.inputType}
+                                placeholder={this.prompt.inputType}
                                 focus
                             />
                         )}
@@ -96,7 +108,7 @@ class InputPrompt extends React.Component<Props> {
                 </Modal.Content>
                 <Modal.Actions>
                     <Button.Group fluid attached="bottom">
-                        <Button color="red" onClick={() => prompt?.cancel(this.state.displayedAt)}>
+                        <Button color="red" onClick={() => this.prompt?.cancel()}>
                             Cancel
                         </Button>
                         <Button

@@ -73,6 +73,18 @@ export default class ClientData {
         this._logOnlyRawMessages = logOnlyRawMessages;
     }
 
+    @computed
+    get alertingMessages(): (InputPrompt | Notification)[] {
+        const all = [...this.inputPrompts, ...this.notifications.filter((n) => n.alert)];
+        return all.sort((a, b) => a.timeStamp - b.timeStamp);
+    }
+
+    @computed
+    get isInputPromptOpen(): boolean {
+        console.log('is popen', this.alertingMessages[0]?.dataType);
+        return this.alertingMessages[0]?.dataType === DataType.InputPrompt;
+    }
+
     logOnlyRawMessages(on: boolean) {
         if (on) {
             this._logOnlyRawMessages = true;
@@ -84,6 +96,7 @@ export default class ClientData {
 
     @action
     addData(msgs: ClientDataMsg[]) {
+        msgs.sort((a, b) => a.time_stamp - b.time_stamp);
         if (this._logOnlyRawMessages) {
             this.addToLog(msgs);
             return;
@@ -104,13 +117,13 @@ export default class ClientData {
             let data = this.rawData.get(msg.type);
             if (data) {
                 if (data.length > MESSAGE_THRESHOLD) {
-                    data.pop();
+                    data.shift();
                 }
             } else {
                 data = observable<ClientDataMsg>([]);
                 this.rawData.set(msg.type, data);
             }
-            data.unshift(msg);
+            data.push(msg);
         });
     }
 
@@ -125,11 +138,8 @@ export default class ClientData {
                 );
                 break;
             case DataType.InputPrompt:
-                this.inputPrompts.push(
-                    new InputPrompt(data, this.socket, (prompt: InputPrompt) =>
-                        this.inputPrompts.remove(prompt)
-                    )
-                );
+                console.log('neew prompt!');
+                this.inputPrompts.push(new InputPrompt(data, this.socket));
                 break;
             case DataType.Sprite:
                 this.playground.addOrUpdateSprite(data.sprite);

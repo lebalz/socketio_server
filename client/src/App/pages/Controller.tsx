@@ -11,6 +11,11 @@ import ViewStateStore from '../stores/view_state_store';
 import { action, computed } from 'mobx';
 import LineGraph from '../components/LineGraph';
 
+const DISPLAY_FLOAT_PRECISION = 100000;
+
+function toPrecision(num: number) {
+    return ~~(num * DISPLAY_FLOAT_PRECISION) / DISPLAY_FLOAT_PRECISION;
+}
 interface InjectedProps {
     socketDataStore: SocketDataStore;
     viewStateStore: ViewStateStore;
@@ -81,18 +86,31 @@ class Controller extends Component {
     onAccelerationData = action((data: AccelerationData) => {
         this.socket.emitData<Acc>(data);
         this.controllerState.addAccFrame(data);
-        this.setState({ lastAcc: data });
+        this.setState({
+            lastAcc: {
+                ...data,
+                x: toPrecision(data.x),
+                y: toPrecision(data.y),
+                z: toPrecision(data.z),
+            },
+        });
     });
 
     onGyroData = (data: GyroData) => {
         this.socket.emitData<Gyro>(data);
         this.controllerState.addGyroFrame(data);
-        this.setState({ lastGyro: data });
+        this.setState({
+            lastGyro: {
+                ...data,
+                alpha: toPrecision(data.alpha),
+                beta: toPrecision(data.beta),
+                gamma: toPrecision(data.gamma),
+            },
+        });
     };
 
     render() {
         const showStreamLogs = this.controllerState.showLogs && this.controllerState.streamSenensor;
-        const { lastAcc, lastGyro } = this.state;
         return (
             <Fragment>
                 <h1>Controller</h1>

@@ -45,4 +45,9 @@ export class ColorPanel {
             displayed_at: this.displayedAt ?? timeStamp(),
         });
     }
+
+    @action
+    setTouched(touched: boolean) {
+        this.touched = touched;
+    }
 }

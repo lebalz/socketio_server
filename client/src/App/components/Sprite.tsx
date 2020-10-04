@@ -24,23 +24,23 @@ class Sprite extends React.Component<Props> {
         return this.props as InjectedProps;
     }
     @computed
-    get playground(): Playground {
-        return this.injected.socketDataStore.data.playground;
+    get playground(): Playground | undefined {
+        return this.injected.socketDataStore.data?.playground;
     }
 
     @computed
     get shiftX(): number {
-        return this.playground.shiftX;
+        return this.playground?.shiftX ?? 0;
     }
     @computed
     get shiftY(): number {
-        return this.playground.shiftY;
+        return this.playground?.shiftY ?? 0;
     }
 
     state = { clicked: false };
     onClick = () => {
         if (this.props.sprite.clickable) {
-            this.playground.socket.emitData<SpriteClicked>({
+            this.playground?.socket.emitData<SpriteClicked>({
                 type: DataType.SpriteClicked,
                 sprite_id: this.props.sprite.id,
                 text: this.props.sprite.text,

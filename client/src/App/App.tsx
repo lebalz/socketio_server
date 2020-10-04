@@ -9,12 +9,12 @@ import ColorGrid from './pages/ColorGrid';
 import Admin from './pages/Admin';
 import NoSleep from 'nosleep.js';
 import NotificationList from './components/NotificationList';
-import InputPromptContainer from './components/InputPromptContainer';
 import DeviceIdPrompt from './components/DeviceIdPrompt';
 import { observer, Provider } from 'mobx-react';
 import rootStore from './stores/root_store';
 import Header from './components/Header';
 import Playground from './pages/Playground';
+import InputPrompt from './components/InputPrompt';
 
 const AppContent = observer(() => (
     <Provider
@@ -43,7 +43,7 @@ const AppContent = observer(() => (
             </div>
         </Router>
         <NotificationList />
-        <InputPromptContainer />
+        <InputPrompt />
         <DeviceIdPrompt />
     </Provider>
 ));

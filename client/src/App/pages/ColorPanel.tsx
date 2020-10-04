@@ -18,14 +18,17 @@ class ColorPanel extends Component {
     }
 
     componentDidUpdate(_prevProps: InjectedProps, _prevState: any) {
-        if (this.injected.socketDataStore.data.colorPanel.displayedAt === undefined) {
+        if (
+            this.injected.socketDataStore.data &&
+            this.injected.socketDataStore.data?.colorPanel.displayedAt === undefined
+        ) {
             this.injected.socketDataStore.data.colorPanel.displayedAt = timeStamp();
         }
     }
 
     @computed
-    get colorPanel(): ColorPanelModel {
-        return this.injected.socketDataStore.data.colorPanel;
+    get colorPanel(): ColorPanelModel | undefined {
+        return this.injected.socketDataStore.data?.colorPanel;
     }
 
     render() {
@@ -33,16 +36,16 @@ class ColorPanel extends Component {
             <div
                 id="color-panel"
                 style={{
-                    background: this.colorPanel.color,
+                    background: this.colorPanel?.color,
                     position: 'relative',
                     userSelect: 'none',
                 }}
-                onPointerDown={(e) => this.colorPanel.onClick(e)}
-                onPointerUp={() => (this.colorPanel.touched = false)}
-                onPointerCancel={() => (this.colorPanel.touched = false)}
-                onPointerOut={() => (this.colorPanel.touched = false)}
+                onPointerDown={(e) => this.colorPanel?.onClick(e)}
+                onPointerUp={() => this.colorPanel?.setTouched(false)}
+                onPointerCancel={() => this.colorPanel?.setTouched(false)}
+                onPointerOut={() => this.colorPanel?.setTouched(false)}
             >
-                {this.colorPanel.touched && (
+                {this.colorPanel?.touched && (
                     <div
                         style={{
                             borderRadius: '50%',

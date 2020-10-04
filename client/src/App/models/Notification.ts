@@ -1,4 +1,4 @@
-import { NotificationMsg } from './../../Shared/SharedTypings';
+import { DataType, NotificationMsg } from './../../Shared/SharedTypings';
 import _ from 'lodash';
 
 export class Notification {
@@ -12,6 +12,10 @@ export class Notification {
                 this.onDismiss(this);
             }, this.notification.time!);
         }
+    }
+
+    get dataType() {
+        return DataType.Notification;
     }
 
     get type() {

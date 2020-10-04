@@ -183,8 +183,12 @@ export enum DataType {
     BorderOverlap = 'border_overlap',
 }
 
+export type ClientsData = {
+    [type in DataType]?: ClientDataMsg[];
+};
+
 export interface DataStore {
-    [key: string]: ClientDataMsg[];
+    [deviceId: string]: ClientsData;
 }
 
 export interface DataPkg {
@@ -337,6 +341,11 @@ export enum SocketEvents {
     InformationMsg = 'information_msg',
 }
 
+export interface RoomLeftPkg {
+    room: string;
+    device: Device;
+}
+
 interface UnknownMsg extends DataMsg {
     type: DataType.Unknown;
 }
@@ -366,7 +375,7 @@ export type PartialDataMsg = Partial<ClientDataMsg>;
 export interface AllDataMsg extends DataMsg {
     device_id: string;
     type: DataType.AllData;
-    all_data: ClientDataMsg[];
+    all_data: ClientsData;
 }
 
 export interface DevicesPkg {

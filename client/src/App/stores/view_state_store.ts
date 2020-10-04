@@ -5,7 +5,7 @@ import { AccelerationData } from '../components/Controls/Sensors/AccelerationSen
 import { GyroData } from '../components/Controls/Sensors/GyroSensor';
 import { timeStamp } from './socket_data_store';
 
-const MAX_SENSOR_VALUES = 50;
+const MAX_SENSOR_VALUES = 100;
 class ControllerState {
     @observable
     streamSenensor: boolean = false;
@@ -45,6 +45,8 @@ class State {
     noSleepOn: boolean = false;
     @observable
     deviceIdPromptOpen: boolean = false;
+    @observable
+    inputPromptOpen: boolean = false;
 }
 
 class ColorState {
@@ -113,6 +115,16 @@ class ViewStateStore implements Store {
     @computed
     get deviceIdPromptOpen(): boolean {
         return this.state.deviceIdPromptOpen;
+    }
+
+    @action
+    setInputPromptOpen(open: boolean) {
+        this.state.inputPromptOpen = open;
+    }
+
+    @computed
+    get inputPromptOpen(): boolean {
+        return this.state.inputPromptOpen;
     }
 
     @action

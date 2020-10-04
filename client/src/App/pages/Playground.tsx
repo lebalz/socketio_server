@@ -34,8 +34,8 @@ class Playground extends React.Component {
         return this.injected.socketDataStore;
     }
     @computed
-    get playground(): PlaygroundModel {
-        return this.injected.socketDataStore.data.playground;
+    get playground(): PlaygroundModel | undefined {
+        return this.injected.socketDataStore.data?.playground;
     }
     @computed
     get playgroundState() {
@@ -44,12 +44,12 @@ class Playground extends React.Component {
 
     componentDidMount() {
         window.addEventListener('resize', this.onResize);
-        this.playground.start();
+        this.playground?.start();
         this.onResize();
     }
 
     componentWillUnmount() {
-        this.playground.stop();
+        this.playground?.stop();
         window.removeEventListener('resize', this.onResize);
     }
 
@@ -60,6 +60,9 @@ class Playground extends React.Component {
 
     @computed
     get scaleX() {
+        if (!this.playground) {
+            return 1;
+        }
         return this.windowWidth / this.playground.width;
     }
 
@@ -70,11 +73,17 @@ class Playground extends React.Component {
 
     @computed
     get widthRatio() {
+        if (!this.playground) {
+            return 1;
+        }
         return this.playground.width / this.playground.height;
     }
 
     @computed
     get heightRatio() {
+        if (!this.playground) {
+            return 1;
+        }
         return this.playground.height / this.playground.width;
     }
 
@@ -143,7 +152,7 @@ class Playground extends React.Component {
                             background: 'lightgray',
                         }}
                     >
-                        {this.playground.uncontrolledSprites.map((sprite) => {
+                        {this.playground?.uncontrolledSprites.map((sprite) => {
                             return (
                                 <Sprite
                                     sprite={sprite}
@@ -152,7 +161,7 @@ class Playground extends React.Component {
                                 />
                             );
                         })}
-                        {this.playground.controlledSprites.map((sprite) => {
+                        {this.playground?.controlledSprites.map((sprite) => {
                             return (
                                 <Sprite
                                     sprite={sprite}

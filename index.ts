@@ -3,6 +3,7 @@ import {
     SetDeviceNr,
     TimeStampedMsg,
     RoomDevice,
+    RoomLeftPkg,
     NewDevice,
     DeviceIdPkg,
     Device,
@@ -16,6 +17,9 @@ import {
     ClientDataMsg,
     InputResponseMsg,
     AlertConfirmMsg,
+    ErrorMsg,
+    SpriteMsg,
+    Movement,
 } from './client/src/Shared/SharedTypings';
 import express from 'express';
 import path from 'path';
@@ -28,23 +32,9 @@ import socketIo from 'socket.io';
 const GLOBAL_LISTENER_ROOM = 'GLOBAL_LISTENER';
 const THRESHOLD = 100;
 
-/**
- * a motion data frame is an object of the form:
- * {
- *    device_id: "TJVSV",
- *    time_stamp: 1023
- *  };
- * the time_stamp is in milliseconds
- */
 const dataStore: DataStore = {};
 
-const undeliveredNotifications: NotificationMsg[] = [];
-const undeliveredPrompts: InputPromptMsg[] = [];
-
-// tslint:disable-next-line: variable-name
-const socketId_device: {
-    [key: string]: Device;
-} = {};
+const socketId_device = new Map<string, Device>();
 
 const app = express();
 
@@ -76,7 +66,7 @@ const io = socketIo(server);
  *
  */
 function unorderedDevices(): Device[] {
-    return Object.values(socketId_device);
+    return [...socketId_device.values()];
 }
 
 /**
@@ -85,7 +75,7 @@ function unorderedDevices(): Device[] {
  * 		- last scripts (=non-clients), ordered descending by device_nr
  */
 function devices(device_id?: string): Device[] {
-    const unordered = Object.values(socketId_device);
+    const unordered = unorderedDevices();
     const partitioned = unordered.reduce(
         (store, device) => {
             if (device_id === undefined || device_id === device.device_id) {
@@ -165,10 +155,65 @@ function roomJoinedPkg(roomId: string, device: Device): RoomDevice {
     };
 }
 
+function addDataToStore(deviceId: string, data: ClientDataMsg) {
+    if (deviceId === undefined) {
+        return;
+    }
+    if (!dataStore[deviceId]) {
+        dataStore[deviceId] = {};
+    }
+    if ([DataType.AllData, DataType.Sprites, DataType.Unknown].includes(data.type)) {
+        return;
+    }
+    // notifications without an alert are only distributed to currently online devices!
+    if (data.type === DataType.Notification && !data.alert) {
+        return;
+    }
+    // remove confirmed messages
+    if (data.type === DataType.AlertConfirm) {
+        const notifications = dataStore[deviceId][DataType.Notification] as NotificationMsg[];
+        if (notifications) {
+            const alertIdx = notifications.findIndex((n) => n.time_stamp === data.time_stamp);
+            notifications.splice(alertIdx, 1);
+            return;
+        }
+    }
+    // remove responded input prompts
+    if (data.type === DataType.InputResponse) {
+        const prompts = dataStore[deviceId][DataType.InputPrompt] as InputPromptMsg[];
+        if (prompts) {
+            const promptIdx = prompts.findIndex((n) => n.time_stamp === data.time_stamp);
+            prompts.splice(promptIdx, 1);
+            return;
+        }
+    }
+    let store = dataStore[deviceId][data.type];
+    if (!store) {
+        store = [];
+        dataStore[deviceId][data.type] = store;
+    }
+
+    // remove first element if too many elements are present
+    if (store.length >= THRESHOLD) {
+        if (data.type === DataType.Sprite) {
+            const uncontrIdx = (store as SpriteMsg[]).findIndex(
+                (sprite) => sprite.sprite.movement === Movement.Uncontrolled
+            );
+            if (uncontrIdx >= 0) {
+                store.splice(uncontrIdx, 1);
+            }
+            store.shift();
+        } else {
+            store.shift();
+        }
+    }
+    store.push(data);
+}
+
 io.on('connection', (socket) => {
     // emit the initial data
     socket.emit(SocketEvents.Devices, devicesPkg());
-    const myDevice = socketId_device[socket.id];
+    const myDevice = socketId_device.get(socket.id);
     if (myDevice && dataStore[myDevice.device_id]) {
         socket.emit(SocketEvents.AllData, allDataPkg(myDevice.device_id));
     }
@@ -178,7 +223,7 @@ io.on('connection', (socket) => {
         // the rooms array contains at least the socket ID
         rooms.forEach((room) => {
             if (room !== socket.id) {
-                const device = socketId_device[socket.id];
+                const device = socketId_device.get(socket.id)!;
                 const roomDevice: RoomDevice = { room: room, device: device };
                 socket.to(room).emit(SocketEvents.RoomLeft, roomDevice);
             }
@@ -187,7 +232,7 @@ io.on('connection', (socket) => {
 
     // report on disconnect
     socket.on('disconnect', () => {
-        delete socketId_device[socket.id];
+        socketId_device.delete(socket.id);
         touchDevices();
         io.emit(SocketEvents.Devices, devicesPkg());
     });
@@ -196,19 +241,19 @@ io.on('connection', (socket) => {
         console.log('Device: ', data);
         if (data.old_device_id) {
             socket.leave(data.old_device_id);
-            const oldDevice = socketId_device[socket.id];
+            const oldDevice = socketId_device.get(socket.id);
             if (oldDevice) {
                 io.to(data.old_device_id).emit(SocketEvents.RoomLeft, {
                     room: data.old_device_id,
                     device: oldDevice,
                 });
             }
-            delete socketId_device[socket.id];
+            socketId_device.delete(socket.id);
         }
 
         if (data.device_id.length > 0) {
             if (!dataStore[data.device_id]) {
-                dataStore[data.device_id] = [];
+                dataStore[data.device_id] = {};
             }
             const is_client = data.is_client ? true : false;
             const device = {
@@ -219,7 +264,7 @@ io.on('connection', (socket) => {
             };
 
             touchDevices();
-            socketId_device[socket.id] = device;
+            socketId_device.set(socket.id, device);
             socket.join(data.device_id, (err) => {
                 if (err) {
                     socket.emit(SocketEvents.ErrorMsg, {
@@ -236,20 +281,6 @@ io.on('connection', (socket) => {
                 }
             });
         }
-
-        if (data.is_client) {
-            const undeliveredP = undeliveredPrompts.filter((n) => n.device_id === data.device_id);
-
-            const undeliveredN = undeliveredNotifications.filter((n) => n.device_id === data.device_id);
-            const undelivered = [...undeliveredN, ...undeliveredP].sort(
-                (a, b) => a.time_stamp - b.time_stamp
-            );
-            if (undelivered.length > 0) {
-                undelivered.forEach((n) => {
-                    io.to(n.device_id).emit(SocketEvents.NewData, n);
-                });
-            }
-        }
         io.emit(SocketEvents.Devices, devicesPkg());
     });
 
@@ -263,7 +294,7 @@ io.on('connection', (socket) => {
         }
 
         if (!Object.keys(socket.rooms).includes(data.room)) {
-            const device = socketId_device[socket.id];
+            const device = socketId_device.get(socket.id)!;
             socket.join(data.room, (err) => {
                 if (!err) {
                     io.to(data.room).emit(SocketEvents.RoomJoined, roomJoinedPkg(data.room, device));
@@ -284,23 +315,22 @@ io.on('connection', (socket) => {
         }
 
         if (Object.keys(socket.rooms).includes(data.room)) {
-            const device = socketId_device[socket.id];
+            const device = socketId_device.get(socket.id);
             socket.leave(data.room, (err: string) => {
                 if (!err) {
-                    io.to(data.room).emit(SocketEvents.RoomLeft, {
+                    const pkg: RoomLeftPkg = {
                         room: data.room,
-                        device: device,
-                    });
-                    socket.emit(SocketEvents.RoomLeft, {
-                        room: data.room,
-                        device: device,
-                    });
+                        device: device!,
+                    };
+                    io.to(data.room).emit(SocketEvents.RoomLeft, pkg);
+                    socket.emit(SocketEvents.RoomLeft, pkg);
                 } else {
-                    socket.emit(SocketEvents.ErrorMsg, {
+                    const errMsg: ErrorMsg = {
                         type: SocketEvents.LeaveRoom,
                         err: err,
                         msg: `Could not leave room '${data.room}'`,
-                    });
+                    };
+                    socket.emit(SocketEvents.ErrorMsg, errMsg);
                 }
             });
         }
@@ -320,17 +350,6 @@ io.on('connection', (socket) => {
                 data.broadcast = false;
             }
         }
-        if (device_id === undefined) {
-            return;
-        }
-        if (!dataStore[device_id]) {
-            dataStore[device_id] = [];
-        }
-
-        // remove first element if too many elements are present
-        if (dataStore[device_id].length >= THRESHOLD) {
-            dataStore[device_id].shift();
-        }
 
         // dont crash when someone does not add type info
         if ((data as any).type === undefined) {
@@ -338,41 +357,16 @@ io.on('connection', (socket) => {
         }
         if (data.type === DataType.InputPrompt) {
             data.response_id = socket.id;
-            undeliveredPrompts.push((data as unknown) as InputPromptMsg);
         }
         if (data.type === DataType.Notification && data.alert) {
             data.response_id = socket.id;
-            undeliveredNotifications.push((data as unknown) as NotificationMsg);
         }
-        // add the new data
-        dataStore[device_id].push(data as ClientDataMsg);
+        addDataToStore(device_id, data);
 
         // socket.to(...) --> sends to all but self
         // io.to(...) --> sends to all in room
         if ((data as any).caller_id) {
-            try {
-                if (data.type === DataType.InputResponse) {
-                    const prompt = undeliveredPrompts.find(
-                        (p) => p.time_stamp === data.time_stamp && p.device_id === data.device_id
-                    );
-                    if (prompt) {
-                        undeliveredPrompts.splice(undeliveredPrompts.indexOf(prompt), 1);
-                    }
-                } else if (data.type === DataType.AlertConfirm) {
-                    const notification = undeliveredNotifications.find(
-                        (n) => n.time_stamp === data.time_stamp && n.device_id === data.device_id
-                    );
-                    if (notification) {
-                        undeliveredNotifications.splice(undeliveredNotifications.indexOf(notification), 1);
-                    }
-                }
-                io.to((data as InputResponseMsg | AlertConfirmMsg).caller_id!).emit(
-                    SocketEvents.NewData,
-                    data
-                );
-            } catch (e: any) {
-                console.error(e);
-            }
+            io.to((data as InputResponseMsg | AlertConfirmMsg).caller_id!).emit(SocketEvents.NewData, data);
         } else if (data.broadcast) {
             io.emit(SocketEvents.NewData, data);
         } else if (unicast_to) {
@@ -396,19 +390,10 @@ io.on('connection', (socket) => {
         if (!data.device_id || !dataStore[data.device_id]) {
             return;
         }
-        dataStore[data.device_id] = [];
+        dataStore[data.device_id] = {};
         io.emit(SocketEvents.AllData, allDataPkg(data.device_id));
     });
 
-    /**
-     * @param data {Object}
-     * 			data: {
-     * 					time_stamp: float			// time_stamp in seconds since epoch
-     * 					new_device_nr: int, 		// <- requested device nr
-     * 					device_id: string,			// for the client with this device_id
-     * 					current_device_nr?: int		// ... or more specific the client with this nr.
-     * 			}
-     */
     socket.on(SocketEvents.SetNewDeviceNr, (data: SetDeviceNr) => {
         if (deviceNrAssginmentLocked) {
             return socket.emit(
@@ -459,14 +444,13 @@ io.on('connection', (socket) => {
     });
 
     socket.on(SocketEvents.RemoveAll, () => {
-        const device = socketId_device[socket.id];
+        const device = socketId_device.get(socket.id);
+
         Object.keys(dataStore).forEach((key) => {
             if (device === undefined || key !== device.device_id) {
                 delete dataStore[key];
             }
         });
-        undeliveredPrompts.splice(0);
-        undeliveredNotifications.splice(0);
         touchDevices();
         io.emit(SocketEvents.DataStore, dataStore);
     });
@@ -477,7 +461,7 @@ io.on('connection', (socket) => {
 });
 
 // Handles any requests that don't match the ones above
-app.get('*', (req, res) => {
+app.get('*', (_req, res) => {
     res.sendFile(path.join(`${__dirname}/client/build/index.html`));
 });
 

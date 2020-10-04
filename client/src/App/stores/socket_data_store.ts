@@ -8,6 +8,7 @@ import {
     MessageType,
     SendDataPkg,
     ClientDataMsg,
+    ClientsData,
 } from '../../Shared/SharedTypings';
 
 import { action, computed, observable, reaction } from 'mobx';
@@ -26,7 +27,7 @@ function randomDeviceNr() {
 }
 
 export interface ClientsAllDataPkg extends AllDataMsg {
-    all_data: ClientDataMsg[];
+    all_data: ClientsData;
 }
 
 export default class SocketDataStore implements Store {
@@ -63,11 +64,11 @@ export default class SocketDataStore implements Store {
     }
 
     @computed
-    get data(): ClientData {
-        if (!this.dataStore.has(this.client.deviceId)) {
-            throw new Error(`No data store initialized for ${this.client.deviceId}`);
-        }
-        return this.dataStore.get(this.client.deviceId)!;
+    get data(): ClientData | undefined {
+        // if (!this.dataStore.has(this.client.deviceId)) {
+        //     throw new Error(`No data store initialized for ${this.client.deviceId}`);
+        // }
+        return this.dataStore.get(this.client.deviceId);
     }
 
     @action
@@ -78,7 +79,7 @@ export default class SocketDataStore implements Store {
          * broadcasting messages go direct to this client
          */
         if (broadcastMsgs.length > 0) {
-            this.data.addData(broadcastMsgs);
+            this.data?.addData(broadcastMsgs);
             directMsgs = msgs.filter((msg) => !msg.broadcast);
         }
         if (directMsgs.length === 0) {
@@ -111,7 +112,10 @@ export default class SocketDataStore implements Store {
         });
 
         this.socket.on(SocketEvents.AllData, (data: AllDataMsg) => {
-            const allData = data.all_data;
+            const allData = Object.values(data.all_data).reduce(
+                (all, store) => (store ? [...all!, ...store] : store!),
+                [] as ClientDataMsg[]
+            ) as ClientDataMsg[];
             this.addDataToStore(data.device_id, ...allData);
         });
 
@@ -209,7 +213,11 @@ export default class SocketDataStore implements Store {
                     this.dataStore.clear();
                     Object.keys(data).forEach((clientId) => {
                         const client = new ClientData(this, clientId, true);
-                        client.addData(data[clientId]);
+                        const allData = Object.values(data[clientId]).reduce(
+                            (all, store) => (store ? [...all!, ...store] : store!),
+                            [] as ClientDataMsg[]
+                        ) as ClientDataMsg[];
+                        client.addData(allData);
                         this.dataStore.set(clientId, client);
                     });
                 })

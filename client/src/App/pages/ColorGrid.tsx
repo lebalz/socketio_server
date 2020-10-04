@@ -20,8 +20,8 @@ class ColorGrid extends Component {
     }
 
     @computed
-    get grid(): ColorGridModel {
-        return this.injected.socketDataStore.data.colorGrid;
+    get grid(): ColorGridModel | undefined {
+        return this.injected.socketDataStore.data?.colorGrid;
     }
 
     @computed
@@ -30,7 +30,7 @@ class ColorGrid extends Component {
     }
 
     componentDidUpdate(_prevProps: any, _prevState: any) {
-        if (this.grid.displayedAt) {
+        if (this.grid && !this.grid.displayedAt) {
             this.grid.displayedAt = timeStamp();
         }
     }
@@ -50,6 +50,9 @@ class ColorGrid extends Component {
     });
 
     get maxWidth() {
+        if (!this.grid) {
+            return 100;
+        }
         const maxCellW = this.injected.viewStateStore.gridState.width / this.grid.columnCount;
         const maxCellH = this.injected.viewStateStore.gridState.height / this.grid.rowCount;
         return Math.min(maxCellH, maxCellW) * this.grid.columnCount;
@@ -61,10 +64,10 @@ class ColorGrid extends Component {
                 id="color-grid"
                 style={{
                     maxWidth: `${this.maxWidth}px`,
-                    gridTemplateColumns: `repeat(${this.grid.columnCount}, 1fr)`,
+                    gridTemplateColumns: `repeat(${this.grid?.columnCount ?? 1}, 1fr)`,
                 }}
             >
-                {this.grid.rows.map((row, rowIdx) => {
+                {this.grid?.rows.map((row, rowIdx) => {
                     return <ColorGridRow key={rowIdx} row={row} />;
                 })}
                 <GridCellPopup />

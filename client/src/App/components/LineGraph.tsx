@@ -69,13 +69,16 @@ class LineGraph extends Component<Props> {
                     margin={{
                         top: 5,
                         right: 5,
-                        left: -30,
+                        left: -15,
                         bottom: 5,
                     }}
                     compact
                 >
-                    <XAxis dataKey={'time_stamp'} />
-                    <YAxis />
+                    <XAxis dataKey={'time_stamp'} tick={false} />
+                    <YAxis
+                        unit={this.props.type === 'acc' ? undefined : '°'}
+                        domain={this.props.type === 'gyro' ? [-180, 360] : undefined}
+                    />
                     <Tooltip />
                     <Legend />
                     {this.yKeys.map((label, idx) => {
