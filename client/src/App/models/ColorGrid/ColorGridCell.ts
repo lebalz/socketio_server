@@ -40,7 +40,6 @@ export class GridCell {
 
     @action
     click() {
-        console.log(this.displayedAt);
         this.socket.emitData<GridPointer>({
             type: DataType.Pointer,
             context: PointerContext.Grid,

@@ -3,12 +3,12 @@ import { inject, observer } from 'mobx-react';
 import React from 'react';
 import { DataType, SpriteClicked } from 'src/Shared/SharedTypings';
 import { Playground } from '../models/Playground';
-import { ISprite } from '../models/Sprite';
+import { default as SpriteModel } from '../models/Sprite';
 import SocketDataStore from '../stores/socket_data_store';
 import ViewStateStore from '../stores/view_state_store';
 
 interface Props {
-    sprite: ISprite;
+    sprite: SpriteModel;
     scaleX: number;
 }
 
@@ -42,7 +42,7 @@ class Sprite extends React.Component<Props> {
         if (this.props.sprite.clickable) {
             this.playground?.socket.emitData<SpriteClicked>({
                 type: DataType.SpriteClicked,
-                sprite_id: this.props.sprite.id,
+                id: this.props.sprite.id,
                 text: this.props.sprite.text,
                 x: this.props.sprite.posX,
                 y: this.props.sprite.posY,

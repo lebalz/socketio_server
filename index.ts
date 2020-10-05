@@ -19,7 +19,6 @@ import {
     AlertConfirmMsg,
     ErrorMsg,
     SpriteMsg,
-    Movement,
 } from './client/src/Shared/SharedTypings';
 import express from 'express';
 import path from 'path';
@@ -167,10 +166,7 @@ function addDataToStore(deviceId: string, data: ClientDataMsg) {
             data.sprites.forEach((s) =>
                 addDataToStore(deviceId, {
                     type: DataType.Sprite,
-                    sprite: {
-                        ...s,
-                        movement: s.movement as Movement.Controlled | Movement.Controlled,
-                    },
+                    sprite: s,
                     time_stamp: data.time_stamp,
                     device_id: data.device_id,
                     device_nr: data.device_nr,
@@ -198,6 +194,20 @@ function addDataToStore(deviceId: string, data: ClientDataMsg) {
                 prompts.splice(promptIdx, 1);
             }
             return;
+        case DataType.RemoveSprite:
+            const removeSpriteStore = dataStore[deviceId][DataType.Sprite] as SpriteMsg[];
+            if (removeSpriteStore) {
+                const toRemoveIdx = removeSpriteStore.findIndex((s) => s.sprite.id === data.id);
+                if (toRemoveIdx >= 0) {
+                    removeSpriteStore.splice(toRemoveIdx, 1);
+                }
+            }
+            return;
+        case DataType.ClearPlayground:
+            // update sprites which are already present...
+            dataStore[deviceId][DataType.Sprite]?.splice(0);
+            dataStore[deviceId][DataType.PlaygroundConfig]?.splice(0);
+            return;
     }
     let store = dataStore[deviceId][data.type];
     if (!store) {
@@ -205,54 +215,45 @@ function addDataToStore(deviceId: string, data: ClientDataMsg) {
         dataStore[deviceId][data.type] = store;
     }
 
-    switch (data.type) {
-        case DataType.RemoveSprite:
-        case DataType.ClearPlayground:
-        case DataType.Sprite:
-            // update sprites which are already present...
-            const sprite_store = store as SpriteMsg[];
-            switch (data.type) {
-                case DataType.RemoveSprite:
-                    // remove the given sprite
-                    const toRemoveIdx = sprite_store.findIndex((s) => s.sprite.id === data.sprite_id);
-                    if (toRemoveIdx >= 0) {
-                        sprite_store.splice(toRemoveIdx, 1);
-                    }
-                    return;
-                case DataType.ClearPlayground:
-                    // remove all sprites
-                    sprite_store.splice(0);
-                    return;
-                case DataType.Sprite:
-                    const prevIdx = sprite_store.findIndex((s) => s.sprite.id === data.sprite.id);
-                    if (prevIdx >= 0) {
-                        const prev = sprite_store.splice(prevIdx, 1)[0];
-                        prev.time_stamp = data.time_stamp;
-                        prev.sprite = { ...prev.sprite, ...data.sprite };
-                        sprite_store.push(prev);
-                        return;
-                    }
-                    break;
-            }
+    if (data.type === DataType.Sprite) {
+        // update sprites which are already present...
+        const sprite_store = store as SpriteMsg[];
+        const prevIdx = sprite_store.findIndex((s) => s.sprite.id === data.sprite.id);
+        if (prevIdx >= 0) {
+            const prev = sprite_store.splice(prevIdx, 1)[0];
+            prev.time_stamp = data.time_stamp;
+            prev.sprite = { ...prev.sprite, ...data.sprite };
+            sprite_store.push(prev);
+            return;
+        }
     }
 
     // remove first element if too many elements are present
     if (store.length >= THRESHOLD) {
-        if (data.type === DataType.Sprite) {
-            // remove preferrably uncontrolled sprites
-            const uncontrIdx = (store as SpriteMsg[]).findIndex(
-                (sprite) => sprite.sprite.movement === Movement.Uncontrolled
-            );
-            if (uncontrIdx >= 0) {
-                store.splice(uncontrIdx, 1);
-            } else {
+        switch (data.type) {
+            case DataType.Sprite:
+                // remove preferrably sprites without collision detection
+                const uncontrIdx = (store as SpriteMsg[]).findIndex((msg) => !msg.sprite.collision_detection);
+                if (uncontrIdx >= 0) {
+                    store.splice(uncontrIdx, 1);
+                } else {
+                    store.shift();
+                }
+                break;
+            default:
                 store.shift();
-            }
-        } else {
-            store.shift();
+                break;
         }
     }
-    store.push(data);
+    switch (data.type) {
+        case DataType.PlaygroundConfig:
+            store.splice(0);
+            store.push(data);
+            break;
+        default:
+            store.push(data);
+            break;
+    }
 }
 
 io.on('connection', (socket) => {
@@ -407,7 +408,6 @@ io.on('connection', (socket) => {
             data.response_id = socket.id;
         }
         addDataToStore(device_id, data);
-
         // socket.to(...) --> sends to all but self
         // io.to(...) --> sends to all in room
         if ((data as any).caller_id) {

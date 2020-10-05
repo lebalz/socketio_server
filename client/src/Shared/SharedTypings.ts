@@ -425,11 +425,6 @@ export interface DeviceIdPkg {
     device_id: string;
 }
 
-export enum Movement {
-    Controlled = 'controlled',
-    Uncontrolled = 'uncontrolled',
-}
-
 export enum SpriteForm {
     Round = 'round',
     Rectangle = 'rectangle',
@@ -447,6 +442,7 @@ export interface PlaygroundConfig {
     height?: number;
     shift_x?: number;
     shift_y?: number;
+    color?: string;
 }
 
 export interface PlaygroundConfigMsg extends DataMsg {
@@ -455,7 +451,7 @@ export interface PlaygroundConfigMsg extends DataMsg {
 }
 
 export interface SpriteCollision {
-    sprites: [{ id: string; movement: Movement }, { id: string; movement: Movement }];
+    sprites: [{ id: string; collision_detection: boolean }, { id: string; collision_detection: boolean }];
     overlap: 'in' | 'out';
 }
 
@@ -464,14 +460,18 @@ export interface SpriteCollisionMsg extends DataMsg, SpriteCollision {
     time_stamp: number;
 }
 
-export interface SpriteOut {
-    sprite_id: string;
-}
 export interface SpriteClicked {
-    sprite_id: string;
+    id: string;
     text?: string;
     x: number;
     y: number;
+}
+export interface SpriteClickedMsg extends DataMsg, SpriteClicked {
+    type: DataType.SpriteClicked;
+}
+
+export interface SpriteOut {
+    id: string;
 }
 
 export interface SpriteOutMsg extends DataMsg, SpriteOut {
@@ -479,48 +479,28 @@ export interface SpriteOutMsg extends DataMsg, SpriteOut {
     time_stamp: number;
 }
 
-export interface RequiredSpriteBase {
+export interface Sprite {
     id: string;
-    movement: Movement;
-}
-
-export interface SpriteBase extends RequiredSpriteBase {
-    pos_x: number;
-    pos_y: number;
-    width: number;
-    height: number;
-    form: SpriteForm;
-    color: string;
+    pos_x?: number;
+    pos_y?: number;
+    width?: number;
+    height?: number;
+    form?: SpriteForm;
+    color?: string;
+    collision_detection?: boolean;
     clickable?: boolean;
     text?: string;
-}
-
-export interface ControlledSprite extends SpriteBase {
-    movement: Movement.Controlled;
-}
-
-export interface UncontrolledSprite extends SpriteBase {
-    movement: Movement.Uncontrolled;
-    direction: [number, number];
-    speed: number;
+    direction?: [number, number];
+    speed?: number;
     distance?: number;
     time_span?: number;
-    collision_detection?: boolean;
     reset_time?: boolean;
 }
 
-export type Sprite = ControlledSprite | UncontrolledSprite;
-
-export interface ControlledSpriteMsg extends DataMsg {
+export interface SpriteMsg extends DataMsg {
     type: DataType.Sprite;
-    sprite: Partial<ControlledSprite> & RequiredSpriteBase;
+    sprite: Sprite;
 }
-export interface UncontrolledSpriteMsg extends DataMsg {
-    type: DataType.Sprite;
-    sprite: Partial<UncontrolledSprite> & RequiredSpriteBase;
-}
-
-export type SpriteMsg = ControlledSpriteMsg | UncontrolledSpriteMsg;
 
 export interface SpritesMsg extends DataMsg {
     type: DataType.Sprites;
@@ -529,7 +509,7 @@ export interface SpritesMsg extends DataMsg {
 
 export interface RemoveSpriteMsg extends DataMsg {
     type: DataType.RemoveSprite;
-    sprite_id: string;
+    id: string;
 }
 export interface ClearPlaygroundMsg extends DataMsg {
     type: DataType.ClearPlayground;
@@ -556,7 +536,7 @@ export interface BorderOverlap {
     border: BorderSide;
     x: number;
     y: number;
-    movement: Movement;
+    collision_detection: boolean;
     id: string;
 }
 

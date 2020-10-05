@@ -53,6 +53,8 @@ export default class SocketDataStore implements Store {
         const ws_url = `${protocol}://${window.location.hostname}${WS_PORT}`;
         this.socket = socketioClient(ws_url, {
             transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionDelay: 500,
         });
         this.configureAndConnect();
         reaction(
@@ -210,6 +212,7 @@ export default class SocketDataStore implements Store {
             this.socket.on(
                 SocketEvents.DataStore,
                 action((data: DataStore) => {
+                    this.dataStore.forEach((cData) => cData.clear());
                     this.dataStore.clear();
                     Object.keys(data).forEach((clientId) => {
                         const client = new ClientData(this, clientId, true);
@@ -226,6 +229,7 @@ export default class SocketDataStore implements Store {
             this.socket.emit(SocketEvents.DataStore);
         } else {
             this.socket.off(SocketEvents.DataStore);
+            this.dataStore.forEach((cData) => cData.clear());
             this.dataStore.clear();
             this.setDeviceId(localStorage.getItem('device_id') ?? randomDeviceNr(), false);
             [...this.dataStore.values()].forEach((store) => {
@@ -236,6 +240,7 @@ export default class SocketDataStore implements Store {
 
     @action
     cleanup() {
+        this.dataStore.forEach((cData) => cData.clear());
         this.dataStore.clear();
     }
 }

@@ -1,118 +1,92 @@
-import { Movement, SpriteForm } from 'src/Shared/SharedTypings';
+import { SpriteForm } from 'src/Shared/SharedTypings';
 import SocketDataStore from '../stores/socket_data_store';
-import ControlledSprite from './ControlledSprite';
-import UncontrolledSprite from './UncontrolledSprite';
+import Sprite from './Sprite';
 
-export function testSprites(socket: SocketDataStore, onDone: (sprite: UncontrolledSprite) => void) {
+export function testSprites(socket: SocketDataStore): Sprite[] {
     return [
-        new UncontrolledSprite(
-            socket,
-            {
-                color: 'red',
-                direction: [1, 1],
-                form: SpriteForm.Round,
-                height: 10,
-                width: 10,
-                id: 'bubble1',
-                movement: Movement.Uncontrolled,
-                pos_x: 0,
-                pos_y: 0,
-                speed: 5,
-                text: '1',
-            },
-            onDone
-        ),
-        new UncontrolledSprite(
-            socket,
-            {
-                color: 'blue',
-                direction: [1, 1],
-                form: SpriteForm.Round,
-                height: 10,
-                width: 10,
-                id: 'bubble2',
-                movement: Movement.Uncontrolled,
-                pos_x: 0,
-                pos_y: 0,
-                speed: 4,
-                text: '2',
-            },
-            onDone
-        ),
-        new UncontrolledSprite(
-            socket,
-            {
-                color: 'green',
-                direction: [1, 1],
-                form: SpriteForm.Round,
-                height: 10,
-                width: 10,
-                id: 'bubble3',
-                movement: Movement.Uncontrolled,
-                pos_x: 0,
-                pos_y: 0,
-                speed: 3,
-                text: '3',
-            },
-            onDone
-        ),
-        new UncontrolledSprite(
-            socket,
-            {
-                color: 'yellow',
-                direction: [1, 1],
-                form: SpriteForm.Round,
-                height: 10,
-                width: 10,
-                id: 'bubble4',
-                movement: Movement.Uncontrolled,
-                pos_x: 0,
-                pos_y: 0,
-                speed: 2,
-                text: '4',
-            },
-            onDone
-        ),
-        new UncontrolledSprite(
-            socket,
-            {
-                color: 'orange',
-                direction: [1, 1],
-                form: SpriteForm.Round,
-                height: 10,
-                width: 10,
-                id: 'bubble5',
-                movement: Movement.Uncontrolled,
-                pos_x: 0,
-                pos_y: 0,
-                speed: 1,
-                clickable: true,
-                text: '5',
-            },
-            onDone
-        ),
+        new Sprite(socket, {
+            color: 'red',
+            direction: [1, 1],
+            form: SpriteForm.Round,
+            height: 10,
+            width: 10,
+            id: 'bubble1',
+            pos_x: 0,
+            pos_y: 0,
+            speed: 5,
+            text: '1',
+        }),
+        new Sprite(socket, {
+            color: 'blue',
+            direction: [1, 1],
+            form: SpriteForm.Round,
+            height: 10,
+            width: 10,
+            id: 'bubble2',
+            pos_x: 0,
+            pos_y: 0,
+            speed: 4,
+            text: '2',
+        }),
+        new Sprite(socket, {
+            color: 'green',
+            direction: [1, 1],
+            form: SpriteForm.Round,
+            height: 10,
+            width: 10,
+            id: 'bubble3',
+            pos_x: 0,
+            pos_y: 0,
+            speed: 3,
+            text: '3',
+        }),
+        new Sprite(socket, {
+            color: 'yellow',
+            direction: [1, 1],
+            form: SpriteForm.Round,
+            height: 10,
+            width: 10,
+            id: 'bubble4',
+            pos_x: 0,
+            pos_y: 0,
+            speed: 2,
+            text: '4',
+        }),
+        new Sprite(socket, {
+            color: 'orange',
+            direction: [1, 1],
+            form: SpriteForm.Round,
+            height: 10,
+            width: 10,
+            id: 'bubble5',
+            pos_x: 0,
+            pos_y: 0,
+            speed: 1,
+            clickable: true,
+            text: '5',
+        }),
     ];
 }
 
-export function testControlledSprites(socket: SocketDataStore) {
+export function testCollisionDetectedSprites(socket: SocketDataStore): Sprite[] {
     return [
-        new ControlledSprite(socket, {
+        new Sprite(socket, {
             color: 'red',
             form: SpriteForm.Rectangle,
             height: 10,
             width: 10,
             id: 'control1',
-            movement: Movement.Controlled,
+            collision_detection: true,
             pos_x: 25,
             pos_y: 25,
         }),
-        new ControlledSprite(socket, {
+        new Sprite(socket, {
             color: 'red',
             form: SpriteForm.Round,
             height: 10,
             width: 10,
             id: 'control2',
-            movement: Movement.Controlled,
+            collision_detection: true,
             pos_x: 0,
             pos_y: 0,
             clickable: true,

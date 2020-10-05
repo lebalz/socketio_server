@@ -149,25 +149,12 @@ class Playground extends React.Component {
                             position: 'relative',
                             width: '100%',
                             paddingTop: `${100 * this.heightRatio}%`,
-                            background: 'lightgray',
+                            background: this.playground?.color,
                         }}
                     >
-                        {this.playground?.uncontrolledSprites.map((sprite) => {
+                        {this.playground?.sprites.map((sprite) => {
                             return (
-                                <Sprite
-                                    sprite={sprite}
-                                    scaleX={this.scaleX}
-                                    key={`uncontrolled-${sprite.id}`}
-                                />
-                            );
-                        })}
-                        {this.playground?.controlledSprites.map((sprite) => {
-                            return (
-                                <Sprite
-                                    sprite={sprite}
-                                    scaleX={this.scaleX}
-                                    key={`controlled-${sprite.id}`}
-                                />
+                                <Sprite sprite={sprite} scaleX={this.scaleX} key={`sprite-${sprite.id}`} />
                             );
                         })}
                     </div>

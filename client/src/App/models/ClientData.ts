@@ -143,10 +143,17 @@ export default class ClientData {
                 this.playground.addOrUpdateSprite(data.sprite);
                 break;
             case DataType.RemoveSprite:
-                this.playground.removeSprite(data.sprite_id);
+                this.playground.removeSprite(data.id);
                 break;
             case DataType.ClearPlayground:
                 this.playground.clearSprites();
+                const wasRunning = this.playground.isRunning;
+                this.playground.stop();
+                this.playground = new Playground(this.socket);
+                if (wasRunning) {
+                    this.playground.start();
+                }
+
                 break;
             case DataType.Sprites:
                 this.playground.addOrUpdateSprites(...data.sprites);
@@ -164,5 +171,11 @@ export default class ClientData {
                 this.colorGrid.update(data);
                 break;
         }
+    }
+
+    @action
+    clear() {
+        this.playground.clearSprites();
+        this.playground.stop();
     }
 }

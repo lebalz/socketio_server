@@ -15,6 +15,7 @@ class DataType(Enum):
     ALERT_CONFIRM = "alert_confirm"
     ALL_DATA = "all_data"
     BORDER_OVERLAP = "border_overlap"
+    CLEAR_PLAYGROUND = "clear_playground"
     COLOR = "color"
     GRID = "grid"
     GRID_UPDATE = "grid_update"
@@ -25,6 +26,7 @@ class DataType(Enum):
     NOTIFICATION = "notification"
     PLAYGROUND_CONFIG = "playground_config"
     POINTER = "pointer"
+    REMOVE_SPRITE = "remove_sprite"
     SPRITE = "sprite"
     SPRITES = "sprites"
     SPRITE_CLICKED = "sprite_clicked"
@@ -561,15 +563,9 @@ class SpriteForm(Enum):
     ROUND = "round"
 
 
-class Movement(Enum):
-    CONTROLLED = "controlled"
-    UNCONTROLLED = "uncontrolled"
-
-
 @dataclass
-class SpriteObject:
+class Sprite:
     id: str
-    movement: Movement
     clickable: Optional[bool] = None
     collision_detection: Optional[bool] = None
     color: Optional[str] = None
@@ -587,29 +583,29 @@ class SpriteObject:
 
 
 @dataclass
-class Sprite:
-    color: str
-    form: SpriteForm
-    height: float
+class ClientDataMsgSprite:
     id: str
-    movement: Movement
-    pos_x: float
-    pos_y: float
-    width: float
     clickable: Optional[bool] = None
     collision_detection: Optional[bool] = None
+    color: Optional[str] = None
     direction: Optional[List[float]] = None
     distance: Optional[float] = None
+    form: Optional[SpriteForm] = None
+    height: Optional[float] = None
+    pos_x: Optional[float] = None
+    pos_y: Optional[float] = None
     reset_time: Optional[bool] = None
     speed: Optional[float] = None
     text: Optional[str] = None
     time_span: Optional[float] = None
+    width: Optional[float] = None
 
 
 class ClientDataMsgType(Enum):
     ACCELERATION = "acceleration"
     ALERT_CONFIRM = "alert_confirm"
     ALL_DATA = "all_data"
+    CLEAR_PLAYGROUND = "clear_playground"
     COLOR = "color"
     GRID = "grid"
     GRID_UPDATE = "grid_update"
@@ -620,6 +616,7 @@ class ClientDataMsgType(Enum):
     NOTIFICATION = "notification"
     PLAYGROUND_CONFIG = "playground_config"
     POINTER = "pointer"
+    REMOVE_SPRITE = "remove_sprite"
     SPRITE = "sprite"
     SPRITES = "sprites"
     SPRITE_COLLISION = "sprite_collision"
@@ -633,6 +630,7 @@ class DataStore:
     alert_confirm: Optional[List['ClientDataMsg']] = None
     all_data: Optional[List['ClientDataMsg']] = None
     border_overlap: Optional[List['ClientDataMsg']] = None
+    clear_playground: Optional[List['ClientDataMsg']] = None
     color: Optional[List['ClientDataMsg']] = None
     grid: Optional[List['ClientDataMsg']] = None
     grid_update: Optional[List['ClientDataMsg']] = None
@@ -643,6 +641,7 @@ class DataStore:
     notification: Optional[List['ClientDataMsg']] = None
     playground_config: Optional[List['ClientDataMsg']] = None
     pointer: Optional[List['ClientDataMsg']] = None
+    remove_sprite: Optional[List['ClientDataMsg']] = None
     sprite: Optional[List['ClientDataMsg']] = None
     sprite_clicked: Optional[List['ClientDataMsg']] = None
     sprite_collision: Optional[List['ClientDataMsg']] = None
@@ -673,6 +672,7 @@ class ClientDataMsg:
     context: Optional[PointerContext] = None
     displayed_at: Optional[float] = None
     gamma: Optional[float] = None
+    id: Optional[str] = None
     input_type: Optional[ClientDataMsgInputType] = None
     interval: Optional[float] = None
     key: Optional[Key] = None
@@ -683,15 +683,32 @@ class ClientDataMsg:
     question: Optional[str] = None
     response_id: Optional[str] = None
     row: Optional[float] = None
-    sprite: Optional[SpriteObject] = None
-    sprite_id: Optional[str] = None
-    sprite_ids: Optional[List[str]] = None
-    sprites: Optional[List[Sprite]] = None
+    sprite: Optional[Sprite] = None
+    sprites: Optional[List[ClientDataMsgSprite]] = None
     time: Optional[float] = None
     unicast_to: Optional[float] = None
     x: Optional[float] = None
     y: Optional[float] = None
     z: Optional[float] = None
+
+
+@dataclass
+class PartialDataMsgSprite:
+    id: str
+    clickable: Optional[bool] = None
+    collision_detection: Optional[bool] = None
+    color: Optional[str] = None
+    direction: Optional[List[float]] = None
+    distance: Optional[float] = None
+    form: Optional[SpriteForm] = None
+    height: Optional[float] = None
+    pos_x: Optional[float] = None
+    pos_y: Optional[float] = None
+    reset_time: Optional[bool] = None
+    speed: Optional[float] = None
+    text: Optional[str] = None
+    time_span: Optional[float] = None
+    width: Optional[float] = None
 
 
 @dataclass
@@ -714,6 +731,7 @@ class PartialDataMsg:
     device_nr: Optional[float] = None
     displayed_at: Optional[float] = None
     gamma: Optional[float] = None
+    id: Optional[str] = None
     input_type: Optional[ClientDataMsgInputType] = None
     interval: Optional[float] = None
     key: Optional[Key] = None
@@ -724,10 +742,8 @@ class PartialDataMsg:
     question: Optional[str] = None
     response_id: Optional[str] = None
     row: Optional[float] = None
-    sprite: Optional[SpriteObject] = None
-    sprite_id: Optional[str] = None
-    sprite_ids: Optional[List[str]] = None
-    sprites: Optional[List[Sprite]] = None
+    sprite: Optional[Sprite] = None
+    sprites: Optional[List[PartialDataMsgSprite]] = None
     time: Optional[float] = None
     time_stamp: Optional[float] = None
     type: Optional[ClientDataMsgType] = None
@@ -828,9 +844,21 @@ class PlaygroundConfigMsg:
 
 
 @dataclass
+class SpriteCollisionSprite:
+    collision_detection: bool
+    id: str
+
+
+@dataclass
 class SpriteCollision:
     overlap: Overlap
-    sprite_ids: List[str]
+    sprites: List[SpriteCollisionSprite]
+
+
+@dataclass
+class SpriteCollisionMsgSprite:
+    collision_detection: bool
+    id: str
 
 
 class SpriteCollisionMsgType(Enum):
@@ -842,7 +870,7 @@ class SpriteCollisionMsg:
     device_id: str
     device_nr: float
     overlap: Overlap
-    sprite_ids: List[str]
+    sprites: List[SpriteCollisionMsgSprite]
     time_stamp: float
     type: SpriteCollisionMsgType
     broadcast: Optional[bool] = None
@@ -850,16 +878,34 @@ class SpriteCollisionMsg:
 
 
 @dataclass
-class SpriteOut:
-    sprite_id: str
-
-
-@dataclass
 class SpriteClicked:
-    sprite_id: str
+    id: str
     x: float
     y: float
     text: Optional[str] = None
+
+
+class SpriteClickedMsgType(Enum):
+    SPRITE_CLICKED = "sprite_clicked"
+
+
+@dataclass
+class SpriteClickedMsg:
+    device_id: str
+    device_nr: float
+    id: str
+    time_stamp: float
+    type: SpriteClickedMsgType
+    x: float
+    y: float
+    broadcast: Optional[bool] = None
+    text: Optional[str] = None
+    unicast_to: Optional[float] = None
+
+
+@dataclass
+class SpriteOut:
+    id: str
 
 
 class SpriteOutMsgType(Enum):
@@ -870,142 +916,24 @@ class SpriteOutMsgType(Enum):
 class SpriteOutMsg:
     device_id: str
     device_nr: float
-    sprite_id: str
+    id: str
     time_stamp: float
     type: SpriteOutMsgType
     broadcast: Optional[bool] = None
     unicast_to: Optional[float] = None
 
 
-@dataclass
-class RequiredSpriteBase:
-    id: str
-    movement: Movement
-
-
-@dataclass
-class SpriteBase:
-    color: str
-    form: SpriteForm
-    height: float
-    id: str
-    movement: Movement
-    pos_x: float
-    pos_y: float
-    width: float
-    clickable: Optional[bool] = None
-    text: Optional[str] = None
-
-
-class ControlledSpriteMovement(Enum):
-    CONTROLLED = "controlled"
-
-
-@dataclass
-class ControlledSprite:
-    color: str
-    form: SpriteForm
-    height: float
-    id: str
-    movement: ControlledSpriteMovement
-    pos_x: float
-    pos_y: float
-    width: float
-    clickable: Optional[bool] = None
-    text: Optional[str] = None
-
-
-class UncontrolledSpriteMovement(Enum):
-    UNCONTROLLED = "uncontrolled"
-
-
-@dataclass
-class UncontrolledSprite:
-    color: str
-    direction: List[float]
-    form: SpriteForm
-    height: float
-    id: str
-    movement: UncontrolledSpriteMovement
-    pos_x: float
-    pos_y: float
-    speed: float
-    width: float
-    clickable: Optional[bool] = None
-    collision_detection: Optional[bool] = None
-    distance: Optional[float] = None
-    reset_time: Optional[bool] = None
-    text: Optional[str] = None
-    time_span: Optional[float] = None
-
-
-@dataclass
-class ControlledSpriteMsgSprite:
-    id: str
-    movement: ControlledSpriteMovement
-    clickable: Optional[bool] = None
-    color: Optional[str] = None
-    form: Optional[SpriteForm] = None
-    height: Optional[float] = None
-    pos_x: Optional[float] = None
-    pos_y: Optional[float] = None
-    text: Optional[str] = None
-    width: Optional[float] = None
-
-
-class ControlledSpriteMsgType(Enum):
+class SpriteMsgType(Enum):
     SPRITE = "sprite"
-
-
-@dataclass
-class ControlledSpriteMsg:
-    device_id: str
-    device_nr: float
-    sprite: ControlledSpriteMsgSprite
-    time_stamp: float
-    type: ControlledSpriteMsgType
-    broadcast: Optional[bool] = None
-    unicast_to: Optional[float] = None
-
-
-@dataclass
-class UncontrolledSpriteMsgSprite:
-    id: str
-    movement: UncontrolledSpriteMovement
-    clickable: Optional[bool] = None
-    collision_detection: Optional[bool] = None
-    color: Optional[str] = None
-    direction: Optional[List[float]] = None
-    distance: Optional[float] = None
-    form: Optional[SpriteForm] = None
-    height: Optional[float] = None
-    pos_x: Optional[float] = None
-    pos_y: Optional[float] = None
-    reset_time: Optional[bool] = None
-    speed: Optional[float] = None
-    text: Optional[str] = None
-    time_span: Optional[float] = None
-    width: Optional[float] = None
-
-
-@dataclass
-class UncontrolledSpriteMsg:
-    device_id: str
-    device_nr: float
-    sprite: UncontrolledSpriteMsgSprite
-    time_stamp: float
-    type: ControlledSpriteMsgType
-    broadcast: Optional[bool] = None
-    unicast_to: Optional[float] = None
 
 
 @dataclass
 class SpriteMsg:
     device_id: str
     device_nr: float
-    sprite: SpriteObject
+    sprite: Sprite
     time_stamp: float
-    type: ControlledSpriteMsgType
+    type: SpriteMsgType
     broadcast: Optional[bool] = None
     unicast_to: Optional[float] = None
 
@@ -1021,6 +949,35 @@ class SpritesMsg:
     sprites: List[Sprite]
     time_stamp: float
     type: SpritesMsgType
+    broadcast: Optional[bool] = None
+    unicast_to: Optional[float] = None
+
+
+class RemoveSpriteMsgType(Enum):
+    REMOVE_SPRITE = "remove_sprite"
+
+
+@dataclass
+class RemoveSpriteMsg:
+    device_id: str
+    device_nr: float
+    id: str
+    time_stamp: float
+    type: RemoveSpriteMsgType
+    broadcast: Optional[bool] = None
+    unicast_to: Optional[float] = None
+
+
+class ClearPlaygroundMsgType(Enum):
+    CLEAR_PLAYGROUND = "clear_playground"
+
+
+@dataclass
+class ClearPlaygroundMsg:
+    device_id: str
+    device_nr: float
+    time_stamp: float
+    type: ClearPlaygroundMsgType
     broadcast: Optional[bool] = None
     unicast_to: Optional[float] = None
 
@@ -1046,6 +1003,7 @@ class BorderSide(Enum):
 @dataclass
 class BorderOverlap:
     border: BorderSide
+    collision_detection: bool
     id: str
     x: float
     y: float
@@ -1116,40 +1074,6 @@ class GyroMsg:
     type: GyroMsgType
     broadcast: Optional[bool] = None
     unicast_to: Optional[float] = None
-
-
-@dataclass
-class PartialControlledSprite:
-    clickable: Optional[bool] = None
-    color: Optional[str] = None
-    form: Optional[SpriteForm] = None
-    height: Optional[float] = None
-    id: Optional[str] = None
-    movement: Optional[ControlledSpriteMovement] = None
-    pos_x: Optional[float] = None
-    pos_y: Optional[float] = None
-    text: Optional[str] = None
-    width: Optional[float] = None
-
-
-@dataclass
-class PartialUncontrolledSprite:
-    clickable: Optional[bool] = None
-    collision_detection: Optional[bool] = None
-    color: Optional[str] = None
-    direction: Optional[List[float]] = None
-    distance: Optional[float] = None
-    form: Optional[SpriteForm] = None
-    height: Optional[float] = None
-    id: Optional[str] = None
-    movement: Optional[UncontrolledSpriteMovement] = None
-    pos_x: Optional[float] = None
-    pos_y: Optional[float] = None
-    reset_time: Optional[bool] = None
-    speed: Optional[float] = None
-    text: Optional[str] = None
-    time_span: Optional[float] = None
-    width: Optional[float] = None
 
 
 @dataclass
@@ -1315,24 +1239,13 @@ class PartialAllDataMsg:
 
 
 @dataclass
-class PartialControlledSpriteMsg:
+class PartialSpriteMsg:
     broadcast: Optional[bool] = None
     device_id: Optional[str] = None
     device_nr: Optional[float] = None
-    sprite: Optional[ControlledSpriteMsgSprite] = None
+    sprite: Optional[Sprite] = None
     time_stamp: Optional[float] = None
-    type: Optional[ControlledSpriteMsgType] = None
-    unicast_to: Optional[float] = None
-
-
-@dataclass
-class PartialUncontrolledSpriteMsg:
-    broadcast: Optional[bool] = None
-    device_id: Optional[str] = None
-    device_nr: Optional[float] = None
-    sprite: Optional[UncontrolledSpriteMsgSprite] = None
-    time_stamp: Optional[float] = None
-    type: Optional[ControlledSpriteMsgType] = None
+    type: Optional[SpriteMsgType] = None
     unicast_to: Optional[float] = None
 
 
@@ -1348,12 +1261,39 @@ class PartialSpritesMsg:
 
 
 @dataclass
+class PartialRemoveSpriteMsg:
+    broadcast: Optional[bool] = None
+    device_id: Optional[str] = None
+    device_nr: Optional[float] = None
+    id: Optional[str] = None
+    time_stamp: Optional[float] = None
+    type: Optional[RemoveSpriteMsgType] = None
+    unicast_to: Optional[float] = None
+
+
+@dataclass
+class PartialClearPlaygroundMsg:
+    broadcast: Optional[bool] = None
+    device_id: Optional[str] = None
+    device_nr: Optional[float] = None
+    time_stamp: Optional[float] = None
+    type: Optional[ClearPlaygroundMsgType] = None
+    unicast_to: Optional[float] = None
+
+
+@dataclass
+class PartialSpriteCollisionMsgSprite:
+    collision_detection: bool
+    id: str
+
+
+@dataclass
 class PartialSpriteCollisionMsg:
     broadcast: Optional[bool] = None
     device_id: Optional[str] = None
     device_nr: Optional[float] = None
     overlap: Optional[Overlap] = None
-    sprite_ids: Optional[List[str]] = None
+    sprites: Optional[List[PartialSpriteCollisionMsgSprite]] = None
     time_stamp: Optional[float] = None
     type: Optional[SpriteCollisionMsgType] = None
     unicast_to: Optional[float] = None
@@ -1364,7 +1304,7 @@ class PartialSpriteOutMsg:
     broadcast: Optional[bool] = None
     device_id: Optional[str] = None
     device_nr: Optional[float] = None
-    sprite_id: Optional[str] = None
+    id: Optional[str] = None
     time_stamp: Optional[float] = None
     type: Optional[SpriteOutMsgType] = None
     unicast_to: Optional[float] = None
