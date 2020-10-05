@@ -89,13 +89,7 @@ class Playground extends React.Component {
 
     @computed
     get windowWidth(): number {
-        if (this.widthRatio >= 1) {
-            if (this.windowRatio > this.widthRatio) {
-                return this.playgroundState.innerHeight;
-            }
-            return this.playgroundState.innerWidth;
-        }
-        if (this.windowRatio > this.widthRatio) {
+        if (this.widthRatio < this.windowRatio) {
             return this.playgroundState.innerHeight * this.widthRatio;
         }
         return this.playgroundState.innerWidth;
@@ -103,7 +97,10 @@ class Playground extends React.Component {
 
     @computed
     get windowHeight(): number {
-        return this.windowWidth / this.widthRatio;
+        if (this.widthRatio < this.windowRatio) {
+            return this.playgroundState.innerHeight;
+        }
+        return this.playgroundState.innerWidth * this.heightRatio;
     }
 
     onData: IOverload = (data: any) => {

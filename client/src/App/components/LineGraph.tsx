@@ -8,6 +8,7 @@ import { GyroData } from './Controls/Sensors/GyroSensor';
 interface Props {
     type: 'acc' | 'gyro';
     data: AccelerationData[] | GyroData[];
+    width?: number;
 }
 
 interface InjectedProps extends Props {
@@ -64,7 +65,7 @@ class LineGraph extends Component<Props> {
             <div ref={this.chartRef} style={{ width: '100%', height: '150px' }}>
                 <LineChart
                     data={this.props.data.slice()}
-                    width={this.state.width}
+                    width={this.props.width ?? this.state.width}
                     height={this.state.height}
                     margin={{
                         top: 5,

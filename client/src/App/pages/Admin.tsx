@@ -16,8 +16,10 @@ interface InjectedProps {
 @inject('viewStateStore', 'socketDataStore')
 @observer
 class Admin extends Component {
+    containerRef = React.createRef<HTMLDivElement>();
     _isMounted = false;
     intervallHandle = undefined;
+    state = { windowWidth: 100 };
     get injected() {
         return this.props as InjectedProps;
     }
@@ -26,12 +28,22 @@ class Admin extends Component {
     componentDidMount() {
         this.injected.socketDataStore.isAdmin = true;
         this.injected.socketDataStore.refreshDevices();
+        this.onResize();
+        window.addEventListener('resize', this.onResize);
     }
 
     @action
     componentWillUnmount() {
         this.injected.socketDataStore.isAdmin = false;
+        window.removeEventListener('resize', this.onResize);
     }
+
+    onResize = () => {
+        if (this.containerRef.current) {
+            const bbox = this.containerRef.current.getBoundingClientRect();
+            this.setState({ windowWidth: bbox.width });
+        }
+    };
 
     @computed
     get devices() {
@@ -48,6 +60,7 @@ class Admin extends Component {
                     flexDirection: 'column',
                     width: '100%',
                 }}
+                ref={this.containerRef}
             >
                 <span>
                     <Button
@@ -153,7 +166,11 @@ class Admin extends Component {
                                                     store.displayOptions.has(DataType.Acceleration)) && (
                                                     <Table.Row>
                                                         <Table.HeaderCell colSpan="5">
-                                                            <LineGraph type="acc" data={store.rawAccData} />
+                                                            <LineGraph
+                                                                type="acc"
+                                                                data={store.rawAccData}
+                                                                width={this.state.windowWidth * 0.9}
+                                                            />
                                                         </Table.HeaderCell>
                                                     </Table.Row>
                                                 )}
@@ -161,7 +178,11 @@ class Admin extends Component {
                                                 (showAll || store.displayOptions.has(DataType.Gyro)) && (
                                                     <Table.Row>
                                                         <Table.HeaderCell colSpan="5">
-                                                            <LineGraph type="gyro" data={store.rawGyroData} />
+                                                            <LineGraph
+                                                                type="gyro"
+                                                                data={store.rawGyroData}
+                                                                width={this.state.windowWidth * 0.9}
+                                                            />
                                                         </Table.HeaderCell>
                                                     </Table.Row>
                                                 )}
