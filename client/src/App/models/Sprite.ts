@@ -61,6 +61,7 @@ export class Sprite extends BoundingBox implements ISprite {
         this.socket.emitData<BorderOverlap>({
             type: DataType.BorderOverlap,
             id: this.id,
+            movement: this.movement,
             border: overlap,
             x: this.posX,
             y: this.posY,
@@ -91,6 +92,9 @@ export class Sprite extends BoundingBox implements ISprite {
         }
         if (sprite.clickable !== undefined) {
             this.clickable = sprite.clickable;
+        }
+        if (sprite.text !== undefined) {
+            this.text = sprite.text;
         }
     }
 }

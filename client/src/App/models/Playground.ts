@@ -96,12 +96,24 @@ export class Playground implements IBoundingBox {
             case Movement.Uncontrolled:
                 const uncSprite = this.uncontrolledSprites.find((s) => s.id === sprite.id);
                 if (uncSprite) {
-                    console.log('update: ', uncSprite.id, sprite);
                     uncSprite.update(sprite);
                 } else {
                     this.addSprite({ ...DEFAULT_UNCONTROLLED, ...sprite });
                 }
                 break;
+        }
+    }
+
+    @action
+    removeSprite(id: string) {
+        const sprite = this.sprites.find((s) => s.id === id);
+        if (!sprite) {
+            return;
+        }
+        if (sprite.movement === Movement.Controlled) {
+            this.controlledSprites.remove(sprite as ControlledSprite);
+        } else if (sprite.movement === Movement.Uncontrolled) {
+            this.uncontrolledSprites.remove(sprite as UncontrolledSprite);
         }
     }
 
@@ -116,16 +128,26 @@ export class Playground implements IBoundingBox {
     addSprite(sprite: SpriteProps) {
         switch (sprite.movement) {
             case Movement.Controlled:
-                const toDeleteIdx = this.controlledSprites.findIndex((s) => s.id === sprite.id);
-                if (toDeleteIdx >= 0) {
-                    delete this.controlledSprites[toDeleteIdx];
+                const toDelete = this.controlledSprites.find((s) => s.id === sprite.id);
+                if (toDelete) {
+                    this.controlledSprites.remove(toDelete);
                 }
                 this.controlledSprites.push(new ControlledSprite(this.socket, sprite));
                 break;
             case Movement.Uncontrolled:
+                const toDeleteU = this.uncontrolledSprites.find((s) => s.id === sprite.id);
+                if (toDeleteU) {
+                    this.uncontrolledSprites.remove(toDeleteU);
+                }
                 this.uncontrolledSprites.push(new UncontrolledSprite(this.socket, sprite, this.onSpriteDone));
                 break;
         }
+    }
+
+    @action
+    clearSprites() {
+        this.uncontrolledSprites.clear();
+        this.controlledSprites.clear();
     }
 
     onSpriteDone = action((sprite: UncontrolledSprite) => {

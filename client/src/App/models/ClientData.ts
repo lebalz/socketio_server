@@ -81,7 +81,6 @@ export default class ClientData {
 
     @computed
     get isInputPromptOpen(): boolean {
-        console.log('is popen', this.alertingMessages[0]?.dataType);
         return this.alertingMessages[0]?.dataType === DataType.InputPrompt;
     }
 
@@ -138,11 +137,16 @@ export default class ClientData {
                 );
                 break;
             case DataType.InputPrompt:
-                console.log('neew prompt!');
                 this.inputPrompts.push(new InputPrompt(data, this.socket));
                 break;
             case DataType.Sprite:
                 this.playground.addOrUpdateSprite(data.sprite);
+                break;
+            case DataType.RemoveSprite:
+                this.playground.removeSprite(data.sprite_id);
+                break;
+            case DataType.ClearPlayground:
+                this.playground.clearSprites();
                 break;
             case DataType.Sprites:
                 this.playground.addOrUpdateSprites(...data.sprites);

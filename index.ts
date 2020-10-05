@@ -162,30 +162,42 @@ function addDataToStore(deviceId: string, data: ClientDataMsg) {
     if (!dataStore[deviceId]) {
         dataStore[deviceId] = {};
     }
-    if ([DataType.AllData, DataType.Sprites, DataType.Unknown].includes(data.type)) {
-        return;
-    }
-    // notifications without an alert are only distributed to currently online devices!
-    if (data.type === DataType.Notification && !data.alert) {
-        return;
-    }
-    // remove confirmed messages
-    if (data.type === DataType.AlertConfirm) {
-        const notifications = dataStore[deviceId][DataType.Notification] as NotificationMsg[];
-        if (notifications) {
-            const alertIdx = notifications.findIndex((n) => n.time_stamp === data.time_stamp);
-            notifications.splice(alertIdx, 1);
+    switch (data.type) {
+        case DataType.Sprites:
+            data.sprites.forEach((s) =>
+                addDataToStore(deviceId, {
+                    type: DataType.Sprite,
+                    sprite: {
+                        ...s,
+                        movement: s.movement as Movement.Controlled | Movement.Controlled,
+                    },
+                    time_stamp: data.time_stamp,
+                    device_id: data.device_id,
+                    device_nr: data.device_nr,
+                })
+            );
             return;
-        }
-    }
-    // remove responded input prompts
-    if (data.type === DataType.InputResponse) {
-        const prompts = dataStore[deviceId][DataType.InputPrompt] as InputPromptMsg[];
-        if (prompts) {
-            const promptIdx = prompts.findIndex((n) => n.time_stamp === data.time_stamp);
-            prompts.splice(promptIdx, 1);
+        case (DataType.AllData, DataType.Unknown):
             return;
-        }
+        case DataType.Notification:
+            if (!data.alert) {
+                return;
+            }
+        case DataType.AlertConfirm:
+            // remove confirmed messages
+            const notifications = dataStore[deviceId][DataType.Notification] as NotificationMsg[];
+            if (notifications) {
+                const alertIdx = notifications.findIndex((n) => n.time_stamp === data.time_stamp);
+                notifications.splice(alertIdx, 1);
+            }
+            return;
+        case DataType.InputResponse:
+            const prompts = dataStore[deviceId][DataType.InputPrompt] as InputPromptMsg[];
+            if (prompts) {
+                const promptIdx = prompts.findIndex((n) => n.time_stamp === data.time_stamp);
+                prompts.splice(promptIdx, 1);
+            }
+            return;
     }
     let store = dataStore[deviceId][data.type];
     if (!store) {
@@ -193,16 +205,49 @@ function addDataToStore(deviceId: string, data: ClientDataMsg) {
         dataStore[deviceId][data.type] = store;
     }
 
+    switch (data.type) {
+        case DataType.RemoveSprite:
+        case DataType.ClearPlayground:
+        case DataType.Sprite:
+            // update sprites which are already present...
+            const sprite_store = store as SpriteMsg[];
+            switch (data.type) {
+                case DataType.RemoveSprite:
+                    // remove the given sprite
+                    const toRemoveIdx = sprite_store.findIndex((s) => s.sprite.id === data.sprite_id);
+                    if (toRemoveIdx >= 0) {
+                        sprite_store.splice(toRemoveIdx, 1);
+                    }
+                    return;
+                case DataType.ClearPlayground:
+                    // remove all sprites
+                    sprite_store.splice(0);
+                    return;
+                case DataType.Sprite:
+                    const prevIdx = sprite_store.findIndex((s) => s.sprite.id === data.sprite.id);
+                    if (prevIdx >= 0) {
+                        const prev = sprite_store.splice(prevIdx, 1)[0];
+                        prev.time_stamp = data.time_stamp;
+                        prev.sprite = { ...prev.sprite, ...data.sprite };
+                        sprite_store.push(prev);
+                        return;
+                    }
+                    break;
+            }
+    }
+
     // remove first element if too many elements are present
     if (store.length >= THRESHOLD) {
         if (data.type === DataType.Sprite) {
+            // remove preferrably uncontrolled sprites
             const uncontrIdx = (store as SpriteMsg[]).findIndex(
                 (sprite) => sprite.sprite.movement === Movement.Uncontrolled
             );
             if (uncontrIdx >= 0) {
                 store.splice(uncontrIdx, 1);
+            } else {
+                store.shift();
             }
-            store.shift();
         } else {
             store.shift();
         }

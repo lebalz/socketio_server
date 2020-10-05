@@ -176,10 +176,12 @@ export enum DataType {
     AlertConfirm = 'alert_confirm',
     Sprite = 'sprite',
     Sprites = 'sprites',
+    RemoveSprite = 'remove_sprite',
     SpriteCollision = 'sprite_collision',
     SpriteOut = 'sprite_out',
     SpriteClicked = 'sprite_clicked',
     PlaygroundConfig = 'playground_config',
+    ClearPlayground = 'clear_playground',
     BorderOverlap = 'border_overlap',
 }
 
@@ -365,6 +367,8 @@ export type ClientDataMsg =
     | AlertConfirmMsg
     | SpriteMsg
     | SpritesMsg
+    | RemoveSpriteMsg
+    | ClearPlaygroundMsg
     | SpriteCollisionMsg
     | SpriteOutMsg
     | PlaygroundConfigMsg
@@ -451,7 +455,7 @@ export interface PlaygroundConfigMsg extends DataMsg {
 }
 
 export interface SpriteCollision {
-    sprite_ids: [string, string];
+    sprites: [{ id: string; movement: Movement }, { id: string; movement: Movement }];
     overlap: 'in' | 'out';
 }
 
@@ -523,6 +527,14 @@ export interface SpritesMsg extends DataMsg {
     sprites: Sprite[];
 }
 
+export interface RemoveSpriteMsg extends DataMsg {
+    type: DataType.RemoveSprite;
+    sprite_id: string;
+}
+export interface ClearPlaygroundMsg extends DataMsg {
+    type: DataType.ClearPlayground;
+}
+
 export interface UpdateSprite {
     id: string;
     pos_x?: number;
@@ -544,6 +556,7 @@ export interface BorderOverlap {
     border: BorderSide;
     x: number;
     y: number;
+    movement: Movement;
     id: string;
 }
 

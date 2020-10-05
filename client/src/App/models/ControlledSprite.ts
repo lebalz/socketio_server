@@ -21,7 +21,10 @@ export default class ControlledSprite extends Sprite {
             this.overlaps.add(sprite);
             this.socket.emitData<SpriteCollision>({
                 type: DataType.SpriteCollision,
-                sprite_ids: [this.id, sprite.id],
+                sprites: [
+                    { id: this.id, movement: this.movement },
+                    { id: sprite.id, movement: sprite.movement },
+                ],
                 time_stamp: ts,
                 overlap: 'in',
             });
@@ -30,7 +33,10 @@ export default class ControlledSprite extends Sprite {
             if (this.overlaps.delete(sprite)) {
                 this.socket.emitData<SpriteCollision>({
                     type: DataType.SpriteCollision,
-                    sprite_ids: [this.id, sprite.id],
+                    sprites: [
+                        { id: this.id, movement: this.movement },
+                        { id: sprite.id, movement: sprite.movement },
+                    ],
                     time_stamp: ts,
                     overlap: 'out',
                 });
