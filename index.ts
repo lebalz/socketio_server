@@ -29,7 +29,7 @@ import morgan from 'morgan';
 import socketIo from 'socket.io';
 
 const GLOBAL_LISTENER_ROOM = 'GLOBAL_LISTENER';
-const THRESHOLD = 100;
+const THRESHOLD = 25;
 
 const dataStore: DataStore = {};
 

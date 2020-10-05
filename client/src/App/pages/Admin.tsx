@@ -6,6 +6,7 @@ import SocketDataStore, { GLOBAL_LISTENER } from '../stores/socket_data_store';
 import Nosleep from '../components/Nosleep';
 import { action, computed } from 'mobx';
 import LineGraph from '../components/LineGraph';
+import { DataType } from 'src/Shared/SharedTypings';
 
 interface InjectedProps {
     viewStateStore: ViewStateStore;
@@ -90,6 +91,7 @@ class Admin extends Component {
                             console.log('no store!!', deviceId);
                             return null;
                         }
+                        const showAll = store.displayOptions.size === 0;
                         return (
                             <div
                                 key={deviceId}
@@ -116,20 +118,53 @@ class Admin extends Component {
                                     </Table.Header>
                                     {store.show && (
                                         <Table.Body>
-                                            {store.hasRawAcc && (
-                                                <Table.Row>
-                                                    <Table.HeaderCell colSpan="5">
-                                                        <LineGraph type="acc" data={store.rawAccData} />
-                                                    </Table.HeaderCell>
-                                                </Table.Row>
-                                            )}
-                                            {store.hasRawGyro && (
-                                                <Table.Row>
-                                                    <Table.HeaderCell colSpan="5">
-                                                        <LineGraph type="gyro" data={store.rawGyroData} />
-                                                    </Table.HeaderCell>
-                                                </Table.Row>
-                                            )}
+                                            <Table.Row>
+                                                <Table.HeaderCell colSpan="5">
+                                                    <Button.Group>
+                                                        {store.dataTypes.map((dt) => {
+                                                            const active =
+                                                                showAll || store.displayOptions.has(dt);
+                                                            return (
+                                                                <Button
+                                                                    size="mini"
+                                                                    compact
+                                                                    key={dt}
+                                                                    color={active ? 'blue' : undefined}
+                                                                    active={active}
+                                                                    onClick={() => {
+                                                                        if (store.displayOptions.has(dt)) {
+                                                                            console.log('rm', dt);
+                                                                            store.displayOptions.delete(dt);
+                                                                        } else {
+                                                                            console.log('add', dt);
+                                                                            store.displayOptions.add(dt);
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    {dt}
+                                                                </Button>
+                                                            );
+                                                        })}
+                                                    </Button.Group>
+                                                </Table.HeaderCell>
+                                            </Table.Row>
+                                            {store.hasRawAcc &&
+                                                (showAll ||
+                                                    store.displayOptions.has(DataType.Acceleration)) && (
+                                                    <Table.Row>
+                                                        <Table.HeaderCell colSpan="5">
+                                                            <LineGraph type="acc" data={store.rawAccData} />
+                                                        </Table.HeaderCell>
+                                                    </Table.Row>
+                                                )}
+                                            {store.hasRawGyro &&
+                                                (showAll || store.displayOptions.has(DataType.Gyro)) && (
+                                                    <Table.Row>
+                                                        <Table.HeaderCell colSpan="5">
+                                                            <LineGraph type="gyro" data={store.rawGyroData} />
+                                                        </Table.HeaderCell>
+                                                    </Table.Row>
+                                                )}
                                             {store.unchartableRawData.map((event, idx) => {
                                                 const ts = new Date(event.time_stamp * 1000);
                                                 let to = event.device_id;
@@ -138,6 +173,57 @@ class Admin extends Component {
                                                 }
                                                 if (typeof event.unicast_to === 'number') {
                                                     to = `${event.unicast_to}`;
+                                                }
+                                                let raw = '';
+                                                switch (event.type) {
+                                                    case DataType.Sprites:
+                                                        raw = `Updating ${event.sprites.length} sprites ${
+                                                            event.sprites.length < 5
+                                                                ? event.sprites.map((s) => s.id).join(', ')
+                                                                : ''
+                                                        }`;
+                                                        break;
+                                                    case DataType.Grid:
+                                                        if (
+                                                            !(
+                                                                typeof event.grid === 'string' ||
+                                                                (event.grid[0] &&
+                                                                    typeof event.grid[0] === 'string')
+                                                            )
+                                                        ) {
+                                                            if (
+                                                                event.grid.length > 20 &&
+                                                                event.grid[0].length > 20
+                                                            ) {
+                                                                raw = `${event.grid.length}x${event.grid[0].length} Grid`;
+                                                            }
+                                                        }
+                                                        if (raw === '') {
+                                                            raw = JSON.stringify(
+                                                                {
+                                                                    ...event,
+                                                                    type: undefined,
+                                                                    time_stamp: undefined,
+                                                                    device_id: undefined,
+                                                                    device_nr: undefined,
+                                                                },
+                                                                null,
+                                                                1
+                                                            );
+                                                        }
+                                                        break;
+                                                    default:
+                                                        raw = JSON.stringify(
+                                                            {
+                                                                ...event,
+                                                                type: undefined,
+                                                                time_stamp: undefined,
+                                                                device_id: undefined,
+                                                                device_nr: undefined,
+                                                            },
+                                                            null,
+                                                            1
+                                                        );
                                                 }
                                                 return (
                                                     <Table.Row key={idx}>
@@ -159,19 +245,7 @@ class Admin extends Component {
                                                                     maxHeight: '10em',
                                                                 }}
                                                             >
-                                                                <code>
-                                                                    {JSON.stringify(
-                                                                        {
-                                                                            ...event,
-                                                                            type: undefined,
-                                                                            time_stamp: undefined,
-                                                                            device_id: undefined,
-                                                                            device_nr: undefined,
-                                                                        },
-                                                                        null,
-                                                                        1
-                                                                    )}
-                                                                </code>
+                                                                <code>{raw}</code>
                                                             </pre>
                                                         </Table.Cell>
                                                     </Table.Row>

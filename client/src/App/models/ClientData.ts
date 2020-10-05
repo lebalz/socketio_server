@@ -7,12 +7,15 @@ import { ColorPanel, defaultColorPanelMsg } from './ColorPanel';
 import { Notification } from './Notification';
 import SocketDataStore from '../stores/socket_data_store';
 import { InputPrompt } from './InputPrompt';
+import _ from 'lodash';
 
-const MESSAGE_THRESHOLD = 50;
+const CHARTEABLE_DATA_THRESHOLD = 50;
+const MESSAGE_THRESHOLD = 5;
 export default class ClientData {
     deviceId: string;
     socket: SocketDataStore;
-    rawData = observable.map<string, ClientDataMsg[]>({});
+    rawData = observable.map<DataType, ClientDataMsg[]>({}, { deep: true });
+    displayOptions = observable.set<DataType>();
 
     @computed
     get rawAccData(): AccMsg[] {
@@ -27,14 +30,23 @@ export default class ClientData {
             (a, b) => a.time_stamp - b.time_stamp
         );
     }
+
+    @computed
+    get dataTypes(): DataType[] {
+        return [...this.rawData.keys()];
+    }
+
     @computed
     get unchartableRawData(): ClientDataMsg[] {
         const raw: ClientDataMsg[] = [];
+        const showAll = this.displayOptions.size === 0;
         this.rawData.forEach((data, key) => {
             if (key === DataType.Acceleration || key === DataType.Gyro) {
                 return;
             }
-            raw.push(...data);
+            if (showAll || this.displayOptions.has(key)) {
+                raw.push(...data);
+            }
         });
         return raw.sort((a, b) => b.time_stamp - a.time_stamp);
     }
@@ -115,11 +127,17 @@ export default class ClientData {
             }
             let data = this.rawData.get(msg.type);
             if (data) {
-                if (data.length > MESSAGE_THRESHOLD) {
-                    data.shift();
+                if (msg.type === DataType.Gyro || msg.type === DataType.Acceleration) {
+                    if (data.length > CHARTEABLE_DATA_THRESHOLD) {
+                        data.shift();
+                    }
+                } else {
+                    if (data.length > MESSAGE_THRESHOLD) {
+                        data.shift();
+                    }
                 }
             } else {
-                data = observable<ClientDataMsg>([]);
+                data = [];
                 this.rawData.set(msg.type, data);
             }
             data.push(msg);
