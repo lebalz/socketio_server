@@ -47,7 +47,7 @@ class AutoMovement {
 
     @computed
     get isAutomoving(): boolean {
-        return ((this.direction[0] !== 0 || this.direction[1] !== 0) && this.speed !== 0) || !this.timeSpan;
+        return !!this.direction && !!this.speed;
     }
 
     @action
