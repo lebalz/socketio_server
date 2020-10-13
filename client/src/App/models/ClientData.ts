@@ -7,7 +7,6 @@ import { ColorPanel, defaultColorPanelMsg } from './ColorPanel';
 import { Notification } from './Notification';
 import SocketDataStore from '../stores/socket_data_store';
 import { InputPrompt } from './InputPrompt';
-import _ from 'lodash';
 
 const CHARTEABLE_DATA_THRESHOLD = 50;
 const MESSAGE_THRESHOLD = 5;

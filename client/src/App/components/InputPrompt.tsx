@@ -30,7 +30,7 @@ class InputPrompt extends React.Component {
     get prompt(): InputPromptModel | undefined {
         const { data } = this.injected.socketDataStore;
         if (!data || data.inputPrompts.length < 1) {
-            return;
+            return undefined;
         }
         return data.inputPrompts[0];
     }

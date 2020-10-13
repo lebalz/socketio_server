@@ -25,6 +25,7 @@ export const ARROW_CONTROLS = [Key.Down, Key.Home, Key.Left, Key.Right, Key.Up];
 export const F_KEY_CONTROLS = [Key.F1, Key.F2, Key.F3, Key.F4];
 
 class KeyControls extends Component<Props> implements IController<KeyData> {
+    private _isMounted = false;
     state: State = {
         active: {},
     };
@@ -32,10 +33,12 @@ class KeyControls extends Component<Props> implements IController<KeyData> {
     componentDidMount() {
         window.addEventListener('keyup', this.onKey);
         window.addEventListener('keydown', this.onKeyDown);
+        this._isMounted = true;
     }
     componentWillUnmount() {
         window.removeEventListener('keyup', this.onKey);
         window.removeEventListener('keydown', this.onKeyDown);
+        this._isMounted = false;
     }
 
     setActive(key: Key, active: boolean) {
@@ -54,7 +57,9 @@ class KeyControls extends Component<Props> implements IController<KeyData> {
         };
         this.setActive(action, true);
         setTimeout(() => {
-            this.setActive(action, false);
+            if (this._isMounted) {
+                this.setActive(action, false);
+            }
         }, 200);
         this.props.onData(data);
     }

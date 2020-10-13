@@ -20,8 +20,20 @@ interface InjectedProps extends Props {
 @inject('viewStateStore', 'socketDataStore')
 @observer
 class Sprite extends React.Component<Props> {
+    state = { isClicked: false };
+    private _isMounted = false;
+    private _timeout?: NodeJS.Timeout;
     get injected() {
         return this.props as InjectedProps;
+    }
+    componentDidMount() {
+        this._isMounted = true;
+    }
+    componentWillUnmount() {
+        if (this._timeout) {
+            clearTimeout(this._timeout);
+        }
+        this._isMounted = false;
     }
     @computed
     get playground(): Playground | undefined {
@@ -37,7 +49,6 @@ class Sprite extends React.Component<Props> {
         return this.playground?.shiftY ?? 0;
     }
 
-    state = { clicked: false };
     onClick = () => {
         if (this.props.sprite.clickable) {
             this.playground?.socket.emitData<SpriteClicked>({
@@ -47,6 +58,16 @@ class Sprite extends React.Component<Props> {
                 x: this.props.sprite.posX,
                 y: this.props.sprite.posY,
             });
+            if (this._timeout) {
+                clearTimeout(this._timeout);
+            }
+            this.setState({ isClicked: true });
+            this._timeout = setTimeout(() => {
+                if (this._isMounted) {
+                    this.setState({ isClicked: false });
+                    this._timeout = undefined;
+                }
+            }, 150);
         }
     };
     render() {
@@ -62,6 +83,7 @@ class Sprite extends React.Component<Props> {
                     left: (posX - this.shiftX) * scaleX,
                     bottom: (posY - this.shiftY) * scaleX,
                     lineHeight: `${height * scaleX}px`,
+                    filter: this.state.isClicked ? 'brightness(85%)' : undefined,
                 }}
                 className={cls}
                 onClick={this.onClick}
