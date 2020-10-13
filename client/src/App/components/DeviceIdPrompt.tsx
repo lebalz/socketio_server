@@ -25,6 +25,9 @@ class DeviceIdPrompt extends React.Component {
     onMount = () => {
         this.setState({ deviceId: this.injected.socketDataStore.client.deviceId });
         window.addEventListener('keyup', this.onEnter);
+        if (this.inputRef.current) {
+            this.inputRef.current.select();
+        }
     };
     onClose = () => {
         window.removeEventListener('keyup', this.onEnter);
