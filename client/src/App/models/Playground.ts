@@ -1,4 +1,11 @@
-import { BorderSide, ColorName, DataType, PlaygroundConfig, SpriteOut } from './../../Shared/SharedTypings';
+import {
+    BorderSide,
+    ColorName,
+    DataType,
+    PlaygroundConfig,
+    SpriteOut,
+    SocketImage,
+} from './../../Shared/SharedTypings';
 import { Sprite as SpriteProps } from '../../Shared/SharedTypings';
 import Sprite from './Sprite';
 import SocketDataStore from '../stores/socket_data_store';
@@ -6,6 +13,11 @@ import { IBoundingBox } from './BoundingBox';
 import { action, computed, observable } from 'mobx';
 
 export const REFRESH_RATE = 5;
+
+function toBase64(data: SocketImage) {
+    const base64 = Buffer.from(data.image).toString('base64');
+    return `data:image/${data.type};base64,${base64}`;
+}
 
 export class Playground implements IBoundingBox {
     @observable
@@ -18,6 +30,8 @@ export class Playground implements IBoundingBox {
     shiftY: number = -50;
     @observable
     color: string = ColorName.Lightgrey;
+
+    images = observable.map<string, string>();
 
     sprites = observable<Sprite>([]);
 
@@ -92,7 +106,7 @@ export class Playground implements IBoundingBox {
         if (toDelete) {
             this.sprites.remove(toDelete);
         }
-        this.sprites.push(new Sprite(this.socket, sprite));
+        this.sprites.push(new Sprite(this, sprite));
     }
 
     @action
@@ -129,6 +143,9 @@ export class Playground implements IBoundingBox {
         this.shiftX = config.shift_x ?? this.shiftX;
         this.shiftY = config.shift_y ?? this.shiftY;
         this.color = config.color ?? this.color;
+        config.images?.forEach((img) => {
+            this.images.set(img.name, toBase64(img));
+        });
     }
 
     @computed

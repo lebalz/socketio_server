@@ -73,31 +73,54 @@ class Sprite extends React.Component<Props> {
     render() {
         const { scaleX } = this.props;
         const cls = `sprite ${this.props.sprite.form}`;
-        const { height, posX, posY, width, color } = this.props.sprite;
+        const { height, posX, posY, width, color, imageBase64, rotate } = this.props.sprite;
         return (
             <div
                 style={{
                     width: width * scaleX,
                     height: height * scaleX,
-                    background: color,
+                    backgroundColor: color,
                     left: (posX - this.shiftX) * scaleX,
                     bottom: (posY - this.shiftY) * scaleX,
                     lineHeight: `${height * scaleX}px`,
                     filter: this.state.isClicked ? 'brightness(85%)' : undefined,
+                    transform: rotate ? `rotate(${rotate}deg)` : undefined,
                 }}
                 className={cls}
                 onClick={this.onClick}
             >
-                {this.props.sprite.text && (
-                    <svg style={{ width: '95%', height: '95%', margin: '2.5%', baselineShift: '50%' }}>
-                        <text x="48%" y="52%" dominantBaseline="middle" textAnchor="middle">
-                            {this.props.sprite.text}
-                        </text>
-                    </svg>
-                )}
+                <ImageAndText text={this.props.sprite.text} image={imageBase64} />
             </div>
         );
     }
 }
+
+interface ITProps {
+    image?: string;
+    text?: string;
+}
+
+const ImageAndText = (props: ITProps) => {
+    return (
+        <div
+            style={{
+                width: '100%',
+                height: '100%',
+                backgroundImage: props.image ? `url('${props.image}')` : undefined,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+                backgroundSize: 'contain',
+            }}
+        >
+            {props.text && (
+                <svg style={{ width: '95%', height: '95%', margin: '2.5%', baselineShift: '50%' }}>
+                    <text x="48%" y="52%" dominantBaseline="middle" textAnchor="middle">
+                        {props.text}
+                    </text>
+                </svg>
+            )}
+        </div>
+    );
+};
 
 export default Sprite;

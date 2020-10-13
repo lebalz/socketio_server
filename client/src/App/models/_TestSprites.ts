@@ -1,10 +1,10 @@
+import { Playground } from './Playground';
 import { SpriteForm } from 'src/Shared/SharedTypings';
-import SocketDataStore from '../stores/socket_data_store';
 import Sprite from './Sprite';
 
-export function testSprites(socket: SocketDataStore): Sprite[] {
+export function testSprites(playground: Playground): Sprite[] {
     return [
-        new Sprite(socket, {
+        new Sprite(playground, {
             color: 'red',
             direction: [1, 1],
             form: SpriteForm.Round,
@@ -16,7 +16,7 @@ export function testSprites(socket: SocketDataStore): Sprite[] {
             speed: 5,
             text: '1',
         }),
-        new Sprite(socket, {
+        new Sprite(playground, {
             color: 'blue',
             direction: [1, 1],
             form: SpriteForm.Round,
@@ -28,7 +28,7 @@ export function testSprites(socket: SocketDataStore): Sprite[] {
             speed: 4,
             text: '2',
         }),
-        new Sprite(socket, {
+        new Sprite(playground, {
             color: 'green',
             direction: [1, 1],
             form: SpriteForm.Round,
@@ -40,7 +40,7 @@ export function testSprites(socket: SocketDataStore): Sprite[] {
             speed: 3,
             text: '3',
         }),
-        new Sprite(socket, {
+        new Sprite(playground, {
             color: 'yellow',
             direction: [1, 1],
             form: SpriteForm.Round,
@@ -52,7 +52,7 @@ export function testSprites(socket: SocketDataStore): Sprite[] {
             speed: 2,
             text: '4',
         }),
-        new Sprite(socket, {
+        new Sprite(playground, {
             color: 'orange',
             direction: [1, 1],
             form: SpriteForm.Round,
@@ -68,9 +68,9 @@ export function testSprites(socket: SocketDataStore): Sprite[] {
     ];
 }
 
-export function testCollisionDetectedSprites(socket: SocketDataStore): Sprite[] {
+export function testCollisionDetectedSprites(playground: Playground): Sprite[] {
     return [
-        new Sprite(socket, {
+        new Sprite(playground, {
             color: 'red',
             form: SpriteForm.Rectangle,
             height: 10,
@@ -80,7 +80,7 @@ export function testCollisionDetectedSprites(socket: SocketDataStore): Sprite[] 
             pos_x: 25,
             pos_y: 25,
         }),
-        new Sprite(socket, {
+        new Sprite(playground, {
             color: 'red',
             form: SpriteForm.Round,
             height: 10,

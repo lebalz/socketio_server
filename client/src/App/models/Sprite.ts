@@ -1,3 +1,4 @@
+import { Playground } from './Playground';
 import { action, computed, observable } from 'mobx';
 import {
     SpriteForm,
@@ -8,7 +9,7 @@ import {
     ColorName,
     SpriteCollision,
 } from '../../Shared/SharedTypings';
-import SocketDataStore, { timeStamp } from '../stores/socket_data_store';
+import { timeStamp } from '../stores/socket_data_store';
 import { BoundingBox } from './BoundingBox';
 
 class AutoMovement {
@@ -104,7 +105,7 @@ class AutoMovement {
 }
 
 export default class Sprite extends BoundingBox {
-    socket: SocketDataStore;
+    playground: Playground;
     borderOverlap?: BorderSide;
     id: string;
     overlaps = observable.set<Sprite>();
@@ -124,12 +125,18 @@ export default class Sprite extends BoundingBox {
     @observable
     text?: string;
 
+    @observable
+    image?: string;
+
+    @observable
+    rotate?: number;
+
     @observable.ref
     autoMovement: AutoMovement;
 
-    constructor(socket: SocketDataStore, sprite: SpriteProps) {
+    constructor(playground: Playground, sprite: SpriteProps) {
         super({ width: 5, height: 5, ...sprite, x: sprite.pos_x ?? 0, y: sprite.pos_y ?? 0 });
-        this.socket = socket;
+        this.playground = playground;
         this.id = sprite.id;
         this.collisionDetection = sprite.collision_detection ?? false;
         this.autoMovement = new AutoMovement(sprite, this.onPositionChanges, this.done);
@@ -137,10 +144,12 @@ export default class Sprite extends BoundingBox {
         this.color = sprite.color ?? ColorName.Aliceblue;
         this.clickable = !!sprite.clickable;
         this.text = sprite.text;
+        this.image = sprite.image;
+        this.rotate = sprite.rotate;
     }
 
     done = action(() => {
-        this.socket.data?.playground.removeSprite(this.id, true);
+        this.playground.socket.data?.playground.removeSprite(this.id, true);
     });
 
     @computed
@@ -157,7 +166,7 @@ export default class Sprite extends BoundingBox {
             return;
         }
         this.borderOverlap = overlap;
-        this.socket.emitData<BorderOverlap>({
+        this.playground.socket.emitData<BorderOverlap>({
             type: DataType.BorderOverlap,
             id: this.id,
             collision_detection: this.collisionDetection,
@@ -171,6 +180,14 @@ export default class Sprite extends BoundingBox {
         this.posX = x;
         this.posY = y;
     });
+
+    @computed
+    get imageBase64(): string | undefined {
+        if (!this.image) {
+            return undefined;
+        }
+        return this.playground.images.get(this.image);
+    }
 
     @action
     update(sprite: SpriteProps) {
@@ -201,6 +218,12 @@ export default class Sprite extends BoundingBox {
         if (sprite.text !== undefined) {
             this.text = sprite.text;
         }
+        if (sprite.rotate !== undefined) {
+            this.rotate = sprite.rotate;
+        }
+        if (sprite.image !== undefined) {
+            this.image = sprite.image;
+        }
         this.autoMovement.update(sprite);
     }
 
@@ -220,7 +243,7 @@ export default class Sprite extends BoundingBox {
                 sprite.overlaps.add(this);
             }
             this.overlaps.add(sprite);
-            this.socket.emitData<SpriteCollision>({
+            this.playground.socket.emitData<SpriteCollision>({
                 type: DataType.SpriteCollision,
                 sprites: [
                     { id: this.id, collision_detection: this.collisionDetection },
@@ -235,7 +258,7 @@ export default class Sprite extends BoundingBox {
                 if (sprite.collisionDetection) {
                     sprite.overlaps.delete(this);
                 }
-                this.socket.emitData<SpriteCollision>({
+                this.playground.socket.emitData<SpriteCollision>({
                     type: DataType.SpriteCollision,
                     sprites: [
                         { id: this.id, collision_detection: this.collisionDetection },

@@ -437,12 +437,26 @@ export interface Playground {
     shift_y?: number;
 }
 
+export enum ImageFormats {
+    JPG = 'jpg',
+    JPEG = 'jpeg',
+    PNG = 'png',
+    SVG = 'svg',
+}
+
+export interface SocketImage {
+    image: ArrayBuffer;
+    type: ImageFormats;
+    name: string;
+}
+
 export interface PlaygroundConfig {
     width?: number;
     height?: number;
     shift_x?: number;
     shift_y?: number;
     color?: string;
+    images?: SocketImage[];
 }
 
 export interface PlaygroundConfigMsg extends DataMsg {
@@ -495,6 +509,8 @@ export interface Sprite {
     distance?: number;
     time_span?: number;
     reset_time?: boolean;
+    image?: string;
+    rotate?: number;
 }
 
 export interface SpriteMsg extends DataMsg {
