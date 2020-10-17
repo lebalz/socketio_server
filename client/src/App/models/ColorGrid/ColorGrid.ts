@@ -130,7 +130,8 @@ export class ColorGrid {
         if (data.number !== undefined) {
             data.number = data.number - 1;
             row = ~~(data.number / this.columnCount);
-            column = data.number % this.rowCount;
+            column = data.number % this.columnCount;
+            console.log(data.number, row, column, this.columnCount, this.rowCount);
         }
         if (this.columnCount <= column) {
             this.rows.forEach((row) => row.updateSize(column + 1));
