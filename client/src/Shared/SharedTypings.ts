@@ -286,6 +286,7 @@ export interface ColorPanelMsg extends DataMsg, ColorPanel {
 export interface GridPointer {
     row: number;
     column: number;
+    number: number;
     color?: CssColor;
     displayed_at: number;
 }
@@ -297,17 +298,23 @@ export interface GridPointerMsg extends PointerDataMsg, GridPointer {
 export interface Grid {
     grid: CssColor[][] | string[] | string;
     base_color?: RGB | ColorName;
+    enumerate?: boolean;
 }
 export interface GridMsg extends DataMsg, Grid {
     type: DataType.Grid;
 }
 
-export interface GridUpdateMsg extends DataMsg {
-    type: DataType.GridUpdate;
-    row: number;
-    column: number;
-    color: CssColor;
+interface GridUpdate {
+    color?: CssColor;
     base_color?: RGB | ColorName;
+    row?: number;
+    column?: number;
+    number?: number;
+    enumerate?: boolean;
+}
+
+export interface GridUpdateMsg extends DataMsg, GridUpdate {
+    type: DataType.GridUpdate;
 }
 
 export interface ColorMsg extends DataMsg {

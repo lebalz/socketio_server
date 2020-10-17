@@ -49,6 +49,7 @@ class ColorGridCell extends Component<Props> {
                     gridColumnEnd: this.cell.colIdx + 1,
                     outline: this.cell.touched ? '3px solid grey' : undefined,
                     outlineOffset: this.cell.touched ? '-3px' : undefined,
+                    position: 'relative',
                 }}
                 onPointerDown={() => {
                     this.cell.click();
@@ -69,7 +70,22 @@ class ColorGridCell extends Component<Props> {
                         }
                     }
                 }}
-            />
+            >
+                {this.cell.showIndex && (
+                    <span
+                        style={{
+                            color: 'white',
+                            mixBlendMode: 'difference',
+                            position: 'absolute',
+                            left: '50%',
+                            top: '50%',
+                            transform: 'translate(-50%, -50%)',
+                        }}
+                    >
+                        {this.props.cell.gridIndex}
+                    </span>
+                )}
+            </div>
         );
     }
 }

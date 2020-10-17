@@ -50,18 +50,23 @@ const unifyColumnSizes = (grid: CssColor[][]) => {
 
 export class ColorGrid {
     rows = observable<GridRow>([]);
+
+    @observable
     baseColor?: RGB;
     socket: SocketDataStore;
     @observable
     displayedAt?: number;
+    @observable
+    enumerate: boolean;
 
     constructor(data: GridProps, socket: SocketDataStore) {
         this.socket = socket;
         this.baseColor = typeof data.base_color === 'string' ? colorToRgb(data.base_color) : data.base_color;
         const rawColorGrid = unifyColumnSizes(to2dArray(data.grid));
         const rows: GridRow[] = [];
+        this.enumerate = !!data.enumerate;
         rawColorGrid.forEach((row, idx) => {
-            rows.push(new GridRow(this.socket, idx, row, this.baseColor));
+            rows.push(new GridRow(this.socket, idx, row, this));
         });
         this.rows.replace(rows);
     }
@@ -107,17 +112,42 @@ export class ColorGrid {
     @action
     update(data: GridUpdateMsg) {
         this.displayedAt = undefined;
-        if (this.columnCount <= data.column) {
-            this.rows.forEach((row) => row.updateSize(data.column + 1));
+        if (data.base_color !== undefined) {
+            this.baseColor =
+                typeof data.base_color === 'string' ? colorToRgb(data.base_color) : data.base_color;
         }
-        if (this.rowCount <= data.row) {
-            const toAdd = data.row + 1 - this.rowCount;
+
+        if (data.enumerate !== undefined) {
+            this.enumerate = data.enumerate;
+        }
+
+        if (data.number === undefined && data.row === undefined) {
+            return;
+        }
+
+        let row = data.row ?? 0;
+        let column = data.column ?? 0;
+        if (data.number !== undefined) {
+            data.number = data.number - 1;
+            row = ~~(data.number / this.columnCount);
+            column = data.number % this.rowCount;
+        }
+        if (this.columnCount <= column) {
+            this.rows.forEach((row) => row.updateSize(column + 1));
+        }
+        if (this.rowCount <= row) {
+            const toAdd = row + 1 - this.rowCount;
             const rows = [...Array(toAdd)].map(
                 (_, idx) =>
-                    new GridRow(this.socket, this.rowCount + idx, [...Array<undefined>(this.columnCount)])
+                    new GridRow(
+                        this.socket,
+                        this.rowCount + idx,
+                        [...Array<undefined>(this.columnCount)],
+                        this
+                    )
             );
             this.rows.push(...rows);
         }
-        this.rows[data.row].cells[data.column].update(data.color, data.base_color ?? this.baseColor);
+        this.rows[row].cells[column].update(data.color);
     }
 }
