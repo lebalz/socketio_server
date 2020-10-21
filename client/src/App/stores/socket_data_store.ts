@@ -137,17 +137,16 @@ export default class SocketDataStore implements Store {
 
     @action
     setDeviceId(deviceId: string, saveToLocalStorage: boolean = true) {
-        const newDevId = deviceId.trim();
         const oldId = this.client.deviceId;
-        this.client = new Device({ device_id: newDevId });
+        this.client = new Device({ device_id: deviceId });
         if (saveToLocalStorage) {
-            localStorage.setItem('device_id', newDevId);
+            localStorage.setItem('device_id', deviceId);
         }
-        if (!this.dataStore.has(newDevId)) {
-            this.dataStore.set(newDevId, new ClientData(this, newDevId));
+        if (!this.dataStore.has(deviceId)) {
+            this.dataStore.set(deviceId, new ClientData(this, deviceId));
         }
         this.emit(SocketEvents.NewDevice, {
-            device_id: newDevId,
+            device_id: deviceId,
             old_device_id: oldId,
             is_client: true,
         });

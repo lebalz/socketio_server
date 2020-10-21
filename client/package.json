@@ -12,8 +12,6 @@
     "@types/react-transition-group": "^4.4.0",
     "@types/recharts": "^1.8.16",
     "@types/socket.io-client": "^1.4.33",
-    "@typescript-eslint/eslint-plugin": "^4.1.1",
-    "@typescript-eslint/parser": "^4.1.1",
     "lodash": "^4.17.19",
     "mobx": "^5.15.7",
     "mobx-react": "^6.3.0",
