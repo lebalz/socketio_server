@@ -194,5 +194,9 @@ export default class ClientData {
     clear() {
         this.playground.clearSprites();
         this.playground.stop();
+        this.notifications.clear();
+        this.inputPrompts.clear();
+        this.rawData.clear();
+        this.displayOptions.clear();
     }
 }

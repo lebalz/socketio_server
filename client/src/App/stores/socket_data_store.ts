@@ -198,6 +198,10 @@ export default class SocketDataStore implements Store {
 
     removeAllData() {
         this.emit(SocketEvents.RemoveAll);
+        setTimeout(() => {
+            this.getDataStore();
+            this.refreshDevices();
+        }, 250);
     }
 
     getDataStore() {
