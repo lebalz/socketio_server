@@ -51,32 +51,32 @@ export default class Line {
 
     @computed
     get left(): number {
-        if (this.x1 === this.x2) {
-            return this.x1 - this.lineWidth / 2;
+        if (Math.abs(this.x1 - this.x2) < this.lineWidth) {
+            return this.x1 - (this.lineWidth - Math.abs(this.x1 - this.x2)) / 2;
         }
         return Math.min(this.x1, this.x2);
     }
 
     @computed
     get right(): number {
-        if (this.x1 === this.x2) {
-            return this.x1 + this.lineWidth / 2;
+        if (Math.abs(this.x1 - this.x2) < this.lineWidth) {
+            return this.x1 + (this.lineWidth - Math.abs(this.x1 - this.x2)) / 2;
         }
         return Math.max(this.x1, this.x2);
     }
 
     @computed
     get top(): number {
-        if (this.y1 === this.y2) {
-            return this.y1 + this.lineWidth / 2;
+        if (Math.abs(this.y1 - this.y2) < this.lineWidth) {
+            return this.y1 + (this.lineWidth - Math.abs(this.y1 - this.y2)) / 2;
         }
         return Math.max(this.y1, this.y2);
     }
 
     @computed
     get bottom(): number {
-        if (this.y1 === this.y2) {
-            return this.y1 - this.lineWidth / 2;
+        if (Math.abs(this.y1 - this.y2) < this.lineWidth) {
+            return this.y1 - (this.lineWidth - Math.abs(this.y1 - this.y2)) / 2;
         }
         return Math.min(this.y1, this.y2);
     }

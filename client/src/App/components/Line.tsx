@@ -44,13 +44,10 @@ class Line extends React.Component<Props> {
         let x2: number = 0;
         let y1: number = 0;
         let y2: number = 0;
-        let left = (line.left - this.shiftX) * scaleX;
-        let bottom = (line.bottom - this.shiftX) * scaleX;
         const lineWidth = line.lineWidth * scaleX;
-        if (line.x1 === line.x2) {
+        if (Math.abs(line.x1 - line.x2) < line.lineWidth) {
             x1 = lineWidth / 2;
             x2 = x1;
-            left = left - lineWidth / 2;
         } else if (line.x1 < line.x2) {
             x1 = 0;
             x2 = width;
@@ -58,10 +55,9 @@ class Line extends React.Component<Props> {
             x1 = width;
             x2 = 0;
         }
-        if (line.y1 === line.y2) {
+        if (Math.abs(line.y1 - line.y2) < line.lineWidth) {
             y1 = lineWidth / 2;
             y2 = y1;
-            bottom = bottom - lineWidth / 2;
         } else if (line.y1 < line.y2) {
             y1 = height;
             y2 = 0;
@@ -74,8 +70,8 @@ class Line extends React.Component<Props> {
                 style={{
                     height: height,
                     width: width,
-                    left: left,
-                    bottom: bottom,
+                    left: (line.left - this.shiftX) * scaleX,
+                    bottom: (line.bottom - this.shiftX) * scaleX,
                     transform: line.rotate ? `rotate(${line.rotate})` : undefined,
                 }}
                 className="line"
