@@ -11,7 +11,7 @@ import {
 import { timeStamp } from '../stores/socket_data_store';
 import { BoundingBox } from './BoundingBox';
 
-function santizieColors(color?: string | number): string | undefined {
+export function santizieColors(color?: string | number): string | undefined {
     if (color === undefined) {
         return undefined;
     }

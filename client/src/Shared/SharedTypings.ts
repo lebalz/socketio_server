@@ -183,6 +183,9 @@ export enum DataType {
     PlaygroundConfig = 'playground_config',
     ClearPlayground = 'clear_playground',
     BorderOverlap = 'border_overlap',
+    Line = 'line',
+    Lines = 'lines',
+    RemoveLine = 'remove_line',
 }
 
 export type ClientsData = {
@@ -379,6 +382,9 @@ export type ClientDataMsg =
     | SpriteCollisionMsg
     | SpriteOutMsg
     | PlaygroundConfigMsg
+    | LineMsg
+    | LinesMsg
+    | RemoveLineMsg
     | UnknownMsg;
 
 export type PartialDataMsg = Partial<ClientDataMsg>;
@@ -498,6 +504,33 @@ export interface SpriteOut {
 export interface SpriteOutMsg extends DataMsg, SpriteOut {
     type: DataType.SpriteOut;
     time_stamp: number;
+}
+
+export interface Line {
+    id: string;
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+    color?: string;
+    line_width?: number;
+    rotate?: number;
+    anchor?: number;
+}
+
+export interface LinesMsg extends DataMsg {
+    type: DataType.Lines;
+    lines: Line[];
+}
+
+export interface LineMsg extends DataMsg {
+    type: DataType.Line;
+    line: Line;
+}
+
+export interface RemoveLineMsg extends DataMsg {
+    type: DataType.RemoveLine;
+    id: string;
 }
 
 export interface Sprite {

@@ -19,6 +19,7 @@ import {
     AlertConfirmMsg,
     ErrorMsg,
     SpriteMsg,
+    LineMsg,
 } from './client/src/Shared/SharedTypings';
 import express from 'express';
 import path from 'path';
@@ -173,6 +174,17 @@ function addDataToStore(deviceId: string, data: ClientDataMsg) {
                 })
             );
             return;
+        case DataType.Lines:
+            data.lines.forEach((l) =>
+                addDataToStore(deviceId, {
+                    type: DataType.Line,
+                    line: l,
+                    time_stamp: data.time_stamp,
+                    device_id: data.device_id,
+                    device_nr: data.device_nr,
+                })
+            );
+            return;
         case (DataType.AllData, DataType.Unknown):
             return;
         case DataType.Notification:
@@ -203,9 +215,19 @@ function addDataToStore(deviceId: string, data: ClientDataMsg) {
                 }
             }
             return;
+        case DataType.RemoveLine:
+            const removeLineStore = dataStore[deviceId][DataType.Line] as LineMsg[];
+            if (removeLineStore) {
+                const toRemoveIdx = removeLineStore.findIndex((s) => s.line.id === data.id);
+                if (toRemoveIdx >= 0) {
+                    removeLineStore.splice(toRemoveIdx, 1);
+                }
+            }
+            return;
         case DataType.ClearPlayground:
             // update sprites which are already present...
             dataStore[deviceId][DataType.Sprite]?.splice(0);
+            dataStore[deviceId][DataType.Line]?.splice(0);
             dataStore[deviceId][DataType.PlaygroundConfig]?.splice(0);
             return;
     }
@@ -224,6 +246,18 @@ function addDataToStore(deviceId: string, data: ClientDataMsg) {
             prev.time_stamp = data.time_stamp;
             prev.sprite = { ...prev.sprite, ...data.sprite };
             sprite_store.push(prev);
+            return;
+        }
+    }
+    if (data.type === DataType.Line) {
+        // update sprites which are already present...
+        const line_store = store as LineMsg[];
+        const prevIdx = line_store.findIndex((s) => s.line.id === data.line.id);
+        if (prevIdx >= 0) {
+            const prev = line_store.splice(prevIdx, 1)[0];
+            prev.time_stamp = data.time_stamp;
+            prev.line = { ...prev.line, ...data.line };
+            line_store.push(prev);
             return;
         }
     }

@@ -159,11 +159,21 @@ export default class ClientData {
             case DataType.Sprite:
                 this.playground.addOrUpdateSprite(data.sprite);
                 break;
+            case DataType.Line:
+                this.playground.addOrUpdateLine(data.line);
+                break;
+            case DataType.Lines:
+                this.playground.addOrUpdateLines(...data.lines);
+                break;
             case DataType.RemoveSprite:
                 this.playground.removeSprite(data.id);
                 break;
+            case DataType.RemoveLine:
+                this.playground.removeLine(data.id);
+                break;
             case DataType.ClearPlayground:
                 this.playground.clearSprites();
+                this.playground.clearLines();
                 const wasRunning = this.playground.isRunning;
                 this.playground.stop();
                 this.playground = new Playground(this.socket);
@@ -193,6 +203,7 @@ export default class ClientData {
     @action
     clear() {
         this.playground.clearSprites();
+        this.playground.clearLines();
         this.playground.stop();
         this.notifications.clear();
         this.inputPrompts.clear();

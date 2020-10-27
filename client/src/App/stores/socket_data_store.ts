@@ -54,7 +54,7 @@ export default class SocketDataStore implements Store {
         this.socket = socketioClient(ws_url, {
             transports: ['websocket', 'polling'],
             reconnection: true,
-            reconnectionDelay: 500,
+            reconnectionDelay: 1000,
         });
         this.configureAndConnect();
         reaction(

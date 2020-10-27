@@ -20,7 +20,6 @@ class SensorDevice<T> extends Component<Props<T>> implements IController<T> {
     simulator?: MotionSimulator;
 
     componentDidMount() {
-        console.log('sensor device did mount');
         const isOn = localStorage.getItem(`${this.props.sensorEventName}`) === 'on';
         if (isOn) {
             if (this.props.on) {

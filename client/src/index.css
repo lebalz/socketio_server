@@ -89,6 +89,20 @@ body {
     user-select: none;
 }
 
+.line {
+    position: absolute;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.line > svg {
+    position: absolute;
+    overflow: visible !important;
+}
+
 .sprite {
     text-align: center;
     position: absolute;

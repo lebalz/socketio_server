@@ -6,8 +6,9 @@ import {
     SpriteOut,
     SocketImage,
 } from './../../Shared/SharedTypings';
-import { Sprite as SpriteProps } from '../../Shared/SharedTypings';
+import { Sprite as SpriteProps, Line as LineProps } from '../../Shared/SharedTypings';
 import Sprite from './Sprite';
+import Line from './Line';
 import SocketDataStore from '../stores/socket_data_store';
 import { IBoundingBox } from './BoundingBox';
 import { action, computed, observable } from 'mobx';
@@ -36,6 +37,7 @@ export class Playground implements IBoundingBox {
     images = observable.map<string, string>();
 
     sprites = observable<Sprite>([]);
+    lines = observable<Line>([]);
 
     socket: SocketDataStore;
     updateTimer?: NodeJS.Timeout;
@@ -96,6 +98,15 @@ export class Playground implements IBoundingBox {
     }
 
     @action
+    removeLine(id: string) {
+        const line = this.lines.find((s) => s.id === id);
+        if (!line) {
+            return;
+        }
+        this.lines.remove(line);
+    }
+
+    @action
     addOrUpdateSprites(...sprites: SpriteProps[]) {
         sprites.forEach((sprite) => {
             this.addOrUpdateSprite(sprite);
@@ -114,6 +125,37 @@ export class Playground implements IBoundingBox {
     @action
     clearSprites() {
         this.sprites.clear();
+    }
+
+    @action
+    addOrUpdateLine(line: LineProps) {
+        const thisLine = this.lines.find((s) => s.id === line.id);
+        if (thisLine) {
+            thisLine.update(line);
+        } else {
+            this.addLine(line);
+        }
+    }
+
+    @action
+    addOrUpdateLines(...lines: LineProps[]) {
+        lines.forEach((line) => {
+            this.addOrUpdateLine(line);
+        });
+    }
+
+    @action
+    addLine(line: LineProps) {
+        const toDelete = this.lines.find((s) => s.id === line.id);
+        if (toDelete) {
+            this.lines.remove(toDelete);
+        }
+        this.lines.push(new Line(this, line));
+    }
+
+    @action
+    clearLines() {
+        this.lines.clear();
     }
 
     update = action(() => {

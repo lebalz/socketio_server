@@ -2,6 +2,7 @@ import React, { Fragment } from 'react';
 import { Playground as PlaygroundModel } from '../models/Playground';
 import SocketDataStore from '../stores/socket_data_store';
 import Sprite from '../components/Sprite';
+import Line from '../components/Line';
 import AccelerationSensor, { AccelerationData } from '../components/Controls/Sensors/AccelerationSensor';
 import GyroSensor, { GyroData } from '../components/Controls/Sensors/GyroSensor';
 import { Checkbox } from 'semantic-ui-react';
@@ -153,6 +154,9 @@ class Playground extends React.Component {
                             return (
                                 <Sprite sprite={sprite} scaleX={this.scaleX} key={`sprite-${sprite.id}`} />
                             );
+                        })}
+                        {this.playground?.lines.map((line) => {
+                            return <Line line={line} scaleX={this.scaleX} key={`line-${line.id}`} />;
                         })}
                     </div>
                 </div>
