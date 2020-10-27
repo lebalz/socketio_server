@@ -73,23 +73,40 @@ class Sprite extends React.Component<Props> {
     render() {
         const { scaleX } = this.props;
         const cls = `sprite ${this.props.sprite.form}`;
-        const { height, posX, posY, width, color, imageBase64, rotate } = this.props.sprite;
+        const {
+            height,
+            left,
+            bottom,
+            anchorX,
+            anchorY,
+            width,
+            color,
+            borderColor,
+            rotate,
+        } = this.props.sprite;
         return (
             <div
                 style={{
                     width: width * scaleX,
                     height: height * scaleX,
-                    backgroundColor: color,
-                    left: (posX - this.shiftX) * scaleX,
-                    bottom: (posY - this.shiftY) * scaleX,
+                    backgroundColor: color ? color : this.state.isClicked ? 'gray' : undefined,
+                    border: borderColor ? `1px solid ${borderColor}` : undefined,
+                    left: (left - this.shiftX) * scaleX,
+                    bottom: (bottom - this.shiftY) * scaleX,
                     lineHeight: `${height * scaleX}px`,
                     filter: this.state.isClicked ? 'brightness(85%)' : undefined,
                     transform: rotate ? `rotate(${rotate}deg)` : undefined,
+                    transformOrigin: rotate ? `${anchorX * 100}% ${(1 - anchorY) * 100}%` : undefined,
                 }}
                 className={cls}
                 onClick={this.onClick}
             >
-                <ImageAndText text={this.props.sprite.text} image={imageBase64} />
+                <ImageAndText
+                    {...this.props.sprite}
+                    image={this.props.sprite.imageBase64}
+                    center={!!(borderColor || color || this.props.sprite.imageBase64)}
+                    scale={scaleX}
+                />
             </div>
         );
     }
@@ -98,9 +115,31 @@ class Sprite extends React.Component<Props> {
 interface ITProps {
     image?: string;
     text?: string;
+    fontSize?: number;
+    fontColor?: string;
+    center?: boolean;
+    scale: number;
 }
 
 const ImageAndText = (props: ITProps) => {
+    const svgStyle: React.CSSProperties = {
+        width: 'min-content',
+        height: '100%',
+        margin: 0,
+        fontFamily: 'monospace',
+        overflow: 'visible',
+        fontSize: props.fontSize ? `${props.fontSize * props.scale}` : undefined,
+        fill: props.fontColor,
+    };
+    if (!props.center && props.text && !props.image) {
+        return (
+            <svg style={svgStyle}>
+                <text x="0" y="90%" textAnchor="start" dominantBaseline="auto">
+                    {props.text}
+                </text>
+            </svg>
+        );
+    }
     return (
         <div
             style={{
@@ -113,7 +152,15 @@ const ImageAndText = (props: ITProps) => {
             }}
         >
             {props.text && (
-                <svg style={{ width: '95%', height: '95%', margin: '2.5%', baselineShift: '50%' }}>
+                <svg
+                    style={{
+                        ...svgStyle,
+                        width: '95%',
+                        height: '95%',
+                        margin: '2.5%',
+                        baselineShift: '50%',
+                    }}
+                >
                     <text x="48%" y="52%" dominantBaseline="middle" textAnchor="middle">
                         {props.text}
                     </text>

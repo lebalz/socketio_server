@@ -504,13 +504,23 @@ export interface Sprite {
     id: string;
     pos_x?: number;
     pos_y?: number;
+
+    /**
+     * the anchor (center) of the sprite
+     * @param x: range from 0 (left) to 1 (right)
+     * @param y: range from 0 (bottom) to 1 (top)
+     */
+    anchor?: [x: number, y: number];
     width?: number;
     height?: number;
     form?: SpriteForm;
     color?: string;
+    border_color?: string;
     collision_detection?: boolean;
     clickable?: boolean;
     text?: string;
+    font_color?: string;
+    font_size?: number;
     direction?: [number, number];
     speed?: number;
     distance?: number;

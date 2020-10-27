@@ -31,6 +31,8 @@ export class Playground implements IBoundingBox {
     @observable
     color: string = ColorName.Lightgrey;
 
+    anchor: [x: number, y: number] = [0, 0];
+
     images = observable.map<string, string>();
 
     sprites = observable<Sprite>([]);

@@ -6,11 +6,23 @@ import {
     BorderSide,
     BorderOverlap,
     DataType,
-    ColorName,
     SpriteCollision,
 } from '../../Shared/SharedTypings';
 import { timeStamp } from '../stores/socket_data_store';
 import { BoundingBox } from './BoundingBox';
+
+function santizieColors(color?: string | number): string | undefined {
+    if (color === undefined) {
+        return undefined;
+    }
+    if (typeof color === 'number') {
+        return undefined;
+    }
+    if (['', 'invisible', 'unset', 'undefined', 'none'].includes(color.toString().toLowerCase())) {
+        return undefined;
+    }
+    return color;
+}
 
 class AutoMovement {
     startTime: number = timeStamp();
@@ -117,13 +129,22 @@ export default class Sprite extends BoundingBox {
     form: SpriteForm;
 
     @observable
-    color: string;
+    color?: string;
+
+    @observable
+    borderColor?: string;
 
     @observable
     clickable: boolean;
 
     @observable
     text?: string;
+
+    @observable
+    fontColor?: string;
+
+    @observable
+    fontSize?: number;
 
     @observable
     image?: string;
@@ -135,15 +156,27 @@ export default class Sprite extends BoundingBox {
     autoMovement: AutoMovement;
 
     constructor(playground: Playground, sprite: SpriteProps) {
-        super({ width: 5, height: 5, ...sprite, x: sprite.pos_x ?? 0, y: sprite.pos_y ?? 0 });
+        super({
+            width: sprite.width ?? 5,
+            height: sprite.height ?? 5,
+            x: sprite.pos_x ?? 0,
+            y: sprite.pos_y ?? 0,
+            anchor: sprite.anchor ?? [0, 0],
+        });
         this.playground = playground;
         this.id = sprite.id;
         this.collisionDetection = sprite.collision_detection ?? false;
         this.autoMovement = new AutoMovement(sprite, this.onPositionChanges, this.done);
         this.form = sprite.form ?? SpriteForm.Rectangle;
-        this.color = sprite.color ?? ColorName.Aliceblue;
+        if (this.form === SpriteForm.Round && this.anchorX === 0 && this.anchorY === 0) {
+            this.anchor = [0.5, 0.5];
+        }
+        this.color = santizieColors(sprite.color);
+        this.borderColor = santizieColors(sprite.border_color);
         this.clickable = !!sprite.clickable;
         this.text = sprite.text;
+        this.fontColor = santizieColors(sprite.font_color);
+        this.fontSize = sprite.font_size;
         this.image = sprite.image;
         this.rotate = sprite.rotate;
     }
@@ -200,8 +233,14 @@ export default class Sprite extends BoundingBox {
         if (sprite.pos_y !== undefined) {
             this.posY = sprite.pos_y;
         }
+        if (sprite.anchor !== undefined && sprite.anchor.length === 2) {
+            this.anchor = sprite.anchor;
+        }
         if (sprite.color !== undefined) {
-            this.color = sprite.color;
+            this.color = santizieColors(sprite.color);
+        }
+        if (sprite.border_color !== undefined) {
+            this.borderColor = santizieColors(sprite.border_color);
         }
         if (sprite.form !== undefined) {
             this.form = sprite.form;
@@ -224,6 +263,13 @@ export default class Sprite extends BoundingBox {
         if (sprite.image !== undefined) {
             this.image = sprite.image;
         }
+        if (sprite.font_color !== undefined) {
+            this.fontColor = santizieColors(sprite.font_color);
+        }
+        if (sprite.font_size !== undefined) {
+            this.fontSize = sprite.font_size;
+        }
+
         this.autoMovement.update(sprite);
     }
 

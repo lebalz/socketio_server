@@ -5,6 +5,12 @@ interface BoundingBoxProps {
     y: number;
     width: number;
     height: number;
+    /**
+     * the anchor (center) of the sprite
+     * @param x: range from 0 (left) to 1 (right)
+     * @param y: range from 0 (bottom) to 1 (top)
+     */
+    anchor: [x: number, y: number];
 }
 
 export interface IBoundingBox {
@@ -12,6 +18,12 @@ export interface IBoundingBox {
     left: number;
     top: number;
     bottom: number;
+    /**
+     * the anchor (center) of the sprite
+     * @param x: range from 0 (left) to 1 (right)
+     * @param y: range from 0 (bottom) to 1 (top)
+     */
+    anchor: [x: number, y: number];
 
     hasOverlap: (other: IBoundingBox) => boolean;
 }
@@ -25,28 +37,50 @@ export class BoundingBox implements IBoundingBox {
     width: number;
     @observable
     height: number;
+
+    /**
+     * the anchor (center) of the sprite
+     * @param x: range from 0 (left) to 1 (right)
+     * @param y: range from 0 (bottom) to 1 (top)
+     */
+    @observable.ref
+    anchor: [x: number, y: number];
     constructor(data: BoundingBoxProps) {
         this.posX = data.x;
         this.posY = data.y;
         this.width = data.width;
         this.height = data.height;
+        this.anchor = data.anchor;
+    }
+
+    @computed
+    get anchorX(): number {
+        return this.anchor[0];
+    }
+
+    @computed
+    get anchorY(): number {
+        return this.anchor[1];
     }
 
     @computed
     get right() {
-        return this.posX + this.width;
+        return this.posX + (1 - this.anchorX) * this.width;
     }
+
     @computed
     get top() {
-        return this.posY + this.height;
+        return this.posY + (1 - this.anchorY) * this.height;
     }
+
     @computed
     get left() {
-        return this.posX;
+        return this.posX - this.anchorX * this.width;
     }
+
     @computed
     get bottom() {
-        return this.posY;
+        return this.posY - this.anchorY * this.height;
     }
 
     hasOverlap(other: IBoundingBox): boolean {

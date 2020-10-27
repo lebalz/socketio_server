@@ -146,10 +146,8 @@ class Admin extends Component {
                                                                     active={active}
                                                                     onClick={() => {
                                                                         if (store.displayOptions.has(dt)) {
-                                                                            console.log('rm', dt);
                                                                             store.displayOptions.delete(dt);
                                                                         } else {
-                                                                            console.log('add', dt);
                                                                             store.displayOptions.add(dt);
                                                                         }
                                                                     }}

@@ -59,7 +59,7 @@ export default class ClientData {
     }
 
     @observable
-    show: boolean = true;
+    show: boolean = false;
 
     private _logOnlyRawMessages: boolean;
 
