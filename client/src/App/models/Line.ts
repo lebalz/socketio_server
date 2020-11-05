@@ -45,40 +45,80 @@ export default class Line {
     }
 
     @computed
+    get svgLineProps() {
+        const minX = Math.min(this.x1, this.x2);
+        const minY = Math.min(this.y1, this.y2);
+        let x1 = this.x1 - minX;
+        let x2 = this.x2 - minX;
+        // svg has origin top left -> flip y1 and y2
+        let y1 = this.y2 - minY;
+        let y2 = this.y1 - minY;
+        const spanX = Math.max(x1, x2);
+        const spanY = Math.max(y1, y2);
+        // adjust line if lineWidth is bigger than the span
+        if (spanX <= this.lineWidth) {
+            const remainder = this.lineWidth - spanX;
+            const dt = remainder / 2;
+            x1 += dt;
+            x2 += dt;
+        }
+        if (spanY < this.lineWidth) {
+            const remainder = this.lineWidth - spanY;
+            const dt = remainder / 2;
+            y1 += dt;
+            y2 += dt;
+        }
+
+        return { x1, y1, x2, y2 };
+    }
+
+    @computed
     get length(): number {
         return Math.sqrt(this.width * this.width + this.height * this.height);
     }
 
     @computed
     get left(): number {
-        if (Math.abs(this.x1 - this.x2) < this.lineWidth) {
-            return this.x1 - (this.lineWidth - Math.abs(this.x1 - this.x2)) / 2;
+        const dx = Math.abs(this.x1 - this.x2);
+        const min = Math.min(this.x1, this.x2);
+        if (dx < this.lineWidth) {
+            const remainder = this.lineWidth - dx;
+            return min - remainder / 2;
         }
-        return Math.min(this.x1, this.x2);
+        return min;
     }
 
     @computed
     get right(): number {
-        if (Math.abs(this.x1 - this.x2) < this.lineWidth) {
-            return this.x1 + (this.lineWidth - Math.abs(this.x1 - this.x2)) / 2;
+        const dx = Math.abs(this.x1 - this.x2);
+        const max = Math.max(this.x1, this.x2);
+        if (dx < this.lineWidth) {
+            const remainder = this.lineWidth - dx;
+            return max + remainder / 2;
         }
-        return Math.max(this.x1, this.x2);
+        return max;
     }
 
     @computed
     get top(): number {
-        if (Math.abs(this.y1 - this.y2) < this.lineWidth) {
-            return this.y1 + (this.lineWidth - Math.abs(this.y1 - this.y2)) / 2;
+        const dy = Math.abs(this.y1 - this.y2);
+        const max = Math.max(this.y1, this.y2);
+        if (dy < this.lineWidth) {
+            const remainder = this.lineWidth - dy;
+            return max + remainder / 2;
         }
-        return Math.max(this.y1, this.y2);
+        return max;
     }
 
     @computed
     get bottom(): number {
-        if (Math.abs(this.y1 - this.y2) < this.lineWidth) {
-            return this.y1 - (this.lineWidth - Math.abs(this.y1 - this.y2)) / 2;
+        const dy = Math.abs(this.y1 - this.y2);
+        const min = Math.min(this.y1, this.y2);
+        if (dy < this.lineWidth) {
+            const remainder = this.lineWidth - dy;
+            return min - remainder / 2;
         }
-        return Math.min(this.y1, this.y2);
+        return min;
     }
 
     @computed

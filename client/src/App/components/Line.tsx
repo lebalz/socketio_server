@@ -40,31 +40,11 @@ class Line extends React.Component<Props> {
         const { scaleX, line } = this.props;
         const width = line.width * scaleX;
         const height = line.height * scaleX;
-        let x1: number = 0;
-        let x2: number = 0;
-        let y1: number = 0;
-        let y2: number = 0;
-        const lineWidth = line.lineWidth * scaleX;
-        if (Math.abs(line.x1 - line.x2) < line.lineWidth) {
-            x1 = lineWidth / 2;
-            x2 = x1;
-        } else if (line.x1 < line.x2) {
-            x1 = 0;
-            x2 = width;
-        } else {
-            x1 = width;
-            x2 = 0;
-        }
-        if (Math.abs(line.y1 - line.y2) < line.lineWidth) {
-            y1 = lineWidth / 2;
-            y2 = y1;
-        } else if (line.y1 < line.y2) {
-            y1 = height;
-            y2 = 0;
-        } else {
-            y1 = 0;
-            y2 = height;
-        }
+        const svgProps = line.svgLineProps;
+        const x1 = svgProps.x1 * scaleX;
+        const x2 = svgProps.x2 * scaleX;
+        const y1 = svgProps.y1 * scaleX;
+        const y2 = svgProps.y2 * scaleX;
         return (
             <div
                 style={{
