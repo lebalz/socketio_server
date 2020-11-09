@@ -147,7 +147,13 @@ class Playground extends React.Component {
                             position: 'relative',
                             width: '100%',
                             paddingTop: `${100 * this.heightRatio}%`,
-                            background: this.playground?.color,
+                            backgroundColor: this.playground?.color,
+                            backgroundImage: this.playground?.image
+                                ? `url('${this.playground.imageBase64}')`
+                                : undefined,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'center',
+                            backgroundSize: 'contain',
                         }}
                     >
                         {this.playground?.sprites.map((sprite) => {

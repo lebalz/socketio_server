@@ -32,6 +32,9 @@ export class Playground implements IBoundingBox {
     @observable
     color: string = ColorName.Lightgrey;
 
+    @observable
+    image?: string;
+
     _zIndex: number = 0;
 
     anchor: [x: number, y: number] = [0, 0];
@@ -161,6 +164,14 @@ export class Playground implements IBoundingBox {
         this.lines.push(new Line(this, line));
     }
 
+    @computed
+    get imageBase64(): string | undefined {
+        if (!this.image) {
+            return undefined;
+        }
+        return this.images.get(this.image);
+    }
+
     @action
     clearLines() {
         this.lines.clear();
@@ -198,6 +209,9 @@ export class Playground implements IBoundingBox {
         config.images?.forEach((img) => {
             this.images.set(img.name, toBase64(img));
         });
+        if (config.image !== undefined) {
+            this.image = config.image;
+        }
     }
 
     @computed

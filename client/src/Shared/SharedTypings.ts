@@ -470,6 +470,7 @@ export interface PlaygroundConfig {
     shift_y?: number;
     color?: string;
     images?: SocketImage[];
+    image?: string;
 }
 
 export interface PlaygroundConfigMsg extends DataMsg {
