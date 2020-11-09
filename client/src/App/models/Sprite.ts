@@ -121,6 +121,8 @@ export default class Sprite extends BoundingBox {
     borderOverlap?: BorderSide;
     id: string;
     overlaps = observable.set<Sprite>();
+    @observable
+    zIndex: number;
 
     @observable
     collisionDetection: boolean;
@@ -163,12 +165,13 @@ export default class Sprite extends BoundingBox {
             y: sprite.pos_y ?? 0,
             anchor: sprite.anchor ?? [0, 0],
         });
+        this.zIndex = sprite.z_index ?? playground.nextZIndex;
         this.playground = playground;
         this.id = sprite.id;
         this.collisionDetection = sprite.collision_detection ?? false;
         this.autoMovement = new AutoMovement(sprite, this.onPositionChanges, this.done);
         this.form = sprite.form ?? SpriteForm.Rectangle;
-        if (this.form === SpriteForm.Round && this.anchorX === 0 && this.anchorY === 0) {
+        if (this.form === SpriteForm.Round && sprite.anchor === undefined) {
             this.anchor = [0.5, 0.5];
         }
         this.color = santizieColors(sprite.color);
@@ -268,6 +271,9 @@ export default class Sprite extends BoundingBox {
         }
         if (sprite.font_size !== undefined) {
             this.fontSize = sprite.font_size;
+        }
+        if (sprite.z_index !== undefined) {
+            this.zIndex = sprite.z_index;
         }
 
         this.autoMovement.update(sprite);

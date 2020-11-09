@@ -83,6 +83,7 @@ class Sprite extends React.Component<Props> {
             color,
             borderColor,
             rotate,
+            zIndex,
         } = this.props.sprite;
         return (
             <div
@@ -97,6 +98,7 @@ class Sprite extends React.Component<Props> {
                     filter: this.state.isClicked ? 'brightness(85%)' : undefined,
                     transform: rotate ? `rotate(${rotate}deg)` : undefined,
                     transformOrigin: rotate ? `${anchorX * 100}% ${(1 - anchorY) * 100}%` : undefined,
+                    zIndex: zIndex,
                 }}
                 className={cls}
                 onClick={this.onClick}

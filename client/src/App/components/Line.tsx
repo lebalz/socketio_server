@@ -53,6 +53,7 @@ class Line extends React.Component<Props> {
                     left: (line.left - this.shiftX) * scaleX,
                     bottom: (line.bottom - this.shiftY) * scaleX,
                     transform: line.rotate ? `rotate(${line.rotate})` : undefined,
+                    zIndex: line.zIndex,
                 }}
                 className="line"
             >

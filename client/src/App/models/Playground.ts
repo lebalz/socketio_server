@@ -32,6 +32,8 @@ export class Playground implements IBoundingBox {
     @observable
     color: string = ColorName.Lightgrey;
 
+    _zIndex: number = 0;
+
     anchor: [x: number, y: number] = [0, 0];
 
     images = observable.map<string, string>();
@@ -56,6 +58,11 @@ export class Playground implements IBoundingBox {
         return this.sprites.filter((s) => !s.collisionDetection);
     }
 
+    get nextZIndex(): number {
+        this._zIndex += 1;
+        return this._zIndex;
+    }
+
     start() {
         this.updateTimer = setInterval(this.update, REFRESH_RATE);
     }
@@ -65,6 +72,7 @@ export class Playground implements IBoundingBox {
             clearInterval(this.updateTimer);
             this.updateTimer = undefined;
         }
+        this._zIndex = 0;
     }
 
     @computed

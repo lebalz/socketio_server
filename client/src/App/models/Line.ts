@@ -31,6 +31,9 @@ export default class Line {
     @observable
     anchor: number;
 
+    @observable
+    zIndex: number;
+
     constructor(playground: Playground, sprite: LineProps) {
         this.playground = playground;
         this.id = sprite.id;
@@ -42,6 +45,7 @@ export default class Line {
         this.lineWidth = sprite.line_width ?? 0.1;
         this.rotate = sprite.rotate;
         this.anchor = sprite.anchor ?? 0;
+        this.zIndex = sprite.z_index ?? playground.nextZIndex;
     }
 
     @computed
@@ -167,6 +171,9 @@ export default class Line {
         }
         if (sprite.rotate !== undefined) {
             this.rotate = sprite.rotate;
+        }
+        if (sprite.z_index !== undefined) {
+            this.zIndex = sprite.z_index;
         }
     }
 }

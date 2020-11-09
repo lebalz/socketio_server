@@ -516,6 +516,7 @@ export interface Line {
     line_width?: number;
     rotate?: number;
     anchor?: number;
+    z_index?: number;
 }
 
 export interface LinesMsg extends DataMsg {
@@ -561,6 +562,7 @@ export interface Sprite {
     reset_time?: boolean;
     image?: string;
     rotate?: number;
+    z_index?: number;
 }
 
 export interface SpriteMsg extends DataMsg {
