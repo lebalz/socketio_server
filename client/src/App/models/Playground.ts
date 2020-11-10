@@ -190,7 +190,7 @@ export class Playground implements IBoundingBox {
                 }
                 sprite.reportBorderOverlap(this.borderOverlap(sprite));
             } else {
-                if (sprite.isInactive && timeStamp() - sprite.inactiveSince! > 1) {
+                if (sprite.isInactive && timeStamp() - sprite.inactiveSince! > 2) {
                     sprite.done();
                 } else {
                     sprite.setInactive();
@@ -242,7 +242,6 @@ export class Playground implements IBoundingBox {
 
     @action
     reportSpriteOut(id: string) {
-        console.log('report out');
         this.socket.emitData<SpriteOut>({
             type: DataType.SpriteOut,
             id: id,
