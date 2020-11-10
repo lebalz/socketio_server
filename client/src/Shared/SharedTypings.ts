@@ -179,6 +179,7 @@ export enum DataType {
     RemoveSprite = 'remove_sprite',
     SpriteCollision = 'sprite_collision',
     SpriteOut = 'sprite_out',
+    SpriteRemoved = 'sprite_removed',
     SpriteClicked = 'sprite_clicked',
     PlaygroundConfig = 'playground_config',
     ClearPlayground = 'clear_playground',
@@ -381,6 +382,7 @@ export type ClientDataMsg =
     | ClearPlaygroundMsg
     | SpriteCollisionMsg
     | SpriteOutMsg
+    | SpriteRemovedMsg
     | PlaygroundConfigMsg
     | LineMsg
     | LinesMsg
@@ -504,6 +506,15 @@ export interface SpriteOut {
 
 export interface SpriteOutMsg extends DataMsg, SpriteOut {
     type: DataType.SpriteOut;
+    time_stamp: number;
+}
+
+export interface SpriteRemoved {
+    id: string;
+}
+
+export interface SpriteRemovedMsg extends DataMsg, SpriteRemoved {
+    type: DataType.SpriteRemoved;
     time_stamp: number;
 }
 

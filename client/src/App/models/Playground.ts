@@ -3,13 +3,14 @@ import {
     ColorName,
     DataType,
     PlaygroundConfig,
-    SpriteOut,
+    SpriteRemoved,
     SocketImage,
+    SpriteOut,
 } from './../../Shared/SharedTypings';
 import { Sprite as SpriteProps, Line as LineProps } from '../../Shared/SharedTypings';
 import Sprite from './Sprite';
 import Line from './Line';
-import SocketDataStore from '../stores/socket_data_store';
+import SocketDataStore, { timeStamp } from '../stores/socket_data_store';
 import { IBoundingBox } from './BoundingBox';
 import { action, computed, observable } from 'mobx';
 
@@ -101,8 +102,8 @@ export class Playground implements IBoundingBox {
         }
         this.sprites.remove(sprite);
         if (emit) {
-            this.socket.emitData<SpriteOut>({
-                type: DataType.SpriteOut,
+            this.socket.emitData<SpriteRemoved>({
+                type: DataType.SpriteRemoved,
                 id: sprite.id,
             });
         }
@@ -182,10 +183,18 @@ export class Playground implements IBoundingBox {
             if (sprite.isAutomoving) {
                 sprite.autoMovement.updatePosition();
             }
-            if (sprite.hasNoOverlap(this)) {
-                sprite.done();
-            } else {
+            const hasOverlap = sprite.hasOverlap(this);
+            if (hasOverlap) {
+                if (sprite.isInactive) {
+                    sprite.setActive();
+                }
                 sprite.reportBorderOverlap(this.borderOverlap(sprite));
+            } else {
+                if (sprite.isInactive && timeStamp() - sprite.inactiveSince! > 1) {
+                    sprite.done();
+                } else {
+                    sprite.setInactive();
+                }
             }
             if (sprite.collisionDetection) {
                 const overlaps = this.sprites.filter((s) => {
@@ -229,6 +238,15 @@ export class Playground implements IBoundingBox {
     @computed
     get bottom() {
         return this.shiftY;
+    }
+
+    @action
+    reportSpriteOut(id: string) {
+        console.log('report out');
+        this.socket.emitData<SpriteOut>({
+            type: DataType.SpriteOut,
+            id: id,
+        });
     }
 
     hasOverlap(other: IBoundingBox): boolean {

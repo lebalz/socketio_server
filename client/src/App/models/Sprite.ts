@@ -71,6 +71,7 @@ class AutoMovement {
             this.startTime = timeStamp();
         }
         if (sprite.pos_y !== undefined) {
+            this.initY = sprite.pos_y;
             this.currentY = sprite.pos_y;
             this.startTime = timeStamp();
         }
@@ -121,6 +122,10 @@ export default class Sprite extends BoundingBox {
     borderOverlap?: BorderSide;
     id: string;
     overlaps = observable.set<Sprite>();
+
+    @observable
+    _inactiveSince?: number = undefined;
+
     @observable
     zIndex: number;
 
@@ -191,6 +196,29 @@ export default class Sprite extends BoundingBox {
     @computed
     get isAutomoving(): boolean {
         return this.autoMovement.isAutomoving;
+    }
+
+    @computed
+    get isInactive(): boolean {
+        return !!this._inactiveSince;
+    }
+
+    @computed
+    get inactiveSince(): number | undefined {
+        return this._inactiveSince;
+    }
+
+    @action
+    setInactive() {
+        if (this.isInactive) {
+            return;
+        }
+        this._inactiveSince = timeStamp();
+        this.playground.reportSpriteOut(this.id);
+    }
+    @action
+    setActive() {
+        this._inactiveSince = undefined;
     }
 
     reportBorderOverlap(overlap?: BorderSide) {
