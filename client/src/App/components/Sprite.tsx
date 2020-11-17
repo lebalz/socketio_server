@@ -49,8 +49,9 @@ class Sprite extends React.Component<Props> {
         return this.playground?.shiftY ?? 0;
     }
 
-    onClick = () => {
+    onClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         if (this.props.sprite.clickable) {
+            e.stopPropagation();
             this.playground?.socket.emitData<SpriteClicked>({
                 type: DataType.SpriteClicked,
                 id: this.props.sprite.id,

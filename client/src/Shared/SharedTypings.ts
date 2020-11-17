@@ -171,6 +171,7 @@ export enum DataType {
     Notification = 'notification',
     InputPrompt = 'input_prompt',
     InputResponse = 'input_response',
+    CancelUserInput = 'cancel_user_input',
     Unknown = 'unknown',
     AllData = 'all_data',
     AlertConfirm = 'alert_confirm',
@@ -201,6 +202,8 @@ export interface DataPkg {
     type: DataType;
     unicast_to?: number;
     broadcast?: boolean;
+    deliver_to?: string;
+    cross_origin?: boolean /** sender device_id and receiver's device id are not the same */;
 }
 
 export interface SendDataPkg extends DataPkg {
@@ -387,7 +390,8 @@ export type ClientDataMsg =
     | LineMsg
     | LinesMsg
     | RemoveLineMsg
-    | UnknownMsg;
+    | UnknownMsg
+    | CancelUserInputMsg;
 
 export type PartialDataMsg = Partial<ClientDataMsg>;
 
@@ -417,6 +421,12 @@ export enum Key {
 export interface KeyMsg extends DataMsg {
     type: DataType.Key;
     key: Key;
+}
+
+export interface CancelUserInputMsg extends DataMsg {
+    type: DataType.CancelUserInput;
+    input_type: DataType.InputPrompt | DataType.Notification;
+    response_id?: string;
 }
 
 export interface InformationPkg extends TimeStampedMsg {

@@ -63,16 +63,18 @@ export class InputPrompt {
         }
     }
 
-    cancel() {
+    cancel(emit: boolean = true) {
         this.socket.data?.inputPrompts.remove(this);
         if (!this.submitted) {
             this.submitted = true;
-            this.socket.emitData<InputResponse>({
-                type: DataType.InputResponse,
-                time_stamp: this.timeStamp,
-                caller_id: this.responseId,
-                displayed_at: this.displayedAt ?? this.timeStamp,
-            });
+            if (emit) {
+                this.socket.emitData<InputResponse>({
+                    type: DataType.InputResponse,
+                    time_stamp: this.timeStamp,
+                    caller_id: this.responseId,
+                    displayed_at: this.displayedAt ?? this.timeStamp,
+                });
+            }
         }
     }
 }

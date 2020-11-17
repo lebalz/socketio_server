@@ -15,8 +15,7 @@ import {
     NotificationMsg,
     InputPromptMsg,
     ClientDataMsg,
-    InputResponseMsg,
-    AlertConfirmMsg,
+    CancelUserInputMsg,
     ErrorMsg,
     SpriteMsg,
     LineMsg,
@@ -417,12 +416,24 @@ io.on('connection', (socket) => {
     });
 
     socket.on(SocketEvents.NewData, (data: ClientDataMsg) => {
-        // return if neither device_id not device_nr is given
-        if (!data.device_id && !data.device_nr) {
+        // return if neither device_id nor device_nr is given
+        if (!data.device_id && data.device_nr === undefined) {
             return;
         }
-        let device_id = data.device_id;
+        let device_id: string | undefined = data.device_id;
+        if (!device_id) {
+            device_id = unorderedDevices().find((d) => d.device_nr === data.device_nr)?.device_id;
+        }
+        if (!device_id) {
+            return;
+        }
         let unicast_to;
+        if (typeof data.deliver_to === 'string') {
+            if (device_id !== data.deliver_to) {
+                device_id = data.deliver_to;
+                data.cross_origin = true;
+            }
+        }
         if (typeof data.unicast_to === 'number') {
             unicast_to = unorderedDevices().find((d) => d.device_nr === data.unicast_to);
             if (unicast_to) {
@@ -444,8 +455,26 @@ io.on('connection', (socket) => {
         addDataToStore(device_id, data);
         // socket.to(...) --> sends to all but self
         // io.to(...) --> sends to all in room
-        if ((data as any).caller_id) {
-            io.to((data as InputResponseMsg | AlertConfirmMsg).caller_id!).emit(SocketEvents.NewData, data);
+        const caller_id = (data as any).caller_id;
+        if (caller_id) {
+            io.to(caller_id).emit(SocketEvents.NewData, data);
+            let input_type: DataType.Notification | DataType.InputPrompt | undefined;
+            if (data.type === DataType.InputResponse) {
+                input_type = DataType.InputPrompt;
+            } else if (data.type === DataType.AlertConfirm) {
+                input_type = DataType.Notification;
+            }
+            if (!!input_type) {
+                const cancelRequest: CancelUserInputMsg = {
+                    device_id: device_id,
+                    time_stamp: data.time_stamp,
+                    device_nr: data.device_nr,
+                    response_id: caller_id,
+                    input_type: input_type,
+                    type: DataType.CancelUserInput,
+                };
+                io.to(device_id).emit(SocketEvents.NewData, cancelRequest);
+            }
         } else if (data.broadcast) {
             io.emit(SocketEvents.NewData, data);
         } else if (unicast_to) {

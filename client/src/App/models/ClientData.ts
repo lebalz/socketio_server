@@ -156,6 +156,24 @@ export default class ClientData {
             case DataType.InputPrompt:
                 this.inputPrompts.push(new InputPrompt(data, this.socket));
                 break;
+            case DataType.CancelUserInput:
+                switch (data.input_type) {
+                    case DataType.InputPrompt:
+                        const prompt = this.inputPrompts.find(
+                            (p) => p.responseId === data.response_id && p.timeStamp === data.time_stamp
+                        );
+                        prompt?.cancel(false);
+                        break;
+                    case DataType.Notification:
+                        const notification = this.notifications.find(
+                            (n) => n.responseId === data.response_id && n.timeStamp === data.time_stamp
+                        );
+                        if (notification) {
+                            this.notifications.remove(notification);
+                        }
+                        break;
+                }
+                break;
             case DataType.Sprite:
                 this.playground.addOrUpdateSprite(data.sprite);
                 break;
