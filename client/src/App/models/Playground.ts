@@ -32,6 +32,8 @@ export class Playground implements IBoundingBox {
     shiftY: number = -50;
     @observable
     color: string = ColorName.Lightgrey;
+    @observable
+    isMounted: boolean = false;
 
     @observable
     image?: string;

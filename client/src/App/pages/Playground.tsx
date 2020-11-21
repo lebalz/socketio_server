@@ -9,7 +9,7 @@ import { Checkbox } from 'semantic-ui-react';
 import { KeyControlListener, KeyData } from '../components/Controls/KeyControls';
 import ViewStateStore from '../stores/view_state_store';
 import { inject, observer } from 'mobx-react';
-import { action, computed } from 'mobx';
+import { action, computed, IReactionDisposer, reaction } from 'mobx';
 
 type IOverload = {
     (data: AccelerationData): void;
@@ -26,6 +26,7 @@ interface InjectedProps {
 @observer
 class Playground extends React.Component {
     containerRef = React.createRef<HTMLDivElement>();
+    startDisposer?: IReactionDisposer;
     get injected() {
         return this.props as InjectedProps;
     }
@@ -44,6 +45,16 @@ class Playground extends React.Component {
     }
 
     componentDidMount() {
+        this.startDisposer = reaction(
+            () => this.playground,
+            (pg) => {
+                console.log('new playground ref');
+                if (!pg?.isRunning) {
+                    console.log('start new playground ref');
+                    pg?.start();
+                }
+            }
+        );
         window.addEventListener('resize', this.onResize);
         if (this.playground) {
             this.playground.start();
@@ -55,7 +66,12 @@ class Playground extends React.Component {
     }
 
     componentWillUnmount() {
-        this.playground?.stop();
+        if (this.playground) {
+            this.playground.stop();
+        }
+        if (this.startDisposer) {
+            this.startDisposer();
+        }
         window.removeEventListener('resize', this.onResize);
         window.removeEventListener('click', this.checkRunning);
     }
