@@ -45,14 +45,30 @@ class Playground extends React.Component {
 
     componentDidMount() {
         window.addEventListener('resize', this.onResize);
-        this.playground?.start();
+        if (this.playground) {
+            this.playground.start();
+        } else {
+            window.addEventListener('click', this.checkRunning);
+            console.log('add running checker');
+        }
         this.onResize();
     }
 
     componentWillUnmount() {
         this.playground?.stop();
         window.removeEventListener('resize', this.onResize);
+        window.removeEventListener('click', this.checkRunning);
     }
+
+    checkRunning = () => {
+        if (this.playground) {
+            if (!this.playground.isRunning) {
+                console.log('starting playground');
+                this.playground.start();
+            }
+            window.removeEventListener('click', this.checkRunning);
+        }
+    };
 
     onResize = () => {
         this.playgroundState.innerHeight = window.innerHeight;
