@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Table, Button, Checkbox } from 'semantic-ui-react';
+import { Table, Button, Checkbox, Dropdown } from 'semantic-ui-react';
 import { inject, observer } from 'mobx-react';
 import ViewStateStore from '../stores/view_state_store';
 import SocketDataStore, { GLOBAL_LISTENER } from '../stores/socket_data_store';
@@ -77,7 +77,11 @@ class Admin extends Component {
 
     @computed
     get displayedDeviceIds(): Set<string> {
-        return new Set<string>(this.adminState.displayedStoreNrs.map((d) => d.id));
+        const set = new Set<string>(this.adminState.displayedStoreNrs.map((d) => d.id));
+        this.adminState.displayedStoreIds.forEach((id) => {
+            set.add(id);
+        });
+        return set;
     }
 
     @action
@@ -155,6 +159,11 @@ class Admin extends Component {
     }
 
     @computed
+    get offlineDevices(): string[] {
+        return [...this.injected.socketDataStore.dataStore.keys()].filter((d) => !this.deviceIds.includes(d));
+    }
+
+    @computed
     get rawMessages(): ClientDataMsg[] {
         const { displayedDeviceNrs, displayedDeviceIds } = this;
         const data: ClientDataMsg[] = [];
@@ -165,7 +174,13 @@ class Admin extends Component {
                 if (showAll) {
                     store.rawData.forEach((pkgs, type) => {
                         if (![DataType.Acceleration, DataType.Gyro].includes(type)) {
-                            data.push(...pkgs.filter((d) => displayedDeviceNrs.has(d.device_nr)));
+                            data.push(
+                                ...pkgs.filter(
+                                    (d) =>
+                                        displayedDeviceNrs.has(d.device_nr) ||
+                                        displayedDeviceIds.has(d.device_id)
+                                )
+                            );
                         }
                     });
                 } else {
@@ -173,7 +188,13 @@ class Admin extends Component {
                         if (![DataType.Acceleration, DataType.Gyro].includes(type)) {
                             const msgs = store.rawData.get(type);
                             if (msgs) {
-                                data.push(...msgs.filter((d) => displayedDeviceNrs.has(d.device_nr)));
+                                data.push(
+                                    ...msgs.filter(
+                                        (d) =>
+                                            displayedDeviceNrs.has(d.device_nr) ||
+                                            displayedDeviceIds.has(d.device_id)
+                                    )
+                                );
                             }
                         }
                     });
@@ -196,6 +217,9 @@ class Admin extends Component {
             const store = this.injected.socketDataStore.dataStore.get(deviceId);
             if (store) {
                 store.rawAccData.forEach((msg) => {
+                    if (this.offlineDevices.includes(msg.device_id) && data[msg.device_nr] === undefined) {
+                        data[msg.device_nr] = [];
+                    }
                     if (data[msg.device_nr] !== undefined) {
                         data[msg.device_nr].push(msg);
                     }
@@ -327,6 +351,26 @@ class Admin extends Component {
                         })}
                     </Table.Body>
                 </Table>
+
+                {this.offlineDevices.length > 0 && (
+                    <div>
+                        <h3>Offline Devices</h3>
+                        <Dropdown
+                            placeholder="Offline Devices"
+                            search
+                            clearable
+                            selection
+                            options={this.offlineDevices.map((d) => ({ text: d, value: d }))}
+                            onChange={(e, data) => {
+                                if (this.adminState.offlineDeviceId) {
+                                    this.setDisplayStateForGroup(this.adminState.offlineDeviceId, false);
+                                }
+                                this.setDisplayStateForGroup(data.value as string, true);
+                                this.adminState.offlineDeviceId = data.value as string;
+                            }}
+                        />
+                    </div>
+                )}
                 <div style={{ maxHeight: '90vh', overflowY: 'auto' }}>
                     <Button.Group style={{ display: 'flex', flexWrap: 'wrap' }}>
                         {[...this.typeOptions].map((dt) => {
@@ -350,16 +394,13 @@ class Admin extends Component {
                     <div>
                         {Object.keys(this.accMessages).length > 0 && <h3>Acceleromaters</h3>}
                         {Object.keys(this.accMessages).map((deviceNr) => {
-                            const device = this.devices.find(
-                                (d) => d.deviceNr?.toString() === deviceNr.toString()
-                            );
                             const len = this.accMessages[deviceNr]?.length ?? 1;
                             const last = this.accMessages[deviceNr][len - 1];
                             const ts = last ? new Date(last.time_stamp * 1000) : new Date(0);
                             return (
                                 <div key={deviceNr}>
                                     <span>
-                                        {device?.deviceId}:<b>{deviceNr}</b>
+                                        {last?.device_id}:<b>{deviceNr}</b>
                                         {'@'}
                                         {ts.toLocaleDateString()} {ts.toLocaleTimeString()}:
                                         {ts.getMilliseconds()}
@@ -376,16 +417,13 @@ class Admin extends Component {
                     <div>
                         {Object.keys(this.gyroMessages).length > 0 && <h3>Gyros</h3>}
                         {Object.keys(this.gyroMessages).map((deviceNr) => {
-                            const device = this.devices.find(
-                                (d) => d.deviceNr?.toString() === deviceNr.toString()
-                            );
                             const len = this.gyroMessages[deviceNr]?.length ?? 1;
                             const last = this.gyroMessages[deviceNr][len - 1];
                             const ts = last ? new Date(last.time_stamp * 1000) : new Date(0);
                             return (
                                 <div key={deviceNr}>
                                     <span>
-                                        {device?.deviceId}:<b>{deviceNr}</b>
+                                        {last?.device_id}:<b>{deviceNr}</b>
                                         {'@'}
                                         {ts.toLocaleDateString()} {ts.toLocaleTimeString()}:
                                         {ts.getMilliseconds()}

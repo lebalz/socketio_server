@@ -71,6 +71,8 @@ class AdminState {
     showRaw: boolean = false;
     displayedStoreNrs = observable<{ nr: number; id: string }>([]);
     displayedStoreIds = observable.set<string>([]);
+    @observable
+    offlineDeviceId?: string;
     displayedTypes = observable.set<DataType>([]);
     @observable
     showAllDevices: boolean = false;
