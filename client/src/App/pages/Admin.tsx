@@ -147,19 +147,18 @@ class Admin extends Component {
     get typeOptions(): Set<DataType> {
         const { displayedDeviceIds } = this;
         const types = new Set<DataType>([]);
-        displayedDeviceIds.forEach((deviceId) => {
+        const deviceIds = new Set<string>([...displayedDeviceIds, ...this.offlineDeviceIds]);
+        deviceIds.forEach((deviceId) => {
             const store = this.injected.socketDataStore.dataStore.get(deviceId);
             if (store) {
-                [...store.rawData.keys()]
-                    .filter((t) => !t.startsWith('_'))
-                    .forEach((t) => types.add(t as DataType));
+                [...store.rawData.keys()].forEach((t) => types.add(t as DataType));
             }
         });
         return types;
     }
 
     @computed
-    get offlineDevices(): string[] {
+    get offlineDeviceIds(): string[] {
         return [...this.injected.socketDataStore.dataStore.keys()].filter((d) => !this.deviceIds.includes(d));
     }
 
@@ -217,7 +216,7 @@ class Admin extends Component {
             const store = this.injected.socketDataStore.dataStore.get(deviceId);
             if (store) {
                 store.rawAccData.forEach((msg) => {
-                    if (this.offlineDevices.includes(msg.device_id) && data[msg.device_nr] === undefined) {
+                    if (this.offlineDeviceIds.includes(msg.device_id) && data[msg.device_nr] === undefined) {
                         data[msg.device_nr] = [];
                     }
                     if (data[msg.device_nr] !== undefined) {
@@ -352,7 +351,7 @@ class Admin extends Component {
                     </Table.Body>
                 </Table>
 
-                {this.offlineDevices.length > 0 && (
+                {this.offlineDeviceIds.length > 0 && (
                     <div>
                         <h3>Offline Devices</h3>
                         <Dropdown
@@ -360,7 +359,7 @@ class Admin extends Component {
                             search
                             clearable
                             selection
-                            options={this.offlineDevices.map((d) => ({ text: d, value: d }))}
+                            options={this.offlineDeviceIds.map((d) => ({ text: d, value: d }))}
                             onChange={(e, data) => {
                                 if (this.adminState.offlineDeviceId) {
                                     this.setDisplayStateForGroup(this.adminState.offlineDeviceId, false);
@@ -392,7 +391,7 @@ class Admin extends Component {
                         })}
                     </Button.Group>
                     <div>
-                        {Object.keys(this.accMessages).length > 0 && <h3>Acceleromaters</h3>}
+                        {Object.keys(this.accMessages).length > 0 && <h3>Accelerometer</h3>}
                         {Object.keys(this.accMessages).map((deviceNr) => {
                             const len = this.accMessages[deviceNr]?.length ?? 1;
                             const last = this.accMessages[deviceNr][len - 1];
@@ -408,14 +407,14 @@ class Admin extends Component {
                                     <LineGraph
                                         type="acc"
                                         data={this.accMessages[deviceNr]}
-                                        width={this.state.windowWidth * 0.9}
+                                        width={Math.min(500, this.state.windowWidth)}
                                     />
                                 </div>
                             );
                         })}
                     </div>
                     <div>
-                        {Object.keys(this.gyroMessages).length > 0 && <h3>Gyros</h3>}
+                        {Object.keys(this.gyroMessages).length > 0 && <h3>Gyrometer</h3>}
                         {Object.keys(this.gyroMessages).map((deviceNr) => {
                             const len = this.gyroMessages[deviceNr]?.length ?? 1;
                             const last = this.gyroMessages[deviceNr][len - 1];
@@ -431,7 +430,7 @@ class Admin extends Component {
                                     <LineGraph
                                         type="gyro"
                                         data={this.gyroMessages[deviceNr]}
-                                        width={this.state.windowWidth * 0.9}
+                                        width={Math.min(500, this.state.windowWidth)}
                                     />
                                 </div>
                             );
