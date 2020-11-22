@@ -163,7 +163,7 @@ class Admin extends Component {
     @computed
     get offlineDeviceIds(): string[] {
         const offDevices = [...this.injected.socketDataStore.dataStore.keys()].filter(
-            (d) => !this.onlineDeviceIds.includes(d)
+            (d) => !this.onlineDeviceIds.includes(d) && d !== GLOBAL_LISTENER
         );
         if (this.adminState.offlineDeviceId && !offDevices.includes(this.adminState.offlineDeviceId)) {
             offDevices.push(this.adminState.offlineDeviceId);
@@ -362,16 +362,18 @@ class Admin extends Component {
 
                 {this.offlineDeviceIds.length > 0 && (
                     <div>
-                        <h3>Offline Devices</h3>
+                        <h3>All Devices</h3>
                         <Dropdown
-                            placeholder="Offline Devices"
+                            placeholder="Devices"
                             search
                             clearable
                             selection
-                            options={[...this.onlineDeviceIds, ...this.offlineDeviceIds].map((d) => ({
-                                text: d,
-                                value: d,
-                            }))}
+                            options={[...this.onlineDeviceIds, ...this.offlineDeviceIds]
+                                .filter((did) => did !== GLOBAL_LISTENER)
+                                .map((d) => ({
+                                    text: d,
+                                    value: d,
+                                }))}
                             onChange={(e, data) => {
                                 if (this.adminState.offlineDeviceId) {
                                     this.setDisplayStateForGroup(this.adminState.offlineDeviceId, false);
