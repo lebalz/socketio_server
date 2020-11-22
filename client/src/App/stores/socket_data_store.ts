@@ -94,9 +94,6 @@ export default class SocketDataStore implements Store {
         let store = this.clientsData(deviceId);
         if (!store) {
             store = new ClientData(this, deviceId, this.isAdmin);
-            if (this.isAdmin) {
-                store.addData(directMsgs);
-            }
             this.dataStore.set(deviceId, store);
         }
         store.addData(directMsgs);

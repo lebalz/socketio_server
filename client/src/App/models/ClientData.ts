@@ -121,7 +121,7 @@ export default class ClientData {
             if (msg.device_id !== this.deviceId && !msg.broadcast) {
                 return;
             }
-            let data = this.rawData.get(msg.type);
+            const data = this.rawData.get(msg.type);
             if (data) {
                 if (msg.type === DataType.Gyro || msg.type === DataType.Acceleration) {
                     if (data.length > CHARTEABLE_DATA_THRESHOLD) {
@@ -132,11 +132,10 @@ export default class ClientData {
                         data.shift();
                     }
                 }
+                data.push(msg);
             } else {
-                data = [];
-                this.rawData.set(msg.type, data);
+                this.rawData.set(msg.type, [msg]);
             }
-            data.push(msg);
         });
     }
 
