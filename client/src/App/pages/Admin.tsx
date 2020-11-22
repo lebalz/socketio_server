@@ -115,8 +115,8 @@ class Admin extends Component {
     }
 
     @action
-    setDisplayStateForGroup(deviceId: string, on: boolean) {
-        if (deviceId === GLOBAL_LISTENER) {
+    setDisplayStateForGroup(deviceId: string | undefined, on: boolean) {
+        if (deviceId === GLOBAL_LISTENER || deviceId === undefined) {
             return;
         }
         if (on) {
@@ -147,7 +147,10 @@ class Admin extends Component {
     get typeOptions(): Set<DataType> {
         const { displayedDeviceIds } = this;
         const types = new Set<DataType>([]);
-        const deviceIds = new Set<string>([...displayedDeviceIds, ...this.offlineDeviceIds]);
+        const deviceIds = new Set<string>([...displayedDeviceIds]);
+        if (this.adminState.offlineDeviceId) {
+            deviceIds.add(this.adminState.offlineDeviceId);
+        }
         deviceIds.forEach((deviceId) => {
             const store = this.injected.socketDataStore.dataStore.get(deviceId);
             if (store) {
@@ -159,7 +162,13 @@ class Admin extends Component {
 
     @computed
     get offlineDeviceIds(): string[] {
-        return [...this.injected.socketDataStore.dataStore.keys()].filter((d) => !this.deviceIds.includes(d));
+        const offDevices = [...this.injected.socketDataStore.dataStore.keys()].filter(
+            (d) => !this.deviceIds.includes(d)
+        );
+        if (this.adminState.offlineDeviceId && !offDevices.includes(this.adminState.offlineDeviceId)) {
+            offDevices.push(this.adminState.offlineDeviceId);
+        }
+        return offDevices;
     }
 
     @computed
