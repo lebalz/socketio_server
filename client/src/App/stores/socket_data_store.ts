@@ -105,6 +105,37 @@ export default class SocketDataStore implements Store {
 
     configureAndConnect() {
         this.socket.on(SocketEvents.Devices, (data: DevicesPkg) => {
+            const newNrs: { nr: number; id: string }[] = [];
+            const newIds = new Set<string>([]);
+            data.devices.forEach((d) => {
+                const oldDev = this.devices.find(
+                    (oldD) => oldD.deviceId === d.device_id && oldD.deviceNr === d.device_nr
+                );
+                if (oldDev || this.root.viewStateStore.adminState.showAllDevices) {
+                    const oldNr = oldDev
+                        ? this.root.viewStateStore.adminState.displayedStoreNrs.find(
+                              (dev) => dev.id === oldDev.deviceId && dev.nr === oldDev.deviceNr
+                          )
+                        : undefined;
+                    if (oldNr || this.root.viewStateStore.adminState.showAllDevices) {
+                        newNrs.push({
+                            nr: d.device_nr,
+                            id: d.device_id,
+                        });
+                        if (this.root.viewStateStore.adminState.displayedStoreIds.has(d.device_id)) {
+                            newIds.add(d.device_id);
+                        }
+                    }
+                } else if (this.root.viewStateStore.adminState.displayedStoreIds.has(d.device_id)) {
+                    newIds.add(d.device_id);
+                    newNrs.push({
+                        nr: d.device_nr,
+                        id: d.device_id,
+                    });
+                }
+            });
+            this.root.viewStateStore.adminState.displayedStoreIds.replace(newIds);
+            this.root.viewStateStore.adminState.displayedStoreNrs.replace(newNrs);
             this.devices.replace(data.devices.map((dev) => new Device(dev)));
         });
 

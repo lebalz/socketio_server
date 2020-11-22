@@ -6,7 +6,7 @@ import SocketDataStore, { GLOBAL_LISTENER } from '../stores/socket_data_store';
 import Nosleep from '../components/Nosleep';
 import { action, computed } from 'mobx';
 import LineGraph from '../components/LineGraph';
-import { DataType } from 'src/Shared/SharedTypings';
+import { AccMsg, ClientDataMsg, DataType, GyroMsg } from 'src/Shared/SharedTypings';
 import Device from '../models/Device';
 
 interface InjectedProps {
@@ -70,15 +70,26 @@ class Admin extends Component {
         return [...new Set<string>(this.devices.map((d) => d.deviceId))];
     }
 
+    @computed
+    get displayedDeviceNrs(): Set<number> {
+        return new Set<number>(this.adminState.displayedStoreNrs.map((d) => d.nr));
+    }
+
+    @computed
+    get displayedDeviceIds(): Set<string> {
+        return new Set<string>(this.adminState.displayedStoreNrs.map((d) => d.id));
+    }
+
     @action
     setGlobalDisplayState(on: boolean) {
+        this.adminState.showAllDevices = on;
         if (on) {
             const all = this.devices
                 .filter((d) => d.deviceId !== GLOBAL_LISTENER)
                 .map((d) => ({ nr: d.deviceNr ?? -999, id: d.deviceId }));
-            this.injected.viewStateStore.adminState.displayedStoreNrs.replace(all);
+            this.adminState.displayedStoreNrs.replace(all);
         } else {
-            this.injected.viewStateStore.adminState.displayedStoreNrs.clear();
+            this.adminState.displayedStoreNrs.clear();
         }
     }
 
@@ -105,9 +116,9 @@ class Admin extends Component {
             return;
         }
         if (on) {
-            this.injected.viewStateStore.adminState.displayedStoreIds.add(deviceId);
+            this.adminState.displayedStoreIds.add(deviceId);
         } else {
-            this.injected.viewStateStore.adminState.displayedStoreIds.delete(deviceId);
+            this.adminState.displayedStoreIds.delete(deviceId);
         }
         const store = this.injected.socketDataStore.dataStore.get(deviceId);
         if (store) {
@@ -119,7 +130,121 @@ class Admin extends Component {
         });
     }
 
+    @action
+    setDisplayedType(type: DataType, on: boolean) {
+        if (on) {
+            this.adminState.displayedTypes.add(type);
+        } else {
+            this.adminState.displayedTypes.delete(type);
+        }
+    }
+
+    @computed
+    get typeOptions(): Set<DataType> {
+        const { displayedDeviceIds } = this;
+        const types = new Set<DataType>([]);
+        displayedDeviceIds.forEach((deviceId) => {
+            const store = this.injected.socketDataStore.dataStore.get(deviceId);
+            if (store) {
+                [...store.rawData.keys()]
+                    .filter((t) => !t.startsWith('_'))
+                    .forEach((t) => types.add(t as DataType));
+            }
+        });
+        return types;
+    }
+
+    @computed
+    get rawMessages(): ClientDataMsg[] {
+        const { displayedDeviceNrs, displayedDeviceIds } = this;
+        const data: ClientDataMsg[] = [];
+        const showAll = this.adminState.displayedTypes.size === 0;
+        displayedDeviceIds.forEach((deviceId) => {
+            const store = this.injected.socketDataStore.dataStore.get(deviceId);
+            if (store) {
+                if (showAll) {
+                    store.rawData.forEach((pkgs, type) => {
+                        if (![DataType.Acceleration, DataType.Gyro].includes(type)) {
+                            data.push(...pkgs.filter((d) => displayedDeviceNrs.has(d.device_nr)));
+                        }
+                    });
+                } else {
+                    this.adminState.displayedTypes.forEach((type) => {
+                        if (![DataType.Acceleration, DataType.Gyro].includes(type)) {
+                            const msgs = store.rawData.get(type);
+                            if (msgs) {
+                                data.push(...msgs.filter((d) => displayedDeviceNrs.has(d.device_nr)));
+                            }
+                        }
+                    });
+                }
+            }
+        });
+        return data.sort((a, b) => b.time_stamp - a.time_stamp);
+    }
+
+    @computed
+    get accMessages(): { [key: string]: AccMsg[] } {
+        const showAll = this.adminState.displayedTypes.size === 0;
+        if (!showAll && !this.adminState.displayedTypes.has(DataType.Acceleration)) {
+            return {};
+        }
+        const { displayedDeviceNrs, displayedDeviceIds } = this;
+        const data: { [key: number]: AccMsg[] } = {};
+        displayedDeviceNrs.forEach((d) => (data[d] = []));
+        displayedDeviceIds.forEach((deviceId) => {
+            const store = this.injected.socketDataStore.dataStore.get(deviceId);
+            if (store) {
+                store.rawAccData.forEach((msg) => {
+                    if (data[msg.device_nr] !== undefined) {
+                        data[msg.device_nr].push(msg);
+                    }
+                });
+            }
+        });
+        displayedDeviceNrs.forEach((nr) => {
+            if (data[nr].length === 0) {
+                delete data[nr];
+            } else {
+                data[nr] = data[nr].sort((a, b) => a.time_stamp - b.time_stamp);
+            }
+        });
+
+        return data;
+    }
+
+    @computed
+    get gyroMessages(): { [key: string]: GyroMsg[] } {
+        const showAll = this.adminState.displayedTypes.size === 0;
+        if (!showAll && !this.adminState.displayedTypes.has(DataType.Gyro)) {
+            return {};
+        }
+        const { displayedDeviceNrs, displayedDeviceIds } = this;
+        const data: { [key: number]: GyroMsg[] } = {};
+        displayedDeviceNrs.forEach((d) => (data[d] = []));
+        displayedDeviceIds.forEach((deviceId) => {
+            const store = this.injected.socketDataStore.dataStore.get(deviceId);
+            if (store) {
+                store.rawGyroData.forEach((msg) => {
+                    if (data[msg.device_nr] !== undefined) {
+                        data[msg.device_nr].push(msg);
+                    }
+                });
+            }
+        });
+        displayedDeviceNrs.forEach((nr) => {
+            if (data[nr].length === 0) {
+                delete data[nr];
+            } else {
+                data[nr] = data[nr].sort((a, b) => a.time_stamp - b.time_stamp);
+            }
+        });
+
+        return data;
+    }
+
     render() {
+        const showAll = this.adminState.displayedTypes.size === 0;
         return (
             <div
                 style={{
@@ -142,6 +267,7 @@ class Admin extends Component {
                         onChange={(e, data) => {
                             this.setGlobalDisplayState(!!data.checked);
                         }}
+                        checked={this.adminState.showAllDevices}
                         label="Show All"
                     />
                 </span>
@@ -202,133 +328,185 @@ class Admin extends Component {
                     </Table.Body>
                 </Table>
                 <div style={{ maxHeight: '90vh', overflowY: 'auto' }}>
-                    {this.deviceIds.map((deviceId) => {
-                        if (deviceId === GLOBAL_LISTENER) {
-                            return null;
-                        }
-                        const store = this.injected.socketDataStore.dataStore.get(deviceId);
-                        if (!store) {
-                            console.log('no store!!', deviceId);
-                            return null;
-                        }
-                        if (![...this.adminState.displayedStoreNrs].find((nr) => nr.id === deviceId)) {
-                            return null;
-                        }
-                        const showAll = store.displayOptions.size === 0;
-                        const displayedNrs = this.adminState.displayedStoreNrs.map((nr) => nr.nr);
-                        return (
-                            <div
-                                key={deviceId}
-                                style={{
-                                    maxHeight: '80vh',
-                                    overflowY: 'auto',
-                                    marginTop: '8px',
-                                    width: '100%',
-                                }}
-                                className="data-store-tables"
-                            >
-                                <Table celled striped compact unstackable color="blue">
-                                    <Table.Header>
-                                        <Table.Row>
-                                            <Table.HeaderCell>{deviceId}</Table.HeaderCell>
-                                            <Table.HeaderCell>Time</Table.HeaderCell>
-                                            <Table.HeaderCell>To</Table.HeaderCell>
-                                            <Table.HeaderCell>Type</Table.HeaderCell>
-                                            <Table.HeaderCell>Data</Table.HeaderCell>
+                    <Button.Group style={{ display: 'flex', flexWrap: 'wrap' }}>
+                        {[...this.typeOptions].map((dt) => {
+                            const active = showAll || this.adminState.displayedTypes.has(dt);
+                            return (
+                                <Button
+                                    size="mini"
+                                    compact
+                                    key={dt}
+                                    color={active ? 'blue' : undefined}
+                                    active={active}
+                                    onClick={() => {
+                                        this.setDisplayedType(dt, showAll ? true : !active);
+                                    }}
+                                >
+                                    {dt}
+                                </Button>
+                            );
+                        })}
+                    </Button.Group>
+                    <div>
+                        {Object.keys(this.accMessages).length > 0 && <h3>Acceleromaters</h3>}
+                        {Object.keys(this.accMessages).map((deviceNr) => {
+                            const device = this.devices.find(
+                                (d) => d.deviceNr?.toString() === deviceNr.toString()
+                            );
+                            const len = this.accMessages[deviceNr]?.length ?? 1;
+                            const last = this.accMessages[deviceNr][len - 1];
+                            const ts = last ? new Date(last.time_stamp * 1000) : new Date(0);
+                            return (
+                                <div key={deviceNr}>
+                                    <span>
+                                        {device?.deviceId}:<b>{deviceNr}</b>
+                                        {'@'}
+                                        {ts.toLocaleDateString()} {ts.toLocaleTimeString()}:
+                                        {ts.getMilliseconds()}
+                                    </span>
+                                    <LineGraph
+                                        type="acc"
+                                        data={this.accMessages[deviceNr]}
+                                        width={this.state.windowWidth * 0.9}
+                                    />
+                                </div>
+                            );
+                        })}
+                    </div>
+                    <div>
+                        {Object.keys(this.gyroMessages).length > 0 && <h3>Gyros</h3>}
+                        {Object.keys(this.gyroMessages).map((deviceNr) => {
+                            const device = this.devices.find(
+                                (d) => d.deviceNr?.toString() === deviceNr.toString()
+                            );
+                            const len = this.gyroMessages[deviceNr]?.length ?? 1;
+                            const last = this.gyroMessages[deviceNr][len - 1];
+                            const ts = last ? new Date(last.time_stamp * 1000) : new Date(0);
+                            return (
+                                <div key={deviceNr}>
+                                    <span>
+                                        {device?.deviceId}:<b>{deviceNr}</b>
+                                        {'@'}
+                                        {ts.toLocaleDateString()} {ts.toLocaleTimeString()}:
+                                        {ts.getMilliseconds()}
+                                    </span>
+                                    <LineGraph
+                                        type="gyro"
+                                        data={this.gyroMessages[deviceNr]}
+                                        width={this.state.windowWidth * 0.9}
+                                    />
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <div
+                        style={{
+                            maxHeight: '80vh',
+                            overflowY: 'auto',
+                            marginTop: '8px',
+                            width: '100%',
+                        }}
+                        className="data-store-tables"
+                    >
+                        <Table celled striped compact unstackable color="blue">
+                            <Table.Header>
+                                <Table.Row>
+                                    <Table.HeaderCell>DeviceId</Table.HeaderCell>
+                                    <Table.HeaderCell>Time</Table.HeaderCell>
+                                    <Table.HeaderCell>To</Table.HeaderCell>
+                                    <Table.HeaderCell>Type</Table.HeaderCell>
+                                    <Table.HeaderCell>Data</Table.HeaderCell>
+                                </Table.Row>
+                            </Table.Header>
+                            <Table.Body>
+                                {this.rawMessages.map((pkg, idx) => {
+                                    const ts = new Date(pkg.time_stamp * 1000);
+                                    let to = pkg.device_id;
+                                    if (pkg.broadcast) {
+                                        to = 'broadcast';
+                                    }
+                                    if (typeof pkg.unicast_to === 'number') {
+                                        to = `${pkg.unicast_to}`;
+                                    }
+                                    let raw = '';
+                                    switch (pkg.type) {
+                                        case DataType.Sprites:
+                                            raw = `Updating ${pkg.sprites.length} sprites ${
+                                                pkg.sprites.length < 5
+                                                    ? pkg.sprites.map((s) => s.id).join(', ')
+                                                    : ''
+                                            }`;
+                                            break;
+                                        case DataType.Grid:
+                                            if (
+                                                !(
+                                                    typeof pkg.grid === 'string' ||
+                                                    (pkg.grid[0] && typeof pkg.grid[0] === 'string')
+                                                )
+                                            ) {
+                                                if (pkg.grid.length > 20 && pkg.grid[0].length > 20) {
+                                                    raw = `${pkg.grid.length}x${pkg.grid[0].length} Grid`;
+                                                }
+                                            }
+                                            if (raw === '') {
+                                                raw = JSON.stringify(
+                                                    {
+                                                        ...pkg,
+                                                        type: undefined,
+                                                        time_stamp: undefined,
+                                                        device_id: undefined,
+                                                        device_nr: undefined,
+                                                    },
+                                                    null,
+                                                    1
+                                                );
+                                            }
+                                            break;
+                                        default:
+                                            raw = JSON.stringify(
+                                                {
+                                                    ...pkg,
+                                                    type: undefined,
+                                                    time_stamp: undefined,
+                                                    device_id: undefined,
+                                                    device_nr: undefined,
+                                                },
+                                                null,
+                                                1
+                                            );
+                                    }
+                                    return (
+                                        <Table.Row key={idx}>
+                                            <Table.Cell collapsing>
+                                                {pkg.device_id}:{pkg.device_nr}
+                                            </Table.Cell>
+                                            <Table.Cell collapsing>
+                                                {ts.toLocaleDateString()}
+                                                <br />
+                                                {`${ts.toLocaleTimeString()}.${`${ts.getMilliseconds()}`.padEnd(
+                                                    3,
+                                                    '0'
+                                                )}`}
+                                            </Table.Cell>
+                                            <Table.Cell collapsing>{to}</Table.Cell>
+                                            <Table.Cell collapsing>{pkg.type}</Table.Cell>
+                                            <Table.Cell collapsing>
+                                                <pre
+                                                    style={{
+                                                        overflowY: 'auto',
+                                                        maxHeight: '10em',
+                                                    }}
+                                                >
+                                                    <code>{raw}</code>
+                                                </pre>
+                                            </Table.Cell>
                                         </Table.Row>
-                                    </Table.Header>
-                                    {store.show && (
-                                        <Table.Body>
-                                            <Table.Row>
-                                                <Table.HeaderCell colSpan="5">
-                                                    <Button.Group>
-                                                        {store.dataTypes.map((dt) => {
-                                                            const active =
-                                                                showAll || store.displayOptions.has(dt);
-                                                            return (
-                                                                <Button
-                                                                    size="mini"
-                                                                    compact
-                                                                    key={dt}
-                                                                    color={active ? 'blue' : undefined}
-                                                                    active={active}
-                                                                    onClick={() => {
-                                                                        if (store.displayOptions.has(dt)) {
-                                                                            store.displayOptions.delete(dt);
-                                                                        } else {
-                                                                            store.displayOptions.add(dt);
-                                                                        }
-                                                                    }}
-                                                                >
-                                                                    {dt}
-                                                                </Button>
-                                                            );
-                                                        })}
-                                                    </Button.Group>
-                                                </Table.HeaderCell>
-                                            </Table.Row>
-                                            {store.hasRawAcc &&
-                                                (showAll ||
-                                                    store.displayOptions.has(DataType.Acceleration)) && (
-                                                    <Table.Row>
-                                                        <Table.HeaderCell colSpan="5">
-                                                            <LineGraph
-                                                                type="acc"
-                                                                data={store.rawAccData}
-                                                                width={this.state.windowWidth * 0.9}
-                                                            />
-                                                        </Table.HeaderCell>
-                                                    </Table.Row>
-                                                )}
-                                            {store.hasRawGyro &&
-                                                (showAll || store.displayOptions.has(DataType.Gyro)) && (
-                                                    <Table.Row>
-                                                        <Table.HeaderCell colSpan="5">
-                                                            <LineGraph
-                                                                type="gyro"
-                                                                data={store.rawGyroData}
-                                                                width={this.state.windowWidth * 0.9}
-                                                            />
-                                                        </Table.HeaderCell>
-                                                    </Table.Row>
-                                                )}
-                                            {store.adminViewMessages
-                                                .filter((pkg) => displayedNrs.includes(pkg.device_nr))
-                                                .map((pkg, idx) => {
-                                                    return (
-                                                        <Table.Row key={idx}>
-                                                            <Table.Cell collapsing>
-                                                                {pkg.device_id}:{pkg.device_nr}
-                                                            </Table.Cell>
-                                                            <Table.Cell collapsing>
-                                                                {pkg.time_stamp.toLocaleDateString()}
-                                                                <br />
-                                                                {`${pkg.time_stamp.toLocaleTimeString()}.${`${pkg.time_stamp.getMilliseconds()}`.padEnd(
-                                                                    3,
-                                                                    '0'
-                                                                )}`}
-                                                            </Table.Cell>
-                                                            <Table.Cell collapsing>{pkg.to}</Table.Cell>
-                                                            <Table.Cell collapsing>{pkg.type}</Table.Cell>
-                                                            <Table.Cell collapsing>
-                                                                <pre
-                                                                    style={{
-                                                                        overflowY: 'auto',
-                                                                        maxHeight: '10em',
-                                                                    }}
-                                                                >
-                                                                    <code>{pkg.raw}</code>
-                                                                </pre>
-                                                            </Table.Cell>
-                                                        </Table.Row>
-                                                    );
-                                                })}
-                                        </Table.Body>
-                                    )}
-                                </Table>
-                            </div>
-                        );
-                    })}
+                                    );
+                                })}
+                            </Table.Body>
+                        </Table>
+                    </div>
                 </div>
             </div>
         );

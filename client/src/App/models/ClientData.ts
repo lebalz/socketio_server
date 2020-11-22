@@ -18,16 +18,12 @@ export default class ClientData {
 
     @computed
     get rawAccData(): AccMsg[] {
-        return ((this.rawData.get(DataType.Acceleration) ?? []) as AccMsg[]).sort(
-            (a, b) => a.time_stamp - b.time_stamp
-        );
+        return (this.rawData.get(DataType.Acceleration) ?? []) as AccMsg[];
     }
 
     @computed
     get rawGyroData(): GyroMsg[] {
-        return ((this.rawData.get(DataType.Gyro) ?? []) as GyroMsg[]).sort(
-            (a, b) => a.time_stamp - b.time_stamp
-        );
+        return (this.rawData.get(DataType.Gyro) ?? []) as GyroMsg[];
     }
 
     @computed
@@ -48,73 +44,6 @@ export default class ClientData {
             }
         });
         return raw.sort((a, b) => b.time_stamp - a.time_stamp);
-    }
-
-    @computed
-    get adminViewMessages() {
-        return this.unchartableRawData.map((event, idx) => {
-            const ts = new Date(event.time_stamp * 1000);
-            let to = event.device_id;
-            if (event.broadcast) {
-                to = 'broadcast';
-            }
-            if (typeof event.unicast_to === 'number') {
-                to = `${event.unicast_to}`;
-            }
-            let raw = '';
-            switch (event.type) {
-                case DataType.Sprites:
-                    raw = `Updating ${event.sprites.length} sprites ${
-                        event.sprites.length < 5 ? event.sprites.map((s) => s.id).join(', ') : ''
-                    }`;
-                    break;
-                case DataType.Grid:
-                    if (
-                        !(
-                            typeof event.grid === 'string' ||
-                            (event.grid[0] && typeof event.grid[0] === 'string')
-                        )
-                    ) {
-                        if (event.grid.length > 20 && event.grid[0].length > 20) {
-                            raw = `${event.grid.length}x${event.grid[0].length} Grid`;
-                        }
-                    }
-                    if (raw === '') {
-                        raw = JSON.stringify(
-                            {
-                                ...event,
-                                type: undefined,
-                                time_stamp: undefined,
-                                device_id: undefined,
-                                device_nr: undefined,
-                            },
-                            null,
-                            1
-                        );
-                    }
-                    break;
-                default:
-                    raw = JSON.stringify(
-                        {
-                            ...event,
-                            type: undefined,
-                            time_stamp: undefined,
-                            device_id: undefined,
-                            device_nr: undefined,
-                        },
-                        null,
-                        1
-                    );
-            }
-            return {
-                device_id: event.device_id,
-                device_nr: event.device_nr,
-                time_stamp: ts,
-                to: to,
-                type: event.type,
-                raw: raw,
-            };
-        });
     }
 
     @computed

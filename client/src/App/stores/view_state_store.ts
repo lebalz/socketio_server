@@ -1,4 +1,4 @@
-import { Key } from './../../Shared/SharedTypings';
+import { DataType, Key } from './../../Shared/SharedTypings';
 import { observable, action, computed } from 'mobx';
 import { RootStore, Store } from './root_store';
 import { AccelerationData } from '../components/Controls/Sensors/AccelerationSensor';
@@ -71,6 +71,9 @@ class AdminState {
     showRaw: boolean = false;
     displayedStoreNrs = observable<{ nr: number; id: string }>([]);
     displayedStoreIds = observable.set<string>([]);
+    displayedTypes = observable.set<DataType>([]);
+    @observable
+    showAllDevices: boolean = false;
 }
 
 class PlaygroundState {
