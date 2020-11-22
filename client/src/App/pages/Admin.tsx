@@ -66,7 +66,7 @@ class Admin extends Component {
     }
 
     @computed
-    get deviceIds(): string[] {
+    get onlineDeviceIds(): string[] {
         return [...new Set<string>(this.devices.map((d) => d.deviceId))];
     }
 
@@ -163,7 +163,7 @@ class Admin extends Component {
     @computed
     get offlineDeviceIds(): string[] {
         const offDevices = [...this.injected.socketDataStore.dataStore.keys()].filter(
-            (d) => !this.deviceIds.includes(d)
+            (d) => !this.onlineDeviceIds.includes(d)
         );
         if (this.adminState.offlineDeviceId && !offDevices.includes(this.adminState.offlineDeviceId)) {
             offDevices.push(this.adminState.offlineDeviceId);
@@ -368,7 +368,10 @@ class Admin extends Component {
                             search
                             clearable
                             selection
-                            options={this.offlineDeviceIds.map((d) => ({ text: d, value: d }))}
+                            options={[...this.onlineDeviceIds, ...this.offlineDeviceIds].map((d) => ({
+                                text: d,
+                                value: d,
+                            }))}
                             onChange={(e, data) => {
                                 if (this.adminState.offlineDeviceId) {
                                     this.setDisplayStateForGroup(this.adminState.offlineDeviceId, false);

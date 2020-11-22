@@ -110,16 +110,19 @@ export default class SocketDataStore implements Store {
             const newNrs: { nr: number; id: string }[] = [];
             const newIds = new Set<string>([]);
             data.devices.forEach((d) => {
+                const displayAnyway =
+                    this.root.viewStateStore.adminState.showAllDevices ||
+                    this.root.viewStateStore.adminState.offlineDeviceId === d.device_id;
                 const oldDev = this.devices.find(
                     (oldD) => oldD.deviceId === d.device_id && oldD.deviceNr === d.device_nr
                 );
-                if (oldDev || this.root.viewStateStore.adminState.showAllDevices) {
+                if (oldDev || displayAnyway) {
                     const oldNr = oldDev
                         ? this.root.viewStateStore.adminState.displayedStoreNrs.find(
                               (dev) => dev.id === oldDev.deviceId && dev.nr === oldDev.deviceNr
                           )
                         : undefined;
-                    if (oldNr || this.root.viewStateStore.adminState.showAllDevices) {
+                    if (oldNr || displayAnyway) {
                         newNrs.push({
                             nr: d.device_nr,
                             id: d.device_id,
