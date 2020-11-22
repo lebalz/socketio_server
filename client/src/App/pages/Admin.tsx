@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Table, Button } from 'semantic-ui-react';
+import { Table, Button, Checkbox } from 'semantic-ui-react';
 import { inject, observer } from 'mobx-react';
 import ViewStateStore from '../stores/view_state_store';
 import SocketDataStore, { GLOBAL_LISTENER } from '../stores/socket_data_store';
@@ -7,6 +7,7 @@ import Nosleep from '../components/Nosleep';
 import { action, computed } from 'mobx';
 import LineGraph from '../components/LineGraph';
 import { DataType } from 'src/Shared/SharedTypings';
+import Device from '../models/Device';
 
 interface InjectedProps {
     viewStateStore: ViewStateStore;
@@ -46,10 +47,76 @@ class Admin extends Component {
     };
 
     @computed
-    get devices() {
+    get adminState() {
+        return this.injected.viewStateStore.adminState;
+    }
+
+    @computed
+    get devices(): Device[] {
         return this.injected.socketDataStore.devices
             .slice()
             .sort((a, b) => (a.deviceNr ?? 0) - (b.deviceNr ?? 0));
+    }
+
+    @computed
+    get globalListenerNrs(): number[] {
+        return this.devices
+            .filter((d) => d.deviceNr !== undefined && d.deviceId === GLOBAL_LISTENER)
+            .map((d) => d.deviceNr!);
+    }
+
+    @computed
+    get deviceIds(): string[] {
+        return [...new Set<string>(this.devices.map((d) => d.deviceId))];
+    }
+
+    @action
+    setGlobalDisplayState(on: boolean) {
+        if (on) {
+            const all = this.devices
+                .filter((d) => d.deviceId !== GLOBAL_LISTENER)
+                .map((d) => ({ nr: d.deviceNr ?? -999, id: d.deviceId }));
+            this.injected.viewStateStore.adminState.displayedStoreNrs.replace(all);
+        } else {
+            this.injected.viewStateStore.adminState.displayedStoreNrs.clear();
+        }
+    }
+
+    @action
+    setDisplayState(deviceId: string, deviceNr: number, on: boolean) {
+        if (this.globalListenerNrs.includes(deviceNr)) {
+            return;
+        }
+        const s = this.adminState.displayedStoreNrs.find((d) => d.nr === deviceNr);
+        if (on) {
+            if (!s) {
+                this.adminState.displayedStoreNrs.push({ nr: deviceNr, id: deviceId });
+            }
+        } else {
+            if (s) {
+                this.adminState.displayedStoreNrs.remove(s);
+            }
+        }
+    }
+
+    @action
+    setDisplayStateForGroup(deviceId: string, on: boolean) {
+        if (deviceId === GLOBAL_LISTENER) {
+            return;
+        }
+        if (on) {
+            this.injected.viewStateStore.adminState.displayedStoreIds.add(deviceId);
+        } else {
+            this.injected.viewStateStore.adminState.displayedStoreIds.delete(deviceId);
+        }
+        const store = this.injected.socketDataStore.dataStore.get(deviceId);
+        if (store) {
+            store.show = on;
+        }
+        const devices = this.devices.filter((d) => d.deviceId === deviceId);
+        devices.forEach((d) => {
+            this.setDisplayState(d.deviceId, d.deviceNr ?? -999, on);
+        });
     }
 
     render() {
@@ -70,21 +137,61 @@ class Admin extends Component {
                         color="red"
                     />
                     <Nosleep />
+                    <Checkbox
+                        slider
+                        onChange={(e, data) => {
+                            this.setGlobalDisplayState(!!data.checked);
+                        }}
+                        label="Show All"
+                    />
                 </span>
                 <Table celled striped compact unstackable>
                     <Table.Header>
                         <Table.Row>
-                            <Table.HeaderCell colSpan="4">Users</Table.HeaderCell>
+                            <Table.HeaderCell colSpan="1">Device Nr</Table.HeaderCell>
+                            <Table.HeaderCell colSpan="1">Device Id</Table.HeaderCell>
+                            <Table.HeaderCell colSpan="1">Type</Table.HeaderCell>
+                            <Table.HeaderCell colSpan="1">Socket Id</Table.HeaderCell>
                         </Table.Row>
                     </Table.Header>
                     <Table.Body>
                         {this.devices.map((device, idx) => {
+                            const activeId = this.adminState.displayedStoreIds.has(device.deviceId);
+                            const activeNr = !!this.adminState.displayedStoreNrs.find(
+                                (d) => d.nr === device.deviceNr && d.id === device.deviceId
+                            );
                             return (
                                 <Table.Row key={idx}>
-                                    <Table.Cell collapsing textAlign="right">
+                                    <Table.Cell
+                                        style={{ cursor: 'pointer' }}
+                                        className="no-text-select"
+                                        collapsing
+                                        textAlign="right"
+                                        selectable
+                                        positive={activeNr}
+                                        negative={activeId && !activeNr}
+                                        onClick={() => {
+                                            this.setDisplayState(
+                                                device.deviceId,
+                                                device.deviceNr ?? -999,
+                                                !activeNr
+                                            );
+                                        }}
+                                    >
                                         {device.deviceNr}
                                     </Table.Cell>
-                                    <Table.Cell collapsing>{device.deviceId}</Table.Cell>
+                                    <Table.Cell
+                                        className="no-text-select"
+                                        style={{ cursor: 'pointer' }}
+                                        collapsing
+                                        selectable
+                                        positive={activeId}
+                                        onClick={() => {
+                                            this.setDisplayStateForGroup(device.deviceId, !activeId);
+                                        }}
+                                    >
+                                        {device.deviceId}
+                                    </Table.Cell>
                                     <Table.Cell collapsing>
                                         {device.isClient ? 'Controller' : 'Read Only'}
                                     </Table.Cell>
@@ -95,7 +202,7 @@ class Admin extends Component {
                     </Table.Body>
                 </Table>
                 <div style={{ maxHeight: '90vh', overflowY: 'auto' }}>
-                    {[...this.injected.socketDataStore.dataStore.keys()].map((deviceId) => {
+                    {this.deviceIds.map((deviceId) => {
                         if (deviceId === GLOBAL_LISTENER) {
                             return null;
                         }
@@ -104,7 +211,11 @@ class Admin extends Component {
                             console.log('no store!!', deviceId);
                             return null;
                         }
+                        if (![...this.adminState.displayedStoreNrs].find((nr) => nr.id === deviceId)) {
+                            return null;
+                        }
                         const showAll = store.displayOptions.size === 0;
+                        const displayedNrs = this.adminState.displayedStoreNrs.map((nr) => nr.nr);
                         return (
                             <div
                                 key={deviceId}
@@ -117,10 +228,7 @@ class Admin extends Component {
                                 className="data-store-tables"
                             >
                                 <Table celled striped compact unstackable color="blue">
-                                    <Table.Header
-                                        onClick={() => (store.show = !store.show)}
-                                        style={{ cursor: 'pointer' }}
-                                    >
+                                    <Table.Header>
                                         <Table.Row>
                                             <Table.HeaderCell>{deviceId}</Table.HeaderCell>
                                             <Table.HeaderCell>Time</Table.HeaderCell>
@@ -184,92 +292,37 @@ class Admin extends Component {
                                                         </Table.HeaderCell>
                                                     </Table.Row>
                                                 )}
-                                            {store.unchartableRawData.map((event, idx) => {
-                                                const ts = new Date(event.time_stamp * 1000);
-                                                let to = event.device_id;
-                                                if (event.broadcast) {
-                                                    to = 'broadcast';
-                                                }
-                                                if (typeof event.unicast_to === 'number') {
-                                                    to = `${event.unicast_to}`;
-                                                }
-                                                let raw = '';
-                                                switch (event.type) {
-                                                    case DataType.Sprites:
-                                                        raw = `Updating ${event.sprites.length} sprites ${
-                                                            event.sprites.length < 5
-                                                                ? event.sprites.map((s) => s.id).join(', ')
-                                                                : ''
-                                                        }`;
-                                                        break;
-                                                    case DataType.Grid:
-                                                        if (
-                                                            !(
-                                                                typeof event.grid === 'string' ||
-                                                                (event.grid[0] &&
-                                                                    typeof event.grid[0] === 'string')
-                                                            )
-                                                        ) {
-                                                            if (
-                                                                event.grid.length > 20 &&
-                                                                event.grid[0].length > 20
-                                                            ) {
-                                                                raw = `${event.grid.length}x${event.grid[0].length} Grid`;
-                                                            }
-                                                        }
-                                                        if (raw === '') {
-                                                            raw = JSON.stringify(
-                                                                {
-                                                                    ...event,
-                                                                    type: undefined,
-                                                                    time_stamp: undefined,
-                                                                    device_id: undefined,
-                                                                    device_nr: undefined,
-                                                                },
-                                                                null,
-                                                                1
-                                                            );
-                                                        }
-                                                        break;
-                                                    default:
-                                                        raw = JSON.stringify(
-                                                            {
-                                                                ...event,
-                                                                type: undefined,
-                                                                time_stamp: undefined,
-                                                                device_id: undefined,
-                                                                device_nr: undefined,
-                                                            },
-                                                            null,
-                                                            1
-                                                        );
-                                                }
-                                                return (
-                                                    <Table.Row key={idx}>
-                                                        <Table.Cell collapsing>
-                                                            {event.device_id}:{event.device_nr}
-                                                        </Table.Cell>
-                                                        <Table.Cell
-                                                            collapsing
-                                                        >{`${ts.toLocaleTimeString()}.${`${ts.getMilliseconds()}`.padEnd(
-                                                            3,
-                                                            '0'
-                                                        )}`}</Table.Cell>
-                                                        <Table.Cell collapsing>{to}</Table.Cell>
-                                                        <Table.Cell collapsing>{event.type}</Table.Cell>
-                                                        <Table.Cell collapsing>
-                                                            <pre
-                                                                style={{
-                                                                    overflowY: 'auto',
-                                                                    maxHeight: '10em',
-                                                                }}
-                                                            >
-                                                                <code>{raw}</code>
-                                                            </pre>
-                                                        </Table.Cell>
-                                                    </Table.Row>
-                                                );
-                                            })}
+                                            {store.adminViewMessages
+                                                .filter((pkg) => displayedNrs.includes(pkg.device_nr))
+                                                .map((pkg, idx) => {
+                                                    return (
+                                                        <Table.Row key={idx}>
+                                                            <Table.Cell collapsing>
+                                                                {pkg.device_id}:{pkg.device_nr}
+                                                            </Table.Cell>
+                                                            <Table.Cell collapsing>
+                                                                {pkg.time_stamp.toLocaleDateString()}
+                                                                <br />
+                                                                {`${pkg.time_stamp.toLocaleTimeString()}.${`${pkg.time_stamp.getMilliseconds()}`.padEnd(
+                                                                    3,
+                                                                    '0'
+                                                                )}`}
+                                                            </Table.Cell>
+                                                            <Table.Cell collapsing>{pkg.to}</Table.Cell>
+                                                            <Table.Cell collapsing>{pkg.type}</Table.Cell>
+                                                            <Table.Cell collapsing>
+                                                                <pre
+                                                                    style={{
+                                                                        overflowY: 'auto',
+                                                                        maxHeight: '10em',
+                                                                    }}
+                                                                >
+                                                                    <code>{pkg.raw}</code>
+                                                                </pre>
+                                                            </Table.Cell>
+                                                        </Table.Row>
+                                                    );
+                                                })}
                                         </Table.Body>
                                     )}
                                 </Table>

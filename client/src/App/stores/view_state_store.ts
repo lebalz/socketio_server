@@ -69,6 +69,8 @@ class ColorGridState {
 class AdminState {
     @observable
     showRaw: boolean = false;
+    displayedStoreNrs = observable<{ nr: number; id: string }>([]);
+    displayedStoreIds = observable.set<string>([]);
 }
 
 class PlaygroundState {
