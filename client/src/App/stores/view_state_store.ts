@@ -69,13 +69,9 @@ class ColorGridState {
 class AdminState {
     @observable
     showRaw: boolean = false;
-    displayedStoreNrs = observable<{ nr: number; id: string }>([]);
-    displayedStoreIds = observable.set<string>([]);
-    @observable
-    offlineDeviceId?: string;
+    hiddenStoreNrs = observable.set<number>([]);
+    displayedDeviceIds = observable.set<string>([]);
     displayedTypes = observable.set<DataType>([]);
-    @observable
-    showAllDevices: boolean = false;
 }
 
 class PlaygroundState {

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Table, Button, Checkbox, Dropdown } from 'semantic-ui-react';
+import { Table, Button, Dropdown } from 'semantic-ui-react';
 import { inject, observer } from 'mobx-react';
 import ViewStateStore from '../stores/view_state_store';
 import SocketDataStore, { GLOBAL_LISTENER } from '../stores/socket_data_store';
@@ -70,68 +70,19 @@ class Admin extends Component {
         return [...new Set<string>(this.devices.map((d) => d.deviceId))];
     }
 
-    @computed
-    get displayedDeviceNrs(): Set<number> {
-        return new Set<number>(this.adminState.displayedStoreNrs.map((d) => d.nr));
-    }
-
-    @computed
-    get displayedDeviceIds(): Set<string> {
-        const set = new Set<string>(this.adminState.displayedStoreNrs.map((d) => d.id));
-        this.adminState.displayedStoreIds.forEach((id) => {
-            set.add(id);
-        });
-        return set;
-    }
-
     @action
-    setGlobalDisplayState(on: boolean) {
-        this.adminState.showAllDevices = on;
+    setGlobalDisplayState(on: boolean, offlineDevices: boolean = false) {
         if (on) {
-            const all = this.devices
-                .filter((d) => d.deviceId !== GLOBAL_LISTENER)
-                .map((d) => ({ nr: d.deviceNr ?? -999, id: d.deviceId }));
-            this.adminState.displayedStoreNrs.replace(all);
-        } else {
-            this.adminState.displayedStoreNrs.clear();
-        }
-    }
-
-    @action
-    setDisplayState(deviceId: string, deviceNr: number, on: boolean) {
-        if (this.globalListenerNrs.includes(deviceNr)) {
-            return;
-        }
-        const s = this.adminState.displayedStoreNrs.find((d) => d.nr === deviceNr);
-        if (on) {
-            if (!s) {
-                this.adminState.displayedStoreNrs.push({ nr: deviceNr, id: deviceId });
+            this.adminState.hiddenStoreNrs.clear();
+            if (offlineDevices) {
+                this.adminState.displayedDeviceIds.replace(this.deviceIdDropdownOptions);
+            } else {
+                this.adminState.displayedDeviceIds.replace(this.onlineDeviceIds);
             }
+            this.adminState.displayedDeviceIds.delete(GLOBAL_LISTENER);
         } else {
-            if (s) {
-                this.adminState.displayedStoreNrs.remove(s);
-            }
+            this.adminState.displayedDeviceIds.clear();
         }
-    }
-
-    @action
-    setDisplayStateForGroup(deviceId: string | undefined, on: boolean) {
-        if (deviceId === GLOBAL_LISTENER || deviceId === undefined) {
-            return;
-        }
-        if (on) {
-            this.adminState.displayedStoreIds.add(deviceId);
-        } else {
-            this.adminState.displayedStoreIds.delete(deviceId);
-        }
-        const store = this.injected.socketDataStore.dataStore.get(deviceId);
-        if (store) {
-            store.show = on;
-        }
-        const devices = this.devices.filter((d) => d.deviceId === deviceId);
-        devices.forEach((d) => {
-            this.setDisplayState(d.deviceId, d.deviceNr ?? -999, on);
-        });
     }
 
     @action
@@ -145,13 +96,8 @@ class Admin extends Component {
 
     @computed
     get typeOptions(): Set<DataType> {
-        const { displayedDeviceIds } = this;
         const types = new Set<DataType>([]);
-        const deviceIds = new Set<string>([...displayedDeviceIds]);
-        if (this.adminState.offlineDeviceId) {
-            deviceIds.add(this.adminState.offlineDeviceId);
-        }
-        deviceIds.forEach((deviceId) => {
+        this.adminState.displayedDeviceIds.forEach((deviceId) => {
             const store = this.injected.socketDataStore.dataStore.get(deviceId);
             if (store) {
                 [...store.rawData.keys()].forEach((t) => types.add(t as DataType));
@@ -161,21 +107,20 @@ class Admin extends Component {
     }
 
     @computed
-    get offlineDeviceIds(): string[] {
-        const offDevices = [...this.injected.socketDataStore.dataStore.keys()].filter(
-            (d) => !this.onlineDeviceIds.includes(d) && d !== GLOBAL_LISTENER
-        );
-        if (this.adminState.offlineDeviceId && !offDevices.includes(this.adminState.offlineDeviceId)) {
-            offDevices.push(this.adminState.offlineDeviceId);
-        }
-        return offDevices;
+    get deviceIdDropdownOptions(): Set<string> {
+        const opts = new Set([
+            ...this.injected.socketDataStore.dataStore.keys(),
+            ...this.devices.map((d) => d.deviceId),
+        ]);
+        opts.delete(GLOBAL_LISTENER);
+        return opts;
     }
 
     @computed
     get rawMessages(): ClientDataMsg[] {
-        const { displayedDeviceNrs, displayedDeviceIds } = this;
         const data: ClientDataMsg[] = [];
         const showAll = this.adminState.displayedTypes.size === 0;
+        const { displayedDeviceIds, hiddenStoreNrs } = this.adminState;
         displayedDeviceIds.forEach((deviceId) => {
             const store = this.injected.socketDataStore.dataStore.get(deviceId);
             if (store) {
@@ -185,7 +130,7 @@ class Admin extends Component {
                             data.push(
                                 ...pkgs.filter(
                                     (d) =>
-                                        displayedDeviceNrs.has(d.device_nr) ||
+                                        !hiddenStoreNrs.has(d.device_nr) &&
                                         displayedDeviceIds.has(d.device_id)
                                 )
                             );
@@ -199,7 +144,7 @@ class Admin extends Component {
                                 data.push(
                                     ...msgs.filter(
                                         (d) =>
-                                            displayedDeviceNrs.has(d.device_nr) ||
+                                            !hiddenStoreNrs.has(d.device_nr) &&
                                             displayedDeviceIds.has(d.device_id)
                                     )
                                 );
@@ -213,32 +158,34 @@ class Admin extends Component {
     }
 
     @computed
-    get accMessages(): { [key: string]: AccMsg[] } {
+    get accMessages(): Map<number, AccMsg[]> {
         const showAll = this.adminState.displayedTypes.size === 0;
         if (!showAll && !this.adminState.displayedTypes.has(DataType.Acceleration)) {
-            return {};
+            return new Map<number, AccMsg[]>();
         }
-        const { displayedDeviceNrs, displayedDeviceIds } = this;
-        const data: { [key: number]: AccMsg[] } = {};
-        displayedDeviceNrs.forEach((d) => (data[d] = []));
+        const { hiddenStoreNrs, displayedDeviceIds } = this.adminState;
+        const data = new Map<number, AccMsg[]>([]);
         displayedDeviceIds.forEach((deviceId) => {
             const store = this.injected.socketDataStore.dataStore.get(deviceId);
             if (store) {
                 store.rawAccData.forEach((msg) => {
-                    if (this.offlineDeviceIds.includes(msg.device_id) && data[msg.device_nr] === undefined) {
-                        data[msg.device_nr] = [];
+                    if (!hiddenStoreNrs.has(msg.device_nr)) {
+                        if (displayedDeviceIds.has(msg.device_id) && !data.has(msg.device_nr)) {
+                            data.set(msg.device_nr, []);
+                        }
                     }
-                    if (data[msg.device_nr] !== undefined) {
-                        data[msg.device_nr].push(msg);
-                    }
+                    data.get(msg.device_nr)?.push(msg);
                 });
             }
         });
-        displayedDeviceNrs.forEach((nr) => {
-            if (data[nr].length === 0) {
-                delete data[nr];
+        [...data.keys()].forEach((nr) => {
+            if (data.get(nr)?.length === 0) {
+                data.delete(nr);
             } else {
-                data[nr] = data[nr].sort((a, b) => a.time_stamp - b.time_stamp);
+                data.set(
+                    nr,
+                    data.get(nr)!.sort((a, b) => a.time_stamp - b.time_stamp)
+                );
             }
         });
 
@@ -246,29 +193,34 @@ class Admin extends Component {
     }
 
     @computed
-    get gyroMessages(): { [key: string]: GyroMsg[] } {
+    get gyroMessages(): Map<number, GyroMsg[]> {
         const showAll = this.adminState.displayedTypes.size === 0;
+        const data = new Map<number, GyroMsg[]>([]);
         if (!showAll && !this.adminState.displayedTypes.has(DataType.Gyro)) {
-            return {};
+            return data;
         }
-        const { displayedDeviceNrs, displayedDeviceIds } = this;
-        const data: { [key: number]: GyroMsg[] } = {};
-        displayedDeviceNrs.forEach((d) => (data[d] = []));
+        const { hiddenStoreNrs, displayedDeviceIds } = this.adminState;
         displayedDeviceIds.forEach((deviceId) => {
             const store = this.injected.socketDataStore.dataStore.get(deviceId);
             if (store) {
                 store.rawGyroData.forEach((msg) => {
-                    if (data[msg.device_nr] !== undefined) {
-                        data[msg.device_nr].push(msg);
+                    if (!hiddenStoreNrs.has(msg.device_nr)) {
+                        if (displayedDeviceIds.has(msg.device_id) && !data.has(msg.device_nr)) {
+                            data.set(msg.device_nr, []);
+                        }
                     }
+                    data.get(msg.device_nr)?.push(msg);
                 });
             }
         });
-        displayedDeviceNrs.forEach((nr) => {
-            if (data[nr].length === 0) {
-                delete data[nr];
+        [...data.keys()].forEach((nr) => {
+            if (data.get(nr)?.length === 0) {
+                data.delete(nr);
             } else {
-                data[nr] = data[nr].sort((a, b) => a.time_stamp - b.time_stamp);
+                data.set(
+                    nr,
+                    data.get(nr)!.sort((a, b) => a.time_stamp - b.time_stamp)
+                );
             }
         });
 
@@ -294,13 +246,11 @@ class Admin extends Component {
                         color="red"
                     />
                     <Nosleep />
-                    <Checkbox
-                        slider
-                        onChange={(e, data) => {
-                            this.setGlobalDisplayState(!!data.checked);
-                        }}
-                        checked={this.adminState.showAllDevices}
-                        label="Show All"
+                    <Button
+                        icon="mobile alternate"
+                        onClick={() => this.setGlobalDisplayState(true)}
+                        size="mini"
+                        content="Show All"
                     />
                 </span>
                 <Table celled striped compact unstackable>
@@ -314,10 +264,8 @@ class Admin extends Component {
                     </Table.Header>
                     <Table.Body>
                         {this.devices.map((device, idx) => {
-                            const activeId = this.adminState.displayedStoreIds.has(device.deviceId);
-                            const activeNr = !!this.adminState.displayedStoreNrs.find(
-                                (d) => d.nr === device.deviceNr && d.id === device.deviceId
-                            );
+                            const isIdActive = this.adminState.displayedDeviceIds.has(device.deviceId);
+                            const isNrHidden = this.adminState.hiddenStoreNrs.has(device.deviceNr);
                             return (
                                 <Table.Row key={idx}>
                                     <Table.Cell
@@ -326,14 +274,17 @@ class Admin extends Component {
                                         collapsing
                                         textAlign="right"
                                         selectable
-                                        positive={activeNr}
-                                        negative={activeId && !activeNr}
+                                        positive={isIdActive && !isNrHidden}
+                                        negative={isIdActive && isNrHidden}
                                         onClick={() => {
-                                            this.setDisplayState(
-                                                device.deviceId,
-                                                device.deviceNr ?? -999,
-                                                !activeNr
-                                            );
+                                            if (isNrHidden) {
+                                                this.adminState.hiddenStoreNrs.delete(device.deviceNr);
+                                            } else if (!isIdActive) {
+                                                this.adminState.displayedDeviceIds.add(device.deviceId);
+                                                this.adminState.hiddenStoreNrs.delete(device.deviceNr);
+                                            } else if (device.deviceNr !== undefined) {
+                                                this.adminState.hiddenStoreNrs.add(device.deviceNr);
+                                            }
                                         }}
                                     >
                                         {device.deviceNr}
@@ -343,9 +294,13 @@ class Admin extends Component {
                                         style={{ cursor: 'pointer' }}
                                         collapsing
                                         selectable
-                                        positive={activeId}
+                                        positive={isIdActive}
                                         onClick={() => {
-                                            this.setDisplayStateForGroup(device.deviceId, !activeId);
+                                            if (!isIdActive) {
+                                                this.adminState.displayedDeviceIds.add(device.deviceId);
+                                            } else {
+                                                this.adminState.displayedDeviceIds.delete(device.deviceId);
+                                            }
                                         }}
                                     >
                                         {device.deviceId}
@@ -360,26 +315,35 @@ class Admin extends Component {
                     </Table.Body>
                 </Table>
 
-                {this.offlineDeviceIds.length > 0 && (
+                {this.deviceIdDropdownOptions.size > 0 && (
                     <div>
-                        <h3>All Devices</h3>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <h3>All Devices</h3>
+                            <Button
+                                icon="mobile alternate"
+                                onClick={() => this.setGlobalDisplayState(true, true)}
+                                size="mini"
+                                content="Show All"
+                            />
+                        </div>
                         <Dropdown
                             placeholder="Devices"
                             search
                             clearable
+                            fluid
                             selection
-                            options={[...this.onlineDeviceIds, ...this.offlineDeviceIds]
-                                .filter((did) => did !== GLOBAL_LISTENER)
-                                .map((d) => ({
-                                    text: d,
-                                    value: d,
-                                }))}
+                            multiple
+                            options={[...this.deviceIdDropdownOptions].map((d) => ({
+                                text: d,
+                                value: d,
+                            }))}
+                            value={[...this.adminState.displayedDeviceIds]}
                             onChange={(e, data) => {
-                                if (this.adminState.offlineDeviceId) {
-                                    this.setDisplayStateForGroup(this.adminState.offlineDeviceId, false);
+                                if (typeof data.value === 'string') {
+                                    return;
                                 }
-                                this.setDisplayStateForGroup(data.value as string, true);
-                                this.adminState.offlineDeviceId = data.value as string;
+                                const opts = (data.value ?? []) as string[];
+                                this.adminState.displayedDeviceIds.replace(new Set(opts));
                             }}
                         />
                     </div>
@@ -405,10 +369,10 @@ class Admin extends Component {
                         })}
                     </Button.Group>
                     <div>
-                        {Object.keys(this.accMessages).length > 0 && <h3>Accelerometer</h3>}
-                        {Object.keys(this.accMessages).map((deviceNr) => {
-                            const len = this.accMessages[deviceNr]?.length ?? 1;
-                            const last = this.accMessages[deviceNr][len - 1];
+                        {this.accMessages.size > 0 && <h3>Accelerometer</h3>}
+                        {[...this.accMessages.keys()].map((deviceNr) => {
+                            const len = this.accMessages.get(deviceNr)!.length ?? 1;
+                            const last = this.accMessages.get(deviceNr)![len - 1];
                             const ts = last ? new Date(last.time_stamp * 1000) : new Date(0);
                             return (
                                 <div key={deviceNr}>
@@ -420,7 +384,7 @@ class Admin extends Component {
                                     </span>
                                     <LineGraph
                                         type="acc"
-                                        data={this.accMessages[deviceNr]}
+                                        data={this.accMessages.get(deviceNr)!}
                                         width={Math.min(500, this.state.windowWidth)}
                                     />
                                 </div>
@@ -428,10 +392,10 @@ class Admin extends Component {
                         })}
                     </div>
                     <div>
-                        {Object.keys(this.gyroMessages).length > 0 && <h3>Gyrometer</h3>}
-                        {Object.keys(this.gyroMessages).map((deviceNr) => {
-                            const len = this.gyroMessages[deviceNr]?.length ?? 1;
-                            const last = this.gyroMessages[deviceNr][len - 1];
+                        {this.gyroMessages.size > 0 && <h3>Gyrometer</h3>}
+                        {[...this.gyroMessages.keys()].map((deviceNr) => {
+                            const len = this.gyroMessages.get(deviceNr)!.length ?? 1;
+                            const last = this.gyroMessages.get(deviceNr)![len - 1];
                             const ts = last ? new Date(last.time_stamp * 1000) : new Date(0);
                             return (
                                 <div key={deviceNr}>
@@ -443,7 +407,7 @@ class Admin extends Component {
                                     </span>
                                     <LineGraph
                                         type="gyro"
-                                        data={this.gyroMessages[deviceNr]}
+                                        data={this.gyroMessages.get(deviceNr)!}
                                         width={Math.min(500, this.state.windowWidth)}
                                     />
                                 </div>
