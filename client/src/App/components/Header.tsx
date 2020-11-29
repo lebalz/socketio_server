@@ -17,6 +17,11 @@ export default class Header extends React.Component {
         return this.props as InjectedProps;
     }
     render() {
+        const noNav = new URLSearchParams(window.location.search).get('no_nav');
+        const noHeader = new URLSearchParams(window.location.search).get('no_header');
+        if (noNav || noHeader) {
+            return null;
+        }
         const { viewStateStore, socketDataStore } = this.injected;
         return (
             <div className="header-bar">

@@ -34,11 +34,11 @@ const AppContent = observer(() => (
                 <Header />
                 <Switch>
                     <Route exact path="/" component={() => <Home />} />
-                    <Route path="/controller/:device_id?" component={() => <Controller />} />
-                    <Route path="/color_panel/:device_id?" component={() => <ColorPanel />} />
-                    <Route path="/color_grid/:device_id?" component={() => <ColorGrid />} />
-                    <Route path="/admin/:device_id?" component={() => <Admin />} />
-                    <Route path="/playground/:device_id?" component={() => <Playground />} />
+                    <Route path="/controller" component={() => <Controller />} />
+                    <Route path="/color_panel" component={() => <ColorPanel />} />
+                    <Route path="/color_grid" component={() => <ColorGrid />} />
+                    <Route path="/admin" component={() => <Admin />} />
+                    <Route path="/playground" component={() => <Playground />} />
                 </Switch>
             </div>
         </Router>
