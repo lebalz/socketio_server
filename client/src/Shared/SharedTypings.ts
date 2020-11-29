@@ -469,11 +469,19 @@ export enum ImageFormats {
     SVG = 'svg',
 }
 
-export interface SocketImage {
+interface RasterImage {
     image: ArrayBuffer;
-    type: ImageFormats;
+    type: ImageFormats.JPEG | ImageFormats.JPG | ImageFormats.PNG;
     name: string;
 }
+
+interface SvgImage {
+    image: string;
+    type: ImageFormats.SVG;
+    name: string;
+}
+
+export type SocketImage = RasterImage | SvgImage;
 
 export interface PlaygroundConfig {
     width?: number;

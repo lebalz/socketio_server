@@ -6,6 +6,7 @@ import {
     SpriteRemoved,
     SocketImage,
     SpriteOut,
+    ImageFormats,
 } from './../../Shared/SharedTypings';
 import { Sprite as SpriteProps, Line as LineProps } from '../../Shared/SharedTypings';
 import Sprite from './Sprite';
@@ -16,9 +17,28 @@ import { action, computed, observable } from 'mobx';
 
 export const REFRESH_RATE = 5;
 
+const IMG_CONTENT_TYPE: { [key in ImageFormats]: string } = {
+    [ImageFormats.JPEG]: 'jpeg',
+    [ImageFormats.JPG]: 'jpg',
+    [ImageFormats.PNG]: 'png',
+    [ImageFormats.SVG]: 'svg+xml',
+};
+const IMG_ENCODING: { [key in ImageFormats]: string } = {
+    [ImageFormats.JPEG]: 'base64',
+    [ImageFormats.JPG]: 'base64',
+    [ImageFormats.PNG]: 'base64',
+    [ImageFormats.SVG]: 'utf8',
+};
+
 function toBase64(data: SocketImage) {
-    const base64 = Buffer.from(data.image).toString('base64');
-    return `data:image/${data.type};base64,${base64}`;
+    const enc = IMG_ENCODING[data.type];
+    let rawImg = '';
+    if (data.type === ImageFormats.SVG) {
+        rawImg = encodeURIComponent(data.image);
+    } else {
+        rawImg = Buffer.from(data.image).toString('base64');
+    }
+    return `data:image/${IMG_CONTENT_TYPE[data.type]};${enc},${rawImg}`;
 }
 
 export class Playground implements IBoundingBox {
