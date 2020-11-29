@@ -580,6 +580,18 @@ export interface Sprite {
     form?: SpriteForm;
     color?: string;
     border_color?: string;
+    border_width?: number;
+    border_style?:
+        | 'dotted'
+        | 'dashed'
+        | 'solid'
+        | 'double'
+        | 'groove'
+        | 'ridge'
+        | 'inset'
+        | 'outset'
+        | 'none'
+        | 'hidden';
     collision_detection?: boolean;
     clickable?: boolean;
     text?: string;

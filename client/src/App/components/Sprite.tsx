@@ -83,18 +83,27 @@ class Sprite extends React.Component<Props> {
             width,
             color,
             borderColor,
+            borderStyle,
+            borderWidth,
             rotate,
             zIndex,
         } = this.props.sprite;
+        let borderW = borderWidth ?? 1 / scaleX;
+        if (borderW > Math.min(width, height) / 2) {
+            borderW = Math.min(width, height) / 2;
+        }
         return (
             <div
                 style={{
                     width: width * scaleX,
                     height: height * scaleX,
                     backgroundColor: color ? color : this.state.isClicked ? 'gray' : undefined,
-                    border: borderColor ? `1px solid ${borderColor}` : undefined,
+                    border: borderColor
+                        ? `${borderW * scaleX}px ${borderStyle ?? 'solid'} ${borderColor}`
+                        : undefined,
                     left: (left - this.shiftX) * scaleX,
                     bottom: (bottom - this.shiftY) * scaleX,
+                    boxSizing: 'border-box',
                     lineHeight: `${height * scaleX}px`,
                     filter: this.state.isClicked ? 'brightness(85%)' : undefined,
                     transform: rotate ? `rotate(${rotate}deg)` : undefined,

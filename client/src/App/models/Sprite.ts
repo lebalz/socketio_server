@@ -142,6 +142,12 @@ export default class Sprite extends BoundingBox {
     borderColor?: string;
 
     @observable
+    borderWidth?: number;
+
+    @observable
+    borderStyle?: string;
+
+    @observable
     clickable: boolean;
 
     @observable
@@ -181,6 +187,8 @@ export default class Sprite extends BoundingBox {
         }
         this.color = santizieColors(sprite.color);
         this.borderColor = santizieColors(sprite.border_color);
+        this.borderWidth = sprite.border_width;
+        this.borderStyle = sprite.border_style;
         this.clickable = !!sprite.clickable;
         this.text = sprite.text;
         this.fontColor = santizieColors(sprite.font_color);
@@ -272,6 +280,12 @@ export default class Sprite extends BoundingBox {
         }
         if (sprite.border_color !== undefined) {
             this.borderColor = santizieColors(sprite.border_color);
+        }
+        if (sprite.border_width !== undefined) {
+            this.borderWidth = sprite.border_width;
+        }
+        if (sprite.border_style !== undefined) {
+            this.borderStyle = sprite.border_style;
         }
         if (sprite.form !== undefined) {
             this.form = sprite.form;
