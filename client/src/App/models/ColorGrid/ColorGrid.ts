@@ -29,6 +29,9 @@ const to2dArray = (grid: CssColor[][] | CssColor[] | string): CssColor[][] => {
         const colorGrid = (grid as string[]).map((line) => [...line]);
         return to2dArray(colorGrid);
     }
+    if (typeof grid[0] !== 'object') {
+        return [grid] as CssColor[][];
+    }
     return grid as CssColor[][];
 };
 
