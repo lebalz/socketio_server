@@ -10,6 +10,7 @@ import {
 } from './../../Shared/SharedTypings';
 import { Sprite as SpriteProps, Line as LineProps } from '../../Shared/SharedTypings';
 import Sprite from './Sprite';
+import Audio from './Audio';
 import Line from './Line';
 import SocketDataStore, { timeStamp } from '../stores/socket_data_store';
 import { IBoundingBox } from './BoundingBox';
@@ -63,6 +64,7 @@ export class Playground implements IBoundingBox {
     anchor: [x: number, y: number] = [0, 0];
 
     images = observable.map<string, string>();
+    audioTracks = observable.map<string, Audio>();
 
     sprites = observable<Sprite>([]);
     lines = observable<Line>([]);
@@ -104,6 +106,11 @@ export class Playground implements IBoundingBox {
     @computed
     get isRunning(): boolean {
         return !!this.updateTimer;
+    }
+
+    @computed
+    get trackNames(): string[] {
+        return [...this.audioTracks.keys()];
     }
 
     @action
@@ -243,6 +250,9 @@ export class Playground implements IBoundingBox {
         if (config.image !== undefined) {
             this.image = config.image;
         }
+        config.audio_tracks?.forEach((track) => {
+            this.audioTracks.set(track.name, new Audio(this, track));
+        });
     }
 
     @computed

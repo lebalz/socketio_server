@@ -10,6 +10,7 @@ import { KeyControlListener, KeyData } from '../components/Controls/KeyControls'
 import ViewStateStore from '../stores/view_state_store';
 import { inject, observer } from 'mobx-react';
 import { action, computed, IReactionDisposer, reaction } from 'mobx';
+import AudioTrack from '../components/AudioTrack';
 
 type IOverload = {
     (data: AccelerationData): void;
@@ -195,6 +196,12 @@ class Playground extends React.Component {
                         })}
                         {this.playground?.lines.map((line) => {
                             return <Line line={line} scaleX={this.scaleX} key={`line-${line.id}`} />;
+                        })}
+                        {this.playground?.trackNames.map((track) => {
+                            const audio = this.playground?.audioTracks.get(track);
+                            return audio?.playing.map((p, i) => {
+                                return <AudioTrack audio={p} key={i} />;
+                            });
                         })}
                     </div>
                 </div>

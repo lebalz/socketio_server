@@ -37,10 +37,13 @@ class AutoMovement {
     @observable
     initY: number;
 
+    @observable
+    weight: number = 0;
+
     currentX: number;
     currentY: number;
 
-    @observable.ref
+    @observable
     direction: [x: number, y: number];
 
     onDone: () => void;

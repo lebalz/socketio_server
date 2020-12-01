@@ -211,6 +211,30 @@ export default class ClientData {
             case DataType.GridUpdate:
                 this.colorGrid.update(data);
                 break;
+            case DataType.StartAudio:
+                const track = this.playground.audioTracks.get(data.name);
+                if (track) {
+                    track.play(
+                        data.id ?? `volume${Math.floor(Math.random() * 899) + 100}`,
+                        data.repeat,
+                        data.volume
+                    );
+                }
+                break;
+            case DataType.StopAudio:
+                if (!data.name) {
+                    this.playground.audioTracks.forEach((t) => t.stopAll());
+                    return;
+                }
+                const trackc = this.playground.audioTracks.get(data.name);
+                if (trackc) {
+                    if (data.id) {
+                        trackc.stop(data.id);
+                    } else {
+                        trackc.stopAll();
+                    }
+                }
+                break;
         }
     }
 

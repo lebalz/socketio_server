@@ -188,6 +188,8 @@ export enum DataType {
     Line = 'line',
     Lines = 'lines',
     RemoveLine = 'remove_line',
+    StartAudio = 'start_audio',
+    StopAudio = 'stop_audio',
 }
 
 export type ClientsData = {
@@ -391,7 +393,9 @@ export type ClientDataMsg =
     | LinesMsg
     | RemoveLineMsg
     | UnknownMsg
-    | CancelUserInputMsg;
+    | CancelUserInputMsg
+    | StartAudioMsg
+    | StopAudioMsg;
 
 export type PartialDataMsg = Partial<ClientDataMsg>;
 
@@ -482,6 +486,17 @@ interface SvgImage {
 }
 
 export type SocketImage = RasterImage | SvgImage;
+export enum AudioFormats {
+    MP3 = 'mp3',
+    OGG = 'ogg',
+    WAV = 'wav',
+}
+export interface SocketAudio {
+    audio: ArrayBuffer;
+    name: string;
+    type: AudioFormats;
+    volume?: number;
+}
 
 export interface PlaygroundConfig {
     width?: number;
@@ -490,6 +505,7 @@ export interface PlaygroundConfig {
     shift_y?: number;
     color?: string;
     images?: SocketImage[];
+    audio_tracks?: SocketAudio[];
     image?: string;
 }
 
@@ -554,6 +570,20 @@ export interface LinesMsg extends DataMsg {
     lines: Line[];
 }
 
+export interface StartAudioMsg extends DataMsg {
+    type: DataType.StartAudio;
+    name: string;
+    repeat?: boolean;
+    id?: string;
+    volume?: number;
+}
+
+export interface StopAudioMsg extends DataMsg {
+    type: DataType.StopAudio;
+    name?: string;
+    id?: string;
+}
+
 export interface LineMsg extends DataMsg {
     type: DataType.Line;
     line: Line;
@@ -562,6 +592,11 @@ export interface LineMsg extends DataMsg {
 export interface RemoveLineMsg extends DataMsg {
     type: DataType.RemoveLine;
     id: string;
+}
+
+export interface Audio {
+    name: string;
+    repeat?: number;
 }
 
 export interface Sprite {
