@@ -21,13 +21,19 @@ export const REFRESH_RATE = 5;
 const IMG_CONTENT_TYPE: { [key in ImageFormats]: string } = {
     [ImageFormats.JPEG]: 'jpeg',
     [ImageFormats.JPG]: 'jpg',
+    [ImageFormats.BMP]: 'bmp',
+    [ImageFormats.WEBP]: 'webp',
     [ImageFormats.PNG]: 'png',
+    [ImageFormats.GIF]: 'gif',
     [ImageFormats.SVG]: 'svg+xml',
 };
 const IMG_ENCODING: { [key in ImageFormats]: string } = {
     [ImageFormats.JPEG]: 'base64',
     [ImageFormats.JPG]: 'base64',
+    [ImageFormats.GIF]: 'base64',
     [ImageFormats.PNG]: 'base64',
+    [ImageFormats.BMP]: 'base64',
+    [ImageFormats.WEBP]: 'base64',
     [ImageFormats.SVG]: 'utf8',
 };
 
