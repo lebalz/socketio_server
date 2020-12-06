@@ -162,7 +162,10 @@ class Playground extends React.Component {
                         on
                     />
                     <GyroSensor simulate={this.playgroundState.simulateSensor} onData={this.onData} on />
-                    <KeyControlListener onData={this.onData} />
+                    <KeyControlListener
+                        onData={this.onData}
+                        preventKeyDefaults={!this.injected.viewStateStore.deviceIdPromptOpen}
+                    />
                 </div>
                 <div
                     className="playground-container"

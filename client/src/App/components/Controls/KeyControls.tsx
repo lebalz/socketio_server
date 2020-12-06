@@ -8,11 +8,12 @@ interface Props {
     keys?: Key[];
     hideControls?: boolean;
     onData: (data: KeyData) => void;
+    preventKeyDefaults: boolean;
 }
 
 export interface KeyData {
     type: DataType.Key;
-    key: Key;
+    key: Key | string;
 }
 
 interface State {
@@ -47,20 +48,19 @@ class KeyControls extends Component<Props> implements IController<KeyData> {
         this.setState({ active: activeState });
     }
 
-    onData(action: Key) {
-        if (!this.keys.has(action)) {
-            return;
-        }
+    onData(action: Key | string) {
         const data: KeyData = {
             key: action,
             type: DataType.Key,
         };
-        this.setActive(action, true);
-        setTimeout(() => {
-            if (this._isMounted) {
-                this.setActive(action, false);
-            }
-        }, 200);
+        if (this.keys.has(action)) {
+            this.setActive(action as Key, true);
+            setTimeout(() => {
+                if (this._isMounted) {
+                    this.setActive(action as Key, false);
+                }
+            }, 200);
+        }
         this.props.onData(data);
     }
 
@@ -78,6 +78,9 @@ class KeyControls extends Component<Props> implements IController<KeyData> {
         }
     }
     onKeyDown = (e: KeyboardEvent) => {
+        if (!this.props.preventKeyDefaults) {
+            return;
+        }
         switch (e.code) {
             case 'Space':
             case 'ArrowRight':
@@ -92,6 +95,9 @@ class KeyControls extends Component<Props> implements IController<KeyData> {
         }
     };
     onKey = (e: KeyboardEvent) => {
+        if (!this.props.preventKeyDefaults) {
+            return;
+        }
         switch (e.code) {
             case 'Space':
                 return this.onData(Key.Home);
@@ -105,20 +111,26 @@ class KeyControls extends Component<Props> implements IController<KeyData> {
                 return this.onData(Key.Down);
             case 'F1':
             case 'Digit1':
+                this.onData(e.key);
                 return this.onData(Key.F1);
             case 'F2':
             case 'Digit2':
+                this.onData(e.key);
                 return this.onData(Key.F2);
             case 'F3':
             case 'Digit3':
+                this.onData(e.key);
                 return this.onData(Key.F3);
             case 'F4':
             case 'Digit4':
+                this.onData(e.key);
                 return this.onData(Key.F4);
+            default:
+                return this.onData(e.key);
         }
     };
 
-    get keys(): Set<Key> {
+    get keys(): Set<Key | string> {
         return new Set(this.props.keys ?? [...ARROW_CONTROLS, ...F_KEY_CONTROLS]);
     }
 
@@ -173,6 +185,7 @@ class KeyControls extends Component<Props> implements IController<KeyData> {
 export default KeyControls;
 interface KeyListenerProps {
     onData: (data: KeyData) => void;
+    preventKeyDefaults: boolean;
 }
 export class KeyControlListener extends Component<KeyListenerProps> implements IController<KeyData> {
     state = { on: true };
@@ -187,7 +200,13 @@ export class KeyControlListener extends Component<KeyListenerProps> implements I
     render() {
         return (
             <Fragment>
-                {this.state.on && <KeyControls hideControls onData={(data: KeyData) => this.onData(data)} />}
+                {this.state.on && (
+                    <KeyControls
+                        preventKeyDefaults={this.props.preventKeyDefaults}
+                        hideControls
+                        onData={(data: KeyData) => this.onData(data)}
+                    />
+                )}
                 <Checkbox checked={this.state.on} onClick={this.toggle} label="Key" />
             </Fragment>
         );

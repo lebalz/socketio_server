@@ -114,7 +114,10 @@ class Controller extends Component {
         return (
             <Fragment>
                 <h1>Controller</h1>
-                <KeyControls onData={this.onKeyData} />
+                <KeyControls
+                    onData={this.onKeyData}
+                    preventKeyDefaults={!this.injected.viewStateStore.deviceIdPromptOpen}
+                />
                 <Segment>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <Form.Field>

@@ -18,7 +18,7 @@ class ControllerState {
     lastAccValues = observable<AccelerationData>([]);
     lastGyroValues = observable<GyroData>([]);
     @observable
-    lastCommands: { timeStamp: number; key: Key }[] = observable([]);
+    lastCommands: { timeStamp: number; key: Key | string }[] = observable([]);
     @observable
     showLogs: boolean = true;
 
