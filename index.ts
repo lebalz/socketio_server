@@ -114,9 +114,23 @@ function devicesPkg(): DevicesPkg {
 let deviceNrAssginmentLocked = false;
 
 let sequenceId = 0;
-function nextSequenceId(): string {
-    sequenceId = sequenceId + 1;
-    return `s-${sequenceId}`;
+function nextSequenceId(deviceId: string, spriteId: string): string {
+    try {
+        if (!trackAutoMovementBroadcasts[deviceId]) {
+            trackAutoMovementBroadcasts[deviceId] = new Map<string, Set<string>>();
+        }
+        /** ugly as hell, but easy to keep track of sequence ids per sprite
+         * without having to deal extra with removed/updated sprites... */
+        if (!trackAutoMovementBroadcasts[deviceId].has('__id_counter')) {
+            trackAutoMovementBroadcasts[deviceId].set('__id_counter', 0 as any);
+        }
+        sequenceId = ((trackAutoMovementBroadcasts[deviceId].get('__id_counter') as any) as number) + 1;
+        trackAutoMovementBroadcasts[deviceId].set('__id_counter', sequenceId as any);
+        return `s-${sequenceId}`;
+    } catch (err) {
+        console.log(err);
+        return 's-0';
+    }
 }
 
 function nextDeviceNr(is_client: boolean): number {
@@ -172,7 +186,7 @@ function addDataToStore(deviceId: string, data: ClientDataMsg) {
         case DataType.Sprites:
             data.sprites.forEach((s) => {
                 if (s.movements) {
-                    s.movements.movements.forEach((m) => (m.id = nextSequenceId()));
+                    s.movements.movements.forEach((m) => (m.id = nextSequenceId(deviceId, s.id)));
                 }
                 addDataToStore(deviceId, {
                     type: DataType.Sprite,
@@ -293,7 +307,7 @@ function addDataToStore(deviceId: string, data: ClientDataMsg) {
         // update sprites which are already present...
         const sprite_store = store as SpriteMsg[];
         if (data.sprite.movements) {
-            data.sprite.movements.movements.forEach((m) => (m.id = nextSequenceId()));
+            data.sprite.movements.movements.forEach((m) => (m.id = nextSequenceId(deviceId, data.sprite.id)));
         }
         const prevIdx = sprite_store.findIndex((s) => s.sprite.id === data.sprite.id);
         if (prevIdx >= 0) {
