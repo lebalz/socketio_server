@@ -555,6 +555,20 @@ export interface SpriteRemovedMsg extends DataMsg, SpriteRemoved {
     time_stamp: number;
 }
 
+export interface AutoMovement {
+    direction: [x: number, y: number];
+    speed: number;
+    distance?: number;
+    time_span?: number;
+}
+
+export interface SpriteAutoMovement {
+    movements: AutoMovement[];
+    cycle?: boolean;
+    repeat?: number;
+    exit_on_done?: boolean;
+}
+
 export interface Line {
     id: string;
     x1: number;
@@ -643,6 +657,7 @@ export interface Sprite {
     image?: string;
     rotate?: number;
     z_index?: number;
+    movements?: SpriteAutoMovement;
 }
 
 export interface SpriteMsg extends DataMsg {

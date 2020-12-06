@@ -10,7 +10,7 @@ import {
 } from '../../Shared/SharedTypings';
 import { timeStamp } from '../stores/socket_data_store';
 import { BoundingBox } from './BoundingBox';
-import { AutoMovement } from './AutoMovement';
+import { AutoMovementSequencer } from './AutoMovement';
 
 export function santizieColors(color?: string | number): string | undefined {
     if (color === undefined) {
@@ -74,7 +74,7 @@ export default class Sprite extends BoundingBox {
     rotate?: number;
 
     @observable.ref
-    autoMovement: AutoMovement;
+    autoMovement: AutoMovementSequencer;
 
     constructor(playground: Playground, sprite: SpriteProps) {
         super({
@@ -88,7 +88,7 @@ export default class Sprite extends BoundingBox {
         this.playground = playground;
         this.id = sprite.id;
         this.collisionDetection = sprite.collision_detection ?? false;
-        this.autoMovement = new AutoMovement(sprite, this.onPositionChanges, this.done);
+        this.autoMovement = new AutoMovementSequencer(sprite, this.onPositionChanges, this.done);
         this.form = sprite.form ?? SpriteForm.Rectangle;
         if (this.form === SpriteForm.Round && sprite.anchor === undefined) {
             this.anchor = [0.5, 0.5];
