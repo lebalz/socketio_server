@@ -264,7 +264,21 @@ function addDataToStore(deviceId: string, data: ClientDataMsg) {
             if (prevIdx >= 0) {
                 const prev = sStore.splice(prevIdx, 1)[0];
                 prev.time_stamp = data.time_stamp;
-                prev.sprite = { ...prev.sprite, pos_x: data.x, pos_y: data.y, movements: undefined };
+                let removeMovements = false;
+                if (prev.sprite.movements?.repeat !== undefined) {
+                    prev.sprite.movements.repeat = prev.sprite.movements.repeat - 1;
+                    if (prev.sprite.movements.repeat < 0) {
+                        removeMovements = true;
+                    }
+                } else if (!prev.sprite.movements?.cycle) {
+                    removeMovements = true;
+                }
+                prev.sprite = {
+                    ...prev.sprite,
+                    pos_x: data.x,
+                    pos_y: data.y,
+                    movements: removeMovements ? undefined : prev.sprite.movements,
+                };
                 sStore.push(prev);
             }
             return;
