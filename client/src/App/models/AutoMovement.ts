@@ -21,10 +21,10 @@ export class AutoMovement {
     movementSequenceSize: number;
     movementsCount: number = 0;
     onDone: (self: AutoMovement) => void;
-    fixPosition: () => void;
+    fixPosition: (movementId?: string) => void;
     constructor(
         sprite: SpriteAutoMovementProps,
-        fixPosition: () => void,
+        fixPosition: (movementId?: string) => void,
         onDone: (self: AutoMovement) => void,
         initMovement: boolean = false
     ) {
@@ -35,7 +35,13 @@ export class AutoMovement {
             this.movements = sprite.movements;
         } else {
             sprite.movements.forEach((m) => {
-                if (
+                if (m.movement === 'absolute') {
+                    if ((m.speed && m.speed !== 0) || m.time !== undefined) {
+                        this.movements.push(m);
+                    } else {
+                        console.warn('No speed or time_span specified. The movement was removed:', m);
+                    }
+                } else if (
                     ((m.direction[0] !== 0 || m.direction[1] !== 0) && m.speed !== 0) ||
                     (m.time_span && m.time_span > 0)
                 ) {
@@ -64,6 +70,9 @@ export class AutoMovement {
         if (this.movements.length === 0) {
             return false;
         }
+        if (this.movements[0].movement === 'absolute') {
+            return true;
+        }
         return (
             (this.movements[0].direction[0] !== 0 || this.movements[0].direction[1] !== 0) &&
             this.movements[0].speed !== 0
@@ -81,19 +90,48 @@ export class AutoMovement {
         if (this.hasMovement) {
             return true;
         }
-        if (this.currentMovement?.time_span && this.currentMovement.time_span > 0) {
-            return true;
+        if (!this.currentMovement) {
+            return false;
+        }
+        switch (this.currentMovement.movement) {
+            case 'absolute':
+                if (this.currentMovement.time !== undefined) {
+                    return true;
+                }
+                if (this.currentMovement.speed && this.currentMovement.speed !== 0) {
+                    return true;
+                }
+                break;
+            case 'relative':
+                if (this.currentMovement.time_span && this.currentMovement.time_span > 0) {
+                    return true;
+                }
+                break;
         }
         return false;
     }
 
     updated(props: Partial<RawAutoMovement>, movementIdx: number = 0): RawAutoMovement {
-        const copy: RawAutoMovement = {
-            direction: [...this.movements[movementIdx].direction],
-            speed: this.movements[movementIdx].speed,
-            time_span: this.movements[movementIdx].time_span,
-            distance: this.movements[movementIdx].distance,
-        };
+        const current = this.movements[movementIdx];
+        let copy: RawAutoMovement;
+        if (current.movement === 'absolute') {
+            copy = {
+                movement: 'absolute',
+                id: props.id!,
+                to: [...current.to],
+                speed: current.speed,
+                time: current.time,
+            };
+        } else {
+            copy = {
+                movement: 'relative',
+                id: props.id!,
+                direction: [...current.direction],
+                speed: current.speed,
+                time_span: current.time_span,
+                distance: current.distance,
+            };
+        }
         for (const [key, value] of Object.entries(props)) {
             if (value !== undefined) {
                 (copy as any)[key] = value as any;
@@ -109,13 +147,25 @@ export class AutoMovement {
 
     @action
     start() {
-        if (this.currentMovement?.time_span) {
-            const dt = this.pausedTime - this.startTime;
-            if (dt > 0) {
-                this.currentMovement.time_span -= dt;
-            }
+        switch (this.currentMovement?.movement) {
+            case 'absolute':
+                if (this.currentMovement?.time) {
+                    const dt = this.pausedTime - this.startTime;
+                    if (dt > 0) {
+                        this.currentMovement.time -= dt;
+                    }
+                }
+                break;
+            case 'relative':
+                if (this.currentMovement?.time_span) {
+                    const dt = this.pausedTime - this.startTime;
+                    if (dt > 0) {
+                        this.currentMovement.time_span -= dt;
+                    }
+                }
+                break;
         }
-        this.startTime = timeStamp();
+        this.resetTime();
     }
 
     @action
@@ -137,12 +187,19 @@ export class AutoMovement {
         }
         const current = this.movements[0];
         this.movements.splice(0, 1);
-
         if (this.movementsCycleCount + 1 < (this.repeat ?? 0)) {
             this.movements.push(current);
         }
+        if (current.id.endsWith('r')) {
+            const parts = current.id.split('-');
+            parts[parts.length - 1] = `${this.movementsCycleCount}r`;
+            current.id = parts.join('-');
+        } else {
+            current.id = `${current.id}-${this.movementsCycleCount}r`;
+        }
+
         this.resetTime();
-        this.fixPosition();
+        this.fixPosition(current.id);
         this.movementsCount += 1;
         if (!this.isProcessing) {
             this.onDone(this);
@@ -165,11 +222,20 @@ export class AutoMovementSequencer {
 
     onDone: () => void;
     onPositionChanged: (x: number, y: number) => void;
-    constructor(sprite: SpriteProps, onPositionChanged: (x: number, y: number) => void, onDone: () => void) {
+    onInitPosChanged: (x: number, y: number, mid: string) => void;
+    constructor(
+        sprite: SpriteProps,
+        onPositionChanged: (x: number, y: number) => void,
+        onInitPosChanged: (x: number, y: number, mid: string) => void,
+        onDone: () => void
+    ) {
+        this.onInitPosChanged = onInitPosChanged;
         const movement = new AutoMovement(
             {
                 movements: [
                     {
+                        movement: 'relative',
+                        id: 'init',
                         direction: sprite.direction ?? [0, 0],
                         speed: sprite.speed ?? 0,
                         distance: sprite.distance,
@@ -199,7 +265,7 @@ export class AutoMovementSequencer {
             );
             this.sequences.push(movements);
         }
-        this.configureAutoMovementState();
+        this.configureAutoMovementState(this.currentSequence?.currentMovement?.id);
     }
 
     onSequenceFinished = (sequence: AutoMovement) => {
@@ -240,8 +306,8 @@ export class AutoMovementSequencer {
     }
 
     @action
-    configureAutoMovementState() {
-        this.fixPosition();
+    configureAutoMovementState(movementId?: string) {
+        this.fixPosition(movementId);
         this.currentSequence?.start();
     }
 
@@ -265,7 +331,6 @@ export class AutoMovementSequencer {
             this.currentSequence?.resetTime();
         }
         if (sprite.direction) {
-            this.fixPosition();
             direction = sprite.direction;
         }
         if (sprite.distance !== undefined) {
@@ -279,7 +344,7 @@ export class AutoMovementSequencer {
         }
         if ([direction, distance, speed, time_span].some((d) => d !== undefined) && this.initMovement) {
             const currentInit = this.initMovement;
-            const updated = currentInit.updated({ direction, distance, speed, time_span });
+            const updated = currentInit.updated({ direction, distance, speed, time: time_span, id: 'init' });
             this.currentSequence?.pause();
             this.sequences.push(
                 new AutoMovement(
@@ -293,14 +358,15 @@ export class AutoMovementSequencer {
                 )
             );
             this.sequences.remove(currentInit);
-            this.configureAutoMovementState();
+            this.configureAutoMovementState(currentInit.currentMovement?.id);
         }
         if (sprite.movements !== undefined) {
-            this.currentSequence?.pause();
+            const current = this.currentSequence;
+            current?.pause();
             this.sequences.push(
                 new AutoMovement(sprite.movements, this.fixPosition, this.onSequenceFinished, false)
             );
-            this.configureAutoMovementState();
+            this.configureAutoMovementState(current?.currentMovement?.id);
         }
     }
 
@@ -312,9 +378,12 @@ export class AutoMovementSequencer {
         this.currentSequence.nextMovementInSequence();
     }
 
-    fixPosition = action(() => {
+    fixPosition = action((movementId?: string) => {
         this.initX = this.currentX;
         this.initY = this.currentY;
+        if (movementId && this.currentSequence && !this.currentSequence.isInitMovement) {
+            this.onInitPosChanged(this.initX, this.initY, movementId);
+        }
     });
 
     @action
@@ -326,27 +395,84 @@ export class AutoMovementSequencer {
             return false;
         }
         const movement: RawAutoMovement = this.currentSequence.currentMovement!;
-        const posX =
-            this.initX +
-            movement.direction[0] * movement.speed * (timeStamp() - this.currentSequence.startTime) * 10;
-        const posY =
-            this.initY +
-            movement.direction[1] * movement.speed * (timeStamp() - this.currentSequence.startTime) * 10;
+        let posX: number;
+        let posY: number;
+
+        const dt = timeStamp() - this.currentSequence.startTime;
+        switch (movement.movement) {
+            case 'absolute':
+                const dX = movement.to[0] - this.initX;
+                const dY = movement.to[1] - this.initY;
+                if (movement.time !== undefined) {
+                    if (movement.time === 0) {
+                        posX = movement.to[0];
+                        posY = movement.to[1];
+                    } else {
+                        posX = this.initX + (dt / movement.time) * dX;
+                        posY = this.initY + (dt / movement.time) * dY;
+                    }
+                } else if (movement.speed) {
+                    const len = Math.sqrt(dX * dX + dY * dY);
+                    if (len === 0) {
+                        posX = movement.to[0];
+                        posY = movement.to[1];
+                    } else {
+                        posX = this.initX + (movement.speed * dt * 10 * dX) / len;
+                        posY = this.initY + (movement.speed * dt * 10 * dY) / len;
+                    }
+                } else {
+                    posX = this.currentX;
+                    posY = this.currentY;
+                }
+                break;
+            case 'relative':
+                posX = this.initX + movement.direction[0] * movement.speed * dt * 10;
+                posY = this.initY + movement.direction[1] * movement.speed * dt * 10;
+                break;
+        }
         this.currentX = posX;
         this.currentY = posY;
         this.onPositionChanged(posX, posY);
-        if (movement.distance) {
-            const dX = this.initX - posX;
-            const dY = this.initY - posY;
-            const distance = Math.sqrt(dX * dX + dY * dY);
-            if (distance >= movement.distance) {
-                this.nextMovementInSequence();
-            }
-        } else if (movement.time_span) {
-            if (this.currentSequence.elapsedTime > movement.time_span) {
-                this.nextMovementInSequence();
-            }
+        switch (movement.movement) {
+            case 'absolute':
+                if (movement.time !== undefined && this.currentSequence.elapsedTime > movement.time) {
+                    this.nextMovementInSequence();
+                } else if (movement.speed) {
+                    const toX = movement.to[0];
+                    const toY = movement.to[1];
+                    let xDone = false;
+                    let yDone = false;
+                    if (this.initX <= toX) {
+                        xDone = toX - this.currentX <= 0;
+                    } else {
+                        xDone = toX - this.currentX >= 0;
+                    }
+                    if (this.initY <= toY) {
+                        yDone = toY - this.currentY <= 0;
+                    } else {
+                        yDone = toY - this.currentY >= 0;
+                    }
+                    if (xDone && yDone) {
+                        this.nextMovementInSequence();
+                    }
+                }
+                break;
+            case 'relative':
+                if (movement.distance) {
+                    const dX = this.initX - posX;
+                    const dY = this.initY - posY;
+                    const distance = Math.sqrt(dX * dX + dY * dY);
+                    if (distance >= movement.distance) {
+                        this.nextMovementInSequence();
+                    }
+                } else if (movement.time_span) {
+                    if (this.currentSequence.elapsedTime > movement.time_span) {
+                        this.nextMovementInSequence();
+                    }
+                }
+                break;
         }
+
         return true;
     }
 }

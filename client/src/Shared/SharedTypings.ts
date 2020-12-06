@@ -158,6 +158,7 @@ export interface TimeStampedMsg {
 export interface BaseMsg extends TimeStampedMsg {
     device_id: string;
     device_nr: number;
+    stop_propagation?: boolean;
 }
 
 export enum DataType {
@@ -190,6 +191,7 @@ export enum DataType {
     RemoveLine = 'remove_line',
     StartAudio = 'start_audio',
     StopAudio = 'stop_audio',
+    AutoMovementPos = 'auto_movement_pos',
 }
 
 export type ClientsData = {
@@ -395,7 +397,8 @@ export type ClientDataMsg =
     | UnknownMsg
     | CancelUserInputMsg
     | StartAudioMsg
-    | StopAudioMsg;
+    | StopAudioMsg
+    | AutoSpritePositionChangedMsg;
 
 export type PartialDataMsg = Partial<ClientDataMsg>;
 
@@ -550,17 +553,41 @@ export interface SpriteRemoved {
     id: string;
 }
 
+export interface AutoSpritePositionChanged {
+    id: string;
+    movement_id: string;
+    x: number;
+    y: number;
+}
+
+export interface AutoSpritePositionChangedMsg extends DataMsg, AutoSpritePositionChanged {
+    type: DataType.AutoMovementPos;
+    time_stamp: number;
+}
+
 export interface SpriteRemovedMsg extends DataMsg, SpriteRemoved {
     type: DataType.SpriteRemoved;
     time_stamp: number;
 }
 
-export interface AutoMovement {
+export interface AbsoluteAutoMovement {
+    movement: 'absolute';
+    id: string;
+    speed?: number;
+    time?: number;
+    to: [x: number, y: number];
+}
+
+export interface RelativeAutoMovement {
+    movement: 'relative';
+    id: string;
     direction: [x: number, y: number];
     speed: number;
-    distance?: number;
     time_span?: number;
+    distance?: number;
 }
+
+export type AutoMovement = AbsoluteAutoMovement | RelativeAutoMovement;
 
 export interface SpriteAutoMovement {
     movements: AutoMovement[];

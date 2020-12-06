@@ -49,9 +49,7 @@ class Playground extends React.Component {
         this.startDisposer = reaction(
             () => this.playground,
             (pg) => {
-                console.log('new playground ref');
                 if (!pg?.isRunning) {
-                    console.log('start new playground ref');
                     pg?.start();
                 }
             }

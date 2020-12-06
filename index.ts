@@ -32,6 +32,7 @@ const GLOBAL_LISTENER_ROOM = 'GLOBAL_LISTENER';
 const THRESHOLD = 25;
 
 const dataStore: DataStore = {};
+const trackAutoMovementBroadcasts: { [key: string]: Map<string, Set<string>> } = {};
 
 const socketId_device = new Map<string, Device>();
 
@@ -112,6 +113,12 @@ function devicesPkg(): DevicesPkg {
 
 let deviceNrAssginmentLocked = false;
 
+let sequenceId = 0;
+function nextSequenceId(): string {
+    sequenceId = sequenceId + 1;
+    return `s-${sequenceId}`;
+}
+
 function nextDeviceNr(is_client: boolean): number {
     const numbers = unorderedDevices().map((device) => device.device_nr);
     let nextNr = 0;
@@ -163,15 +170,18 @@ function addDataToStore(deviceId: string, data: ClientDataMsg) {
     }
     switch (data.type) {
         case DataType.Sprites:
-            data.sprites.forEach((s) =>
+            data.sprites.forEach((s) => {
+                if (s.movements) {
+                    s.movements.movements.forEach((m) => (m.id = nextSequenceId()));
+                }
                 addDataToStore(deviceId, {
                     type: DataType.Sprite,
                     sprite: s,
                     time_stamp: data.time_stamp,
                     device_id: data.device_id,
                     device_nr: data.device_nr,
-                })
-            );
+                });
+            });
             return;
         case DataType.Lines:
             data.lines.forEach((l) =>
@@ -213,6 +223,9 @@ function addDataToStore(deviceId: string, data: ClientDataMsg) {
                     removeSpriteStore.splice(toRemoveIdx, 1);
                 }
             }
+            if (trackAutoMovementBroadcasts[deviceId] && trackAutoMovementBroadcasts[deviceId].has(data.id)) {
+                trackAutoMovementBroadcasts[deviceId].delete(data.id);
+            }
             return;
         case DataType.RemoveLine:
             const removeLineStore = dataStore[deviceId][DataType.Line] as LineMsg[];
@@ -228,6 +241,32 @@ function addDataToStore(deviceId: string, data: ClientDataMsg) {
             dataStore[deviceId][DataType.Sprite]?.splice(0);
             dataStore[deviceId][DataType.Line]?.splice(0);
             dataStore[deviceId][DataType.PlaygroundConfig]?.splice(0);
+            trackAutoMovementBroadcasts[deviceId] = new Map<string, Set<string>>();
+            return;
+        case DataType.AutoMovementPos:
+            if (data.movement_id === 'init') {
+                data.stop_propagation = true;
+                return;
+            }
+            if (!trackAutoMovementBroadcasts[deviceId]) {
+                trackAutoMovementBroadcasts[deviceId] = new Map<string, Set<string>>();
+            }
+            if (!trackAutoMovementBroadcasts[deviceId].has(data.id)) {
+                trackAutoMovementBroadcasts[deviceId].set(data.id, new Set<string>());
+            }
+            if (trackAutoMovementBroadcasts[deviceId].get(data.id)?.has(data.movement_id)) {
+                data.stop_propagation = true;
+                return;
+            }
+            trackAutoMovementBroadcasts[deviceId].get(data.id)?.add(data.movement_id);
+            const sStore = dataStore[deviceId][DataType.Sprite] as SpriteMsg[];
+            const prevIdx = sStore.findIndex((s) => s.sprite.id === data.id);
+            if (prevIdx >= 0) {
+                const prev = sStore.splice(prevIdx, 1)[0];
+                prev.time_stamp = data.time_stamp;
+                prev.sprite = { ...prev.sprite, pos_x: data.x, pos_y: data.y, movements: undefined };
+                sStore.push(prev);
+            }
             return;
     }
     let store = dataStore[deviceId][data.type];
@@ -239,11 +278,14 @@ function addDataToStore(deviceId: string, data: ClientDataMsg) {
     if (data.type === DataType.Sprite) {
         // update sprites which are already present...
         const sprite_store = store as SpriteMsg[];
+        if (data.sprite.movements) {
+            data.sprite.movements.movements.forEach((m) => (m.id = nextSequenceId()));
+        }
         const prevIdx = sprite_store.findIndex((s) => s.sprite.id === data.sprite.id);
         if (prevIdx >= 0) {
             const prev = sprite_store.splice(prevIdx, 1)[0];
             prev.time_stamp = data.time_stamp;
-            prev.sprite = { ...prev.sprite, ...data.sprite };
+            prev.sprite = { ...prev.sprite, ...data.sprite, movements: undefined };
             sprite_store.push(prev);
             return;
         }
@@ -453,6 +495,9 @@ io.on('connection', (socket) => {
             data.response_id = socket.id;
         }
         addDataToStore(device_id, data);
+        if (data.stop_propagation) {
+            return;
+        }
         // socket.to(...) --> sends to all but self
         // io.to(...) --> sends to all in room
         const caller_id = (data as any).caller_id;
@@ -499,6 +544,7 @@ io.on('connection', (socket) => {
             return;
         }
         dataStore[data.device_id] = {};
+        trackAutoMovementBroadcasts[data.device_id] = new Map<string, Set<string>>();
         io.emit(SocketEvents.AllData, allDataPkg(data.device_id));
     });
 
@@ -559,6 +605,10 @@ io.on('connection', (socket) => {
                 delete dataStore[key];
             }
         });
+        Object.keys(trackAutoMovementBroadcasts).forEach((key) => {
+            delete trackAutoMovementBroadcasts[key];
+        });
+
         touchDevices();
         io.emit(SocketEvents.DataStore, dataStore);
     });

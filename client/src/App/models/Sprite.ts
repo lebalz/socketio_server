@@ -7,6 +7,7 @@ import {
     BorderOverlap,
     DataType,
     SpriteCollision,
+    AutoSpritePositionChanged,
 } from '../../Shared/SharedTypings';
 import { timeStamp } from '../stores/socket_data_store';
 import { BoundingBox } from './BoundingBox';
@@ -88,7 +89,12 @@ export default class Sprite extends BoundingBox {
         this.playground = playground;
         this.id = sprite.id;
         this.collisionDetection = sprite.collision_detection ?? false;
-        this.autoMovement = new AutoMovementSequencer(sprite, this.onPositionChanges, this.done);
+        this.autoMovement = new AutoMovementSequencer(
+            sprite,
+            this.onPositionChanges,
+            this.onInitPositionChanged,
+            this.done
+        );
         this.form = sprite.form ?? SpriteForm.Rectangle;
         if (this.form === SpriteForm.Round && sprite.anchor === undefined) {
             this.anchor = [0.5, 0.5];
@@ -104,6 +110,16 @@ export default class Sprite extends BoundingBox {
         this.image = sprite.image;
         this.rotate = sprite.rotate;
     }
+
+    onInitPositionChanged = action((x: number, y: number, mid: string) => {
+        this.playground.socket.emitData<AutoSpritePositionChanged>({
+            x: x,
+            y: y,
+            movement_id: mid,
+            id: this.id,
+            type: DataType.AutoMovementPos,
+        });
+    });
 
     done = action(() => {
         this.playground.socket.data?.playground.removeSprite(this.id, true);
