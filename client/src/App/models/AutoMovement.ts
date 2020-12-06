@@ -257,6 +257,13 @@ export class AutoMovementSequencer {
         this.onDone = onDone;
         this.onPositionChanged = onPositionChanged;
         if (sprite.movements) {
+            if (sprite.movements.cancel_previous) {
+                const init = this.initMovement;
+                this.sequences.clear();
+                if (init) {
+                    this.sequences.push(init);
+                }
+            }
             const movements = new AutoMovement(
                 sprite.movements,
                 this.fixPosition,
@@ -363,6 +370,13 @@ export class AutoMovementSequencer {
         if (sprite.movements !== undefined) {
             const current = this.currentSequence;
             current?.pause();
+            if (sprite.movements.cancel_previous) {
+                const init = this.initMovement;
+                this.sequences.clear();
+                if (init) {
+                    this.sequences.push(init);
+                }
+            }
             this.sequences.push(
                 new AutoMovement(sprite.movements, this.fixPosition, this.onSequenceFinished, false)
             );

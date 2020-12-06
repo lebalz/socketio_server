@@ -313,7 +313,7 @@ function addDataToStore(deviceId: string, data: ClientDataMsg) {
         if (prevIdx >= 0) {
             const prev = sprite_store.splice(prevIdx, 1)[0];
             prev.time_stamp = data.time_stamp;
-            prev.sprite = { ...prev.sprite, ...data.sprite, movements: undefined };
+            prev.sprite = { ...prev.sprite, ...data.sprite };
             sprite_store.push(prev);
             return;
         }

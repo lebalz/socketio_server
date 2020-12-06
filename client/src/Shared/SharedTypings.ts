@@ -594,6 +594,7 @@ export interface SpriteAutoMovement {
     cycle?: boolean;
     repeat?: number;
     exit_on_done?: boolean;
+    cancel_previous?: boolean;
 }
 
 export interface Line {
