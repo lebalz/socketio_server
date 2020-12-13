@@ -27,6 +27,7 @@ import cors from 'cors';
 import http from 'http';
 import morgan from 'morgan';
 import socketIo from 'socket.io';
+import _ from 'lodash';
 
 const GLOBAL_LISTENER_ROOM = 'GLOBAL_LISTENER';
 const THRESHOLD = 25;
@@ -642,7 +643,27 @@ io.on('connection', (socket) => {
     });
 
     socket.on(SocketEvents.DataStore, () => {
-        socket.emit(SocketEvents.DataStore, dataStore);
+        const ds = _.cloneDeep(dataStore);
+        Object.keys(ds).forEach((k) => {
+            const d = ds[k];
+            if (d.playground_config) {
+                d.playground_config.forEach((cms) => {
+                    if (cms.type === DataType.PlaygroundConfig) {
+                        if (cms.config.images) {
+                            cms.config.images.forEach((img) => {
+                                img.image = 'raw';
+                            });
+                        }
+                        if (cms.config.audio_tracks) {
+                            cms.config.audio_tracks.forEach((audio) => {
+                                audio.audio = 'raw' as any;
+                            });
+                        }
+                    }
+                });
+            }
+        });
+        socket.emit(SocketEvents.DataStore, ds);
     });
 });
 

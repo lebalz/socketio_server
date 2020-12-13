@@ -33,6 +33,9 @@ export default class Sprite extends BoundingBox {
     overlaps = observable.set<Sprite>();
 
     @observable
+    draggeable: boolean;
+
+    @observable
     _inactiveSince?: number = undefined;
 
     @observable
@@ -109,6 +112,7 @@ export default class Sprite extends BoundingBox {
         this.fontSize = sprite.font_size;
         this.image = sprite.image;
         this.rotate = sprite.rotate;
+        this.draggeable = sprite.draggeable ?? false;
     }
 
     onInitPositionChanged = action((x: number, y: number, mid: string) => {
@@ -240,6 +244,10 @@ export default class Sprite extends BoundingBox {
         }
         if (sprite.z_index !== undefined) {
             this.zIndex = sprite.z_index;
+        }
+
+        if (sprite.draggeable !== undefined) {
+            this.draggeable = sprite.draggeable;
         }
 
         this.autoMovement.update(sprite);

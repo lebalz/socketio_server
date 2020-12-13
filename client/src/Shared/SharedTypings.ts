@@ -686,6 +686,7 @@ export interface Sprite {
     rotate?: number;
     z_index?: number;
     movements?: SpriteAutoMovement;
+    draggeable?: boolean;
 }
 
 export interface SpriteMsg extends DataMsg {
