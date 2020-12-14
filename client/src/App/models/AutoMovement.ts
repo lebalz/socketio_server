@@ -324,15 +324,28 @@ export class AutoMovementSequencer {
         let speed: number | undefined = undefined;
         let distance: number | undefined = undefined;
         let time_span: number | undefined = undefined;
+        const hasRelativeDistanceMovement =
+            this.currentSequence?.currentMovement?.movement === 'relative' &&
+            this.currentSequence.currentMovement.distance !== undefined;
         if (sprite.pos_x !== undefined) {
-            this.initX = sprite.pos_x;
-            this.currentX = sprite.pos_x;
-            this.currentSequence?.resetTime();
+            if (hasRelativeDistanceMovement) {
+                const dx = this.currentX - this.initX;
+                this.initX = sprite.pos_x;
+                this.currentX = sprite.pos_x + dx;
+            } else {
+                this.initX = sprite.pos_x;
+                this.currentX = sprite.pos_x;
+            }
         }
         if (sprite.pos_y !== undefined) {
-            this.initY = sprite.pos_y;
-            this.currentY = sprite.pos_y;
-            this.currentSequence?.resetTime();
+            if (hasRelativeDistanceMovement) {
+                const dy = this.currentY - this.initY;
+                this.initY = sprite.pos_y;
+                this.currentY = sprite.pos_y + dy;
+            } else {
+                this.initY = sprite.pos_y;
+                this.currentY = sprite.pos_y;
+            }
         }
         if (sprite.reset_time) {
             this.currentSequence?.resetTime();
