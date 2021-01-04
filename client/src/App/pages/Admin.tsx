@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Table, Button, Dropdown } from 'semantic-ui-react';
+import { Table, Button, Dropdown, Embed } from 'semantic-ui-react';
 import { inject, observer } from 'mobx-react';
 import ViewStateStore from '../stores/view_state_store';
 import SocketDataStore, { GLOBAL_LISTENER } from '../stores/socket_data_store';
@@ -229,6 +229,7 @@ class Admin extends Component {
 
     render() {
         const showAll = this.adminState.displayedTypes.size === 0;
+        const shownDevices = [...this.adminState.displayedDeviceIds].filter((d) => d !== '[object Object]');
         return (
             <div
                 style={{
@@ -314,6 +315,15 @@ class Admin extends Component {
                         })}
                     </Table.Body>
                 </Table>
+                {shownDevices.length === 1 && (
+                    <Embed
+                        style={{
+                            maxHeight: '400px',
+                        }}
+                        active
+                        url={`/playground?device_id=${shownDevices[0]}&striped=True`}
+                    />
+                )}
 
                 {this.deviceIdDropdownOptions.size > 0 && (
                     <div>
@@ -337,7 +347,7 @@ class Admin extends Component {
                                 text: d,
                                 value: d,
                             }))}
-                            value={[...this.adminState.displayedDeviceIds]}
+                            value={shownDevices}
                             onChange={(e, data) => {
                                 if (typeof data.value === 'string') {
                                     return;

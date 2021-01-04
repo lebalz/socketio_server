@@ -49,9 +49,9 @@ class Sprite extends React.Component<Props> {
         return this.playground?.shiftY ?? 0;
     }
 
-    onDrag = (event: React.DragEvent<HTMLDivElement>) => {
-        console.log(event);
-    };
+    // onDrag = (event: React.DragEvent<HTMLDivElement>) => {
+    //     console.log(event);
+    // };
 
     onClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         if (this.props.sprite.clickable) {
@@ -116,7 +116,6 @@ class Sprite extends React.Component<Props> {
                 }}
                 className={cls}
                 onClick={this.onClick}
-                onDrag={this.onDrag}
             >
                 <ImageAndText
                     {...this.props.sprite}

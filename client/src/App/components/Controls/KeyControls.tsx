@@ -186,6 +186,8 @@ export default KeyControls;
 interface KeyListenerProps {
     onData: (data: KeyData) => void;
     preventKeyDefaults: boolean;
+    on?: boolean;
+    hideCB?: boolean;
 }
 export class KeyControlListener extends Component<KeyListenerProps> implements IController<KeyData> {
     state = { on: true };
@@ -200,14 +202,14 @@ export class KeyControlListener extends Component<KeyListenerProps> implements I
     render() {
         return (
             <Fragment>
-                {this.state.on && (
+                {(this.state.on || this.props.on) && (
                     <KeyControls
                         preventKeyDefaults={this.props.preventKeyDefaults}
                         hideControls
                         onData={(data: KeyData) => this.onData(data)}
                     />
                 )}
-                <Checkbox checked={this.state.on} onClick={this.toggle} label="Key" />
+                {!this.props.hideCB && <Checkbox checked={this.state.on} onClick={this.toggle} label="Key" />}
             </Fragment>
         );
     }

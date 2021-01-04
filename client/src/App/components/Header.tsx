@@ -1,5 +1,5 @@
 import { inject, observer } from 'mobx-react';
-import React from 'react';
+import React, { Fragment } from 'react';
 import { Link } from 'react-router-dom';
 import { Label, Popup } from 'semantic-ui-react';
 import { SemanticCOLORS } from 'semantic-ui-react/dist/commonjs/generic';
@@ -18,8 +18,10 @@ export default class Header extends React.Component {
         return this.props as InjectedProps;
     }
     render() {
-        const noNav = new URLSearchParams(window.location.search).get('no_nav');
-        const noHeader = new URLSearchParams(window.location.search).get('no_header');
+        const striped = new URLSearchParams(window.location.search).get('striped');
+        const noNav = striped || new URLSearchParams(window.location.search).get('no_nav');
+        const noHeader = striped || new URLSearchParams(window.location.search).get('no_header');
+        const noIndicator = striped || new URLSearchParams(window.location.search).get('no_indicator');
         const { viewStateStore, socketDataStore } = this.injected;
         const myId = socketDataStore.client.deviceId;
         const runningScripts = socketDataStore.devices.filter(
@@ -77,6 +79,9 @@ export default class Header extends React.Component {
         );
 
         if (noNav || noHeader) {
+            if (noIndicator) {
+                return null;
+            }
             return (
                 <div className="header-bar">
                     {noSleep}
@@ -93,8 +98,12 @@ export default class Header extends React.Component {
                 <div>
                     <Label size="small" content={`Nr. ${socketDataStore.client.deviceNr}`} />
                 </div>
-                {noSleep}
-                {runningState}
+                {!noIndicator && (
+                    <Fragment>
+                        {noSleep}
+                        {runningState}
+                    </Fragment>
+                )}
                 <div className="spacer" />
                 <div style={{ margin: '0.25em 0' }}>
                     <label htmlFor="device-id" style={{ marginRight: '1em' }}>

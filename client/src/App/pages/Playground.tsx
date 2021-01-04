@@ -148,21 +148,33 @@ class Playground extends React.Component {
     });
 
     render() {
+        const striped = new URLSearchParams(window.location.search).get('striped');
+        const noControls = striped || new URLSearchParams(window.location.search).get('no_controls');
         return (
             <Fragment>
                 <div style={{ display: 'flex', justifyItems: 'flex-start' }}>
-                    <Checkbox
-                        checked={this.playgroundState.simulateSensor}
-                        onClick={this.toggleSimulateSensor}
-                        label="Simulate Sensors"
-                    />
-                    <AccelerationSensor
-                        simulate={this.playgroundState.simulateSensor}
-                        onData={this.onData}
-                        on
-                    />
-                    <GyroSensor simulate={this.playgroundState.simulateSensor} onData={this.onData} on />
+                    {!noControls && (
+                        <Fragment>
+                            <Checkbox
+                                checked={this.playgroundState.simulateSensor}
+                                onClick={this.toggleSimulateSensor}
+                                label="Simulate Sensors"
+                            />
+                            <AccelerationSensor
+                                simulate={this.playgroundState.simulateSensor}
+                                onData={this.onData}
+                                on
+                            />
+                            <GyroSensor
+                                simulate={this.playgroundState.simulateSensor}
+                                onData={this.onData}
+                                on
+                            />
+                        </Fragment>
+                    )}
                     <KeyControlListener
+                        on={noControls ? true : undefined}
+                        hideCB={!!noControls}
                         onData={this.onData}
                         preventKeyDefaults={!this.injected.viewStateStore.deviceIdPromptOpen}
                     />
