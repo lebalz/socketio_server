@@ -1,7 +1,8 @@
 import { inject, observer } from 'mobx-react';
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Label } from 'semantic-ui-react';
+import { Label, Popup } from 'semantic-ui-react';
+import { SemanticCOLORS } from 'semantic-ui-react/dist/commonjs/generic';
 import SocketDataStore from '../stores/socket_data_store';
 import ViewStateStore from '../stores/view_state_store';
 
@@ -19,10 +20,71 @@ export default class Header extends React.Component {
     render() {
         const noNav = new URLSearchParams(window.location.search).get('no_nav');
         const noHeader = new URLSearchParams(window.location.search).get('no_header');
-        if (noNav || noHeader) {
-            return null;
-        }
         const { viewStateStore, socketDataStore } = this.injected;
+        const myId = socketDataStore.client.deviceId;
+        const runningScripts = socketDataStore.devices.filter(
+            (s) => s.deviceId === myId && (s.deviceNr ?? 0) < 0
+        ).length;
+
+        let runningScript: { color: SemanticCOLORS; tooltip: string } = {
+            color: 'grey',
+            tooltip: 'offline: no script running',
+        };
+        if (runningScripts === 1) {
+            runningScript = { color: 'green', tooltip: 'one script running' };
+        } else if (runningScripts > 1) {
+            runningScript = {
+                color: 'orange',
+                tooltip: `${runningScripts} running scripts. This could lead to conflicts.`,
+            };
+        }
+
+        const noSleep = (
+            <div>
+                <Popup
+                    content="Prevent turing off screen"
+                    position="top left"
+                    trigger={
+                        <Label
+                            as="a"
+                            size="small"
+                            circular
+                            icon="lightbulb outline"
+                            onClick={() => viewStateStore.toggleNoSleep()}
+                            color={viewStateStore.noSleepOn ? 'yellow' : undefined}
+                        />
+                    }
+                />
+            </div>
+        );
+
+        const runningState = (
+            <div>
+                <Popup
+                    content={runningScript.tooltip}
+                    position="top left"
+                    trigger={
+                        <Label
+                            as="a"
+                            size="small"
+                            content={runningScripts}
+                            circular
+                            color={runningScript.color}
+                        />
+                    }
+                />
+            </div>
+        );
+
+        if (noNav || noHeader) {
+            return (
+                <div className="header-bar">
+                    {noSleep}
+                    {runningState}
+                    <div className="spacer" />
+                </div>
+            );
+        }
         return (
             <div className="header-bar">
                 <Link to="/">
@@ -31,15 +93,8 @@ export default class Header extends React.Component {
                 <div>
                     <Label size="small" content={`Nr. ${socketDataStore.client.deviceNr}`} />
                 </div>
-                <div>
-                    <Label
-                        as="a"
-                        size="small"
-                        icon="lightbulb outline"
-                        onClick={() => viewStateStore.toggleNoSleep()}
-                        color={viewStateStore.noSleepOn ? 'yellow' : undefined}
-                    />
-                </div>
+                {noSleep}
+                {runningState}
                 <div className="spacer" />
                 <div style={{ margin: '0.25em 0' }}>
                     <label htmlFor="device-id" style={{ marginRight: '1em' }}>
