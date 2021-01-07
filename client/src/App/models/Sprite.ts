@@ -116,6 +116,10 @@ export default class Sprite extends BoundingBox {
     }
 
     onInitPositionChanged = action((x: number, y: number, mid: string) => {
+        if (this.playground.isSilent) {
+            return;
+        }
+
         this.playground.socket.emitData<AutoSpritePositionChanged>({
             x: x,
             y: y,
@@ -166,6 +170,9 @@ export default class Sprite extends BoundingBox {
             return;
         }
         this.borderOverlap = overlap;
+        if (this.playground.isSilent) {
+            return;
+        }
         this.playground.socket.emitData<BorderOverlap>({
             type: DataType.BorderOverlap,
             id: this.id,
@@ -269,21 +276,27 @@ export default class Sprite extends BoundingBox {
                 sprite.overlaps.add(this);
             }
             this.overlaps.add(sprite);
-            this.playground.socket.emitData<SpriteCollision>({
-                type: DataType.SpriteCollision,
-                sprites: [
-                    { id: this.id, collision_detection: this.collisionDetection },
-                    { id: sprite.id, collision_detection: sprite.collisionDetection },
-                ],
-                time_stamp: ts,
-                overlap: 'in',
-            });
+            if (!this.playground.isSilent) {
+                this.playground.socket.emitData<SpriteCollision>({
+                    type: DataType.SpriteCollision,
+                    sprites: [
+                        { id: this.id, collision_detection: this.collisionDetection },
+                        { id: sprite.id, collision_detection: sprite.collisionDetection },
+                    ],
+                    time_stamp: ts,
+                    overlap: 'in',
+                });
+            }
         });
         reportOut.forEach((sprite) => {
             if (this.overlaps.delete(sprite)) {
                 if (sprite.collisionDetection) {
                     sprite.overlaps.delete(this);
                 }
+                if (this.playground.isSilent) {
+                    return;
+                }
+
                 this.playground.socket.emitData<SpriteCollision>({
                     type: DataType.SpriteCollision,
                     sprites: [

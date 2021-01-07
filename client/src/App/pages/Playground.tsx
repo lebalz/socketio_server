@@ -46,16 +46,21 @@ class Playground extends React.Component {
     }
 
     componentDidMount() {
+        const isSilent = !!new URLSearchParams(window.location.search).get('silent');
         this.startDisposer = reaction(
             () => this.playground,
             (pg) => {
                 if (!pg?.isRunning) {
-                    pg?.start();
+                    if (pg) {
+                        pg.isSilent = isSilent;
+                        pg.start();
+                    }
                 }
             }
         );
         window.addEventListener('resize', this.onResize);
         if (this.playground) {
+            this.playground.isSilent = isSilent;
             this.playground.start();
         } else {
             window.addEventListener('click', this.checkRunning);
@@ -136,6 +141,9 @@ class Playground extends React.Component {
     }
 
     onData: IOverload = (data: any) => {
+        if (this.playground?.isSilent) {
+            return;
+        }
         this.socket.emitData(data);
     };
 
@@ -149,7 +157,9 @@ class Playground extends React.Component {
 
     render() {
         const striped = new URLSearchParams(window.location.search).get('striped');
-        const noControls = striped || new URLSearchParams(window.location.search).get('no_controls');
+        const silent = this.playground?.isSilent;
+        const noControls =
+            silent || striped || new URLSearchParams(window.location.search).get('no_controls');
         return (
             <Fragment>
                 <div style={{ display: 'flex', justifyItems: 'flex-start' }}>

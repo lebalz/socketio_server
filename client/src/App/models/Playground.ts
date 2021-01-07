@@ -61,6 +61,8 @@ export class Playground implements IBoundingBox {
     color: string = ColorName.Lightgrey;
     @observable
     isMounted: boolean = false;
+    @observable
+    isSilent: boolean = false;
 
     @observable
     image?: string;
@@ -136,7 +138,7 @@ export class Playground implements IBoundingBox {
             return;
         }
         this.sprites.remove(sprite);
-        if (emit) {
+        if (emit && !this.isSilent) {
             this.socket.emitData<SpriteRemoved>({
                 type: DataType.SpriteRemoved,
                 id: sprite.id,
@@ -280,6 +282,10 @@ export class Playground implements IBoundingBox {
 
     @action
     reportSpriteOut(id: string) {
+        if (this.isSilent) {
+            return;
+        }
+
         this.socket.emitData<SpriteOut>({
             type: DataType.SpriteOut,
             id: id,

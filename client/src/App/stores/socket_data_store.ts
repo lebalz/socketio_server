@@ -108,7 +108,7 @@ export default class SocketDataStore implements Store {
             const deviceIds = new Set<string>(this.devices.map((d) => d.deviceId));
             deviceIds.delete(GLOBAL_LISTENER);
             const showAll =
-                deviceIds.size > 0 &&
+                deviceIds.size > 1 &&
                 deviceIds.size <= this.root.viewStateStore.adminState.displayedDeviceIds.size;
             this.devices.replace(data.devices.map((dev) => new Device(dev)));
             if (showAll) {

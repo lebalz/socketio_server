@@ -321,7 +321,7 @@ class Admin extends Component {
                             maxHeight: '400px',
                         }}
                         active
-                        url={`/playground?device_id=${shownDevices[0]}&striped=True`}
+                        url={`/playground?device_id=${shownDevices[0]}&striped=1&silent=1`}
                     />
                 )}
 
