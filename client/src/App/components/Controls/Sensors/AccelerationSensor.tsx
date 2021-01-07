@@ -25,6 +25,7 @@ class MotionDevice extends SensorDevice<AccelerationData> {
             DeviceMotionEvent.requestPermission()
                 .then((permissionState) => {
                     if (permissionState === 'granted') {
+                        this.setState({ isiOS: true });
                         onGrant();
                     }
                 })
@@ -41,6 +42,8 @@ class MotionDevice extends SensorDevice<AccelerationData> {
         if (e.accelerationIncludingGravity == null) {
             return;
         }
+        console.log(this.state.isiOS);
+
         const motionData: AccelerationData = {
             type: DataType.Acceleration,
             x: e.accelerationIncludingGravity.x ?? 0,
@@ -48,6 +51,11 @@ class MotionDevice extends SensorDevice<AccelerationData> {
             z: e.accelerationIncludingGravity.z ?? 0,
             interval: e.interval,
         };
+        if (this.state.isiOS) {
+            motionData.x = -motionData.x;
+            motionData.y = -motionData.y;
+            motionData.z = -motionData.z;
+        }
         this.props.onData(motionData);
     };
 

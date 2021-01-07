@@ -11,11 +11,13 @@ interface Props<T> extends IControllerProps<T> {
 
 interface State {
     on: boolean;
+    isiOS: boolean;
 }
 
 class SensorDevice<T> extends Component<Props<T>> implements IController<T> {
     state: State = {
         on: false,
+        isiOS: false,
     };
     simulator?: MotionSimulator;
 

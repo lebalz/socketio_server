@@ -25,6 +25,7 @@ class OrientationDevice extends SensorDevice<GyroData> {
             DeviceOrientationEvent.requestPermission()
                 .then((permissionState) => {
                     if (permissionState === 'granted') {
+                        this.setState({ isiOS: true });
                         onGrant();
                     }
                 })
