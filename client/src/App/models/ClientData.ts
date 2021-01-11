@@ -191,10 +191,14 @@ export default class ClientData {
                 const wasRunning = this.playground.isRunning;
                 this.playground.stop();
                 this.playground = new Playground(this.socket);
-                if (wasRunning) {
+                if (this.socket.isPlaygroundActive || wasRunning) {
                     this.playground.start();
                 }
 
+                break;
+            case DataType.CleanPlayground:
+                this.playground.clearSprites();
+                this.playground.clearLines();
                 break;
             case DataType.Sprites:
                 this.playground.addOrUpdateSprites(...data.sprites);

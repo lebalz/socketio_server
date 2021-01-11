@@ -185,6 +185,7 @@ export enum DataType {
     SpriteClicked = 'sprite_clicked',
     PlaygroundConfig = 'playground_config',
     ClearPlayground = 'clear_playground',
+    CleanPlayground = 'clean_playground',
     BorderOverlap = 'border_overlap',
     Line = 'line',
     Lines = 'lines',
@@ -387,6 +388,7 @@ export type ClientDataMsg =
     | SpritesMsg
     | RemoveSpriteMsg
     | ClearPlaygroundMsg
+    | CleanPlaygroundMsg
     | SpriteCollisionMsg
     | SpriteOutMsg
     | SpriteRemovedMsg
@@ -705,6 +707,9 @@ export interface RemoveSpriteMsg extends DataMsg {
 }
 export interface ClearPlaygroundMsg extends DataMsg {
     type: DataType.ClearPlayground;
+}
+export interface CleanPlaygroundMsg extends DataMsg {
+    type: DataType.CleanPlayground;
 }
 
 export interface UpdateSprite {

@@ -66,6 +66,11 @@ export default class SocketDataStore implements Store {
     }
 
     @computed
+    get isPlaygroundActive(): boolean {
+        return this.root.routing.location.pathname === '/playground';
+    }
+
+    @computed
     get data(): ClientData | undefined {
         // if (!this.dataStore.has(this.client.deviceId)) {
         //     throw new Error(`No data store initialized for ${this.client.deviceId}`);

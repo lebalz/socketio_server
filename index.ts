@@ -258,6 +258,12 @@ function addDataToStore(deviceId: string, data: ClientDataMsg) {
             dataStore[deviceId][DataType.PlaygroundConfig]?.splice(0);
             trackAutoMovementBroadcasts[deviceId] = new Map<string, Set<string>>();
             return;
+        case DataType.CleanPlayground:
+            // update sprites which are already present...
+            dataStore[deviceId][DataType.Sprite]?.splice(0);
+            dataStore[deviceId][DataType.Line]?.splice(0);
+            trackAutoMovementBroadcasts[deviceId] = new Map<string, Set<string>>();
+            return;
         case DataType.AutoMovementPos:
             if (data.movement_id === 'init') {
                 data.stop_propagation = true;
