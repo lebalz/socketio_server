@@ -280,8 +280,18 @@ export default class Sprite extends BoundingBox {
                 this.playground.socket.emitData<SpriteCollision>({
                     type: DataType.SpriteCollision,
                     sprites: [
-                        { id: this.id, collision_detection: this.collisionDetection },
-                        { id: sprite.id, collision_detection: sprite.collisionDetection },
+                        {
+                            id: this.id,
+                            collision_detection: this.collisionDetection,
+                            pos_x: this.posX,
+                            pos_y: this.posY,
+                        },
+                        {
+                            id: sprite.id,
+                            collision_detection: sprite.collisionDetection,
+                            pos_x: sprite.posX,
+                            pos_y: sprite.posY,
+                        },
                     ],
                     time_stamp: ts,
                     overlap: 'in',
@@ -300,8 +310,18 @@ export default class Sprite extends BoundingBox {
                 this.playground.socket.emitData<SpriteCollision>({
                     type: DataType.SpriteCollision,
                     sprites: [
-                        { id: this.id, collision_detection: this.collisionDetection },
-                        { id: sprite.id, collision_detection: sprite.collisionDetection },
+                        {
+                            id: this.id,
+                            collision_detection: this.collisionDetection,
+                            pos_x: this.posX,
+                            pos_y: this.posY,
+                        },
+                        {
+                            id: sprite.id,
+                            collision_detection: sprite.collisionDetection,
+                            pos_x: sprite.posX,
+                            pos_y: sprite.posY,
+                        },
                     ],
                     time_stamp: ts,
                     overlap: 'out',

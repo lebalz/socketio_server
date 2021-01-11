@@ -523,7 +523,10 @@ export interface PlaygroundConfigMsg extends DataMsg {
 }
 
 export interface SpriteCollision {
-    sprites: [{ id: string; collision_detection: boolean }, { id: string; collision_detection: boolean }];
+    sprites: [
+        { id: string; collision_detection: boolean; pos_x: number; pos_y: number },
+        { id: string; collision_detection: boolean; pos_x: number; pos_y: number }
+    ];
     overlap: 'in' | 'out';
 }
 
