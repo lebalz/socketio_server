@@ -60,8 +60,6 @@ export class Playground implements IBoundingBox {
     @observable
     color: string = ColorName.Lightgrey;
     @observable
-    isMounted: boolean = false;
-    @observable
     isSilent: boolean = false;
 
     @observable

@@ -50,9 +50,9 @@ class Playground extends React.Component {
         this.startDisposer = reaction(
             () => this.playground,
             (pg) => {
-                if (!pg?.isRunning) {
-                    if (pg) {
-                        pg.isSilent = isSilent;
+                if (pg) {
+                    pg.isSilent = isSilent;
+                    if (!pg.isRunning) {
                         pg.start();
                     }
                 }

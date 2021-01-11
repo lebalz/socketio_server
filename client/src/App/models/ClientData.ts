@@ -191,7 +191,7 @@ export default class ClientData {
                 const wasRunning = this.playground.isRunning;
                 this.playground.stop();
                 this.playground = new Playground(this.socket);
-                if (this.socket.isPlaygroundActive || wasRunning) {
+                if (wasRunning) {
                     this.playground.start();
                 }
 
