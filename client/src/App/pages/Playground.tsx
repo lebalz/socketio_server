@@ -83,7 +83,6 @@ class Playground extends React.Component {
     checkRunning = () => {
         if (this.playground) {
             if (!this.playground.isRunning) {
-                console.log('starting playground');
                 this.playground.start();
             }
             window.removeEventListener('click', this.checkRunning);

@@ -186,9 +186,6 @@ function addDataToStore(deviceId: string, data: ClientDataMsg) {
     switch (data.type) {
         case DataType.Sprites:
             data.sprites.forEach((s) => {
-                if (s.movements) {
-                    s.movements.movements.forEach((m) => (m.id = nextSequenceId(deviceId, s.id)));
-                }
                 addDataToStore(deviceId, {
                     type: DataType.Sprite,
                     sprite: s,

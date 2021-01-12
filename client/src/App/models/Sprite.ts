@@ -257,6 +257,10 @@ export default class Sprite extends BoundingBox {
             this.draggeable = sprite.draggeable;
         }
 
+        if (sprite.collision_detection !== undefined) {
+            this.collisionDetection = sprite.collision_detection;
+        }
+
         this.autoMovement.update(sprite);
     }
 

@@ -61,6 +61,7 @@ export class Playground implements IBoundingBox {
     color: string = ColorName.Lightgrey;
     @observable
     isSilent: boolean = false;
+    initializedAt: number;
 
     @observable
     image?: string;
@@ -80,6 +81,7 @@ export class Playground implements IBoundingBox {
 
     constructor(socket: SocketDataStore) {
         this.socket = socket;
+        this.initializedAt = timeStamp();
     }
 
     @computed

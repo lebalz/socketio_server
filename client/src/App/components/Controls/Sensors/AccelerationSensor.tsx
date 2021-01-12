@@ -42,7 +42,6 @@ class MotionDevice extends SensorDevice<AccelerationData> {
         if (e.accelerationIncludingGravity == null) {
             return;
         }
-        console.log(this.state.isiOS);
 
         const motionData: AccelerationData = {
             type: DataType.Acceleration,
