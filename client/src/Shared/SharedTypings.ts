@@ -360,6 +360,7 @@ export enum SocketEvents {
     ErrorMsg = 'error_msg',
     SetNewDeviceNr = 'set_new_device_nr',
     InformationMsg = 'information_msg',
+    Timer = 'timer',
 }
 
 export interface RoomLeftPkg {

@@ -672,6 +672,10 @@ io.on('connection', (socket) => {
     });
 });
 
+const timer = setInterval(() => {
+    io.emit(SocketEvents.Timer, { time: timeStamp() });
+}, 1000);
+
 // Handles any requests that don't match the ones above
 app.get('*', (_req, res) => {
     res.sendFile(path.join(`${__dirname}/client/build/index.html`));
