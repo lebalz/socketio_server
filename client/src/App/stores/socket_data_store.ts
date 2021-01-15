@@ -76,6 +76,7 @@ export default class SocketDataStore implements Store {
     @action
     addDataToStore(deviceId: string, ...msgs: ClientDataMsg[]) {
         const broadcastMsgs = msgs.filter((msg) => msg.broadcast);
+        const unicastMsgs = msgs.filter((msg) => msg.cross_origin);
         let directMsgs = msgs;
         /**
          * broadcasting messages go direct to this client
@@ -88,6 +89,19 @@ export default class SocketDataStore implements Store {
             return;
         }
 
+        /**
+         * register the "deliver_to" crossorigin data to the receiver store
+         */
+        unicastMsgs.forEach((msg) => {
+            if (msg.deliver_to) {
+                let toStore = this.clientsData(msg.deliver_to);
+                if (!toStore) {
+                    toStore = new ClientData(this, deviceId, this.isAdmin);
+                    this.dataStore.set(deviceId, toStore);
+                }
+                toStore.addData([msg]);
+            }
+        });
         /**
          * the rest of the data is delivered to the concerning client
          */

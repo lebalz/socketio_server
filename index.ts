@@ -512,7 +512,9 @@ io.on('connection', (socket) => {
             unicast_to = unorderedDevices().find((d) => d.device_nr === data.unicast_to);
             if (unicast_to) {
                 device_id = unicast_to.device_id;
+                data.deliver_to = unicast_to.device_id;
                 data.broadcast = false;
+                data.cross_origin = true;
             }
         }
 
