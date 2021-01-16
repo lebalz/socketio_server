@@ -175,10 +175,12 @@ export default class SocketDataStore implements Store {
         if (!this.dataStore.has(newDevId)) {
             this.dataStore.set(newDevId, new ClientData(this, newDevId));
         }
+        const isSilent = !!new URLSearchParams(window.location.search).get('silent');
         this.emit(SocketEvents.NewDevice, {
             device_id: newDevId,
             old_device_id: oldId,
             is_client: true,
+            is_silent: isSilent,
         });
     }
 

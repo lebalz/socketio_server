@@ -150,6 +150,7 @@ export interface Device {
     socket_id: string;
     device_nr: number;
     is_client: boolean;
+    is_silent: boolean;
 }
 
 export interface TimeStampedMsg {
@@ -338,6 +339,7 @@ export interface NewDevice {
     device_id: string;
     old_device_id?: string;
     is_client: boolean;
+    is_silent: boolean;
 }
 
 export type MessageType = DataMsg | DataPkg | NewDevice | undefined;

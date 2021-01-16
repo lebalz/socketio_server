@@ -414,6 +414,7 @@ io.on('connection', (socket) => {
                 is_client: is_client,
                 device_nr: nextDeviceNr(is_client),
                 socket_id: socket.id,
+                is_silent: data.is_silent,
             };
 
             touchDevices();
