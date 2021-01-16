@@ -23,6 +23,11 @@ export default class Audio {
         this.type = audio.type;
         this.id = id ?? 'root';
         this.volume = audio.volume ?? 0.8;
+        if (this.volume > 1) {
+            this.volume = 1;
+        } else if (this.volume < 0) {
+            this.volume = 0;
+        }
         this.repeat = repeat;
     }
 
