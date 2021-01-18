@@ -154,15 +154,20 @@ class Playground extends React.Component {
         this.playgroundState.keyControls = !this.playgroundState.keyControls;
     });
 
+    get canStreamSensors(): boolean {
+        return typeof DeviceMotionEvent !== 'undefined' && typeof DeviceOrientationEvent !== 'undefined';
+    }
+
     render() {
         const striped = new URLSearchParams(window.location.search).get('striped');
         const silent = this.playground?.isSilent;
         const noControls =
             silent || striped || new URLSearchParams(window.location.search).get('no_controls');
+
         return (
             <Fragment>
                 <div style={{ display: 'flex', justifyItems: 'flex-start' }}>
-                    {!noControls && (
+                    {!noControls && this.canStreamSensors && (
                         <Fragment>
                             <Checkbox
                                 checked={this.playgroundState.simulateSensor}
@@ -180,6 +185,9 @@ class Playground extends React.Component {
                                 on
                             />
                         </Fragment>
+                    )}
+                    {!this.canStreamSensors && (
+                        <p style={{ color: 'orange' }}>Your Browser does not support Sensor Streaming :( </p>
                     )}
                     <KeyControlListener
                         on={noControls ? true : undefined}

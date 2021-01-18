@@ -109,6 +109,10 @@ class Controller extends Component {
         });
     };
 
+    get canStreamSensors(): boolean {
+        return typeof DeviceMotionEvent !== 'undefined' && typeof DeviceOrientationEvent !== 'undefined';
+    }
+
     render() {
         const showStreamLogs = this.controllerState.showLogs && this.controllerState.streamSenensor;
         return (
@@ -123,11 +127,18 @@ class Controller extends Component {
                         <Form.Field>
                             <Checkbox
                                 checked={this.controllerState.streamSenensor}
+                                disabled={!this.canStreamSensors}
                                 onClick={this.toggleSensorStream}
                                 label="Sensoren Streamen"
                             />
+                            {!this.canStreamSensors && (
+                                <p style={{ color: 'orange', maxWidth: '15em' }}>
+                                    ! Your Browser does not support Sensor Streaming :( <br />
+                                    Chrome, Edge or Firefox does...
+                                </p>
+                            )}
                         </Form.Field>
-                        {this.controllerState.streamSenensor && (
+                        {this.controllerState.streamSenensor && this.canStreamSensors && (
                             <Fragment>
                                 <Checkbox
                                     checked={this.controllerState.simulateSensor}

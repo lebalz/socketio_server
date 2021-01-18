@@ -27,10 +27,17 @@ export default class MotionSimulator {
         this.deviceSimulator = document.getElementById('DeviceSimulator') as HTMLDivElement;
     }
 
+    get canSimulateMotion(): boolean {
+        return typeof DeviceMotionEvent !== 'undefined';
+    }
+    get canSimulateOrientation(): boolean {
+        return typeof DeviceOrientationEvent !== 'undefined';
+    }
+
     start(sensorEventName: 'devicemotion' | 'deviceorientation') {
-        if (sensorEventName === 'devicemotion') {
+        if (sensorEventName === 'devicemotion' && this.canSimulateMotion) {
             this.startMotionSimulation();
-        } else if (sensorEventName === 'deviceorientation') {
+        } else if (sensorEventName === 'deviceorientation' && this.canSimulateOrientation) {
             this.startOrientationSimulation();
         }
     }
@@ -108,6 +115,9 @@ export default class MotionSimulator {
     }
 
     emitMotionEvent = () => {
+        if (typeof DeviceMotionEvent === 'undefined') {
+            return;
+        }
         this.nextValues();
         const event = new DeviceMotionEvent('devicemotion', {
             acceleration: this.acceleration,
@@ -120,6 +130,9 @@ export default class MotionSimulator {
     };
 
     emitOrientationEvent = () => {
+        if (typeof DeviceOrientationEvent === 'undefined') {
+            return;
+        }
         this.nextOrientationValues();
         const event = new DeviceOrientationEvent('deviceorientation', {
             alpha: this.alpha,
