@@ -10,11 +10,28 @@ class AudioTrack extends React.Component<Props> {
 
     componentDidMount() {
         if (this.audioRef.current) {
-            this.audioRef.current.pause();
-            this.audioRef.current.src = this.props.audio.audioData;
-            this.audioRef.current.volume = this.props.audio.volume;
-            this.audioRef.current.play();
-            this.audioRef.current.onended = this.onEnded;
+            const name = this.props.audio.name;
+            try {
+                this.audioRef.current.pause();
+                this.audioRef.current.src = this.props.audio.audioData;
+                this.audioRef.current.volume = this.props.audio.volume;
+                const playPromise = this.audioRef.current.play();
+                this.audioRef.current.onended = this.onEnded;
+                // In browsers that don’t yet support this functionality,
+                // playPromise won’t be defined.
+                if (playPromise !== undefined) {
+                    playPromise
+                        .then(() => {
+                            console.log(`play ${name}`);
+                        })
+                        .catch((error) => {
+                            console.log(`failed to play ${name}:`);
+                            console.log(error);
+                        });
+                }
+            } catch (e) {
+                console.log(e);
+            }
         }
     }
 

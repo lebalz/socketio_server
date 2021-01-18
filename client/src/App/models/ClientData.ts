@@ -118,7 +118,7 @@ export default class ClientData {
     @action
     addToLog(msgs: ClientDataMsg[]) {
         msgs.forEach((msg) => {
-            if (msg.device_id !== this.deviceId && !msg.broadcast) {
+            if (msg.device_id !== this.deviceId && !msg.broadcast && msg.deliver_to !== this.deviceId) {
                 return;
             }
             const data = this.rawData.get(msg.type);

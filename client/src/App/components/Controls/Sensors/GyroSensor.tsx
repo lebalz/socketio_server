@@ -21,7 +21,10 @@ interface Props {
 class OrientationDevice extends SensorDevice<GyroData> {
     requestPermission(onGrant: () => void) {
         // feature detect
-        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        if (
+            typeof DeviceOrientationEvent !== 'undefined' &&
+            typeof DeviceOrientationEvent.requestPermission === 'function'
+        ) {
             DeviceOrientationEvent.requestPermission()
                 .then((permissionState) => {
                     if (permissionState === 'granted') {

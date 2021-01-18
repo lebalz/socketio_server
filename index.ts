@@ -558,7 +558,8 @@ io.on('connection', (socket) => {
         } else if (data.broadcast) {
             io.emit(SocketEvents.NewData, data);
         } else if (unicast_to) {
-            io.to(unicast_to.socket_id).to(GLOBAL_LISTENER_ROOM).emit(SocketEvents.NewData, data);
+            io.to(unicast_to.socket_id).emit(SocketEvents.NewData, data);
+            io.to(GLOBAL_LISTENER_ROOM).emit(SocketEvents.NewData, data);
         } else {
             io.to(device_id).emit(SocketEvents.NewData, data);
             io.to(GLOBAL_LISTENER_ROOM).emit(SocketEvents.NewData, data);

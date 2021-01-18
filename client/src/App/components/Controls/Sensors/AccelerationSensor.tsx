@@ -21,7 +21,10 @@ interface Props {
 class MotionDevice extends SensorDevice<AccelerationData> {
     requestPermission(onGrant: () => void) {
         // feature detect
-        if (typeof DeviceMotionEvent.requestPermission === 'function') {
+        if (
+            typeof DeviceMotionEvent !== 'undefined' &&
+            typeof DeviceMotionEvent.requestPermission === 'function'
+        ) {
             DeviceMotionEvent.requestPermission()
                 .then((permissionState) => {
                     if (permissionState === 'granted') {
