@@ -178,8 +178,8 @@ export default class Sprite extends BoundingBox {
             id: this.id,
             collision_detection: this.collisionDetection,
             border: overlap,
-            x: this.posX,
-            y: this.posY,
+            x: this.isAutomoving ? this.autoMovement.currentX : this.posX,
+            y: this.isAutomoving ? this.autoMovement.currentY : this.posY,
         });
     }
 
@@ -287,14 +287,14 @@ export default class Sprite extends BoundingBox {
                         {
                             id: this.id,
                             collision_detection: this.collisionDetection,
-                            pos_x: this.posX,
-                            pos_y: this.posY,
+                            pos_x: this.isAutomoving ? this.autoMovement.currentX : this.posX,
+                            pos_y: this.isAutomoving ? this.autoMovement.currentY : this.posY,
                         },
                         {
                             id: sprite.id,
                             collision_detection: sprite.collisionDetection,
-                            pos_x: sprite.posX,
-                            pos_y: sprite.posY,
+                            pos_x: sprite.isAutomoving ? sprite.autoMovement.currentX : sprite.posX,
+                            pos_y: sprite.isAutomoving ? sprite.autoMovement.currentY : sprite.posY,
                         },
                     ],
                     time_stamp: ts,
