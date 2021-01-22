@@ -144,7 +144,7 @@ const ImageAndText = (props: ITProps) => {
         margin: 0,
         fontFamily: 'monospace',
         overflow: 'visible',
-        fontSize: props.fontSize ? `${props.fontSize * props.scale}` : undefined,
+        fontSize: props.fontSize ? `${props.fontSize * props.scale}px` : undefined,
         fill: props.fontColor,
     };
     if (!props.center && props.text && !props.image) {
