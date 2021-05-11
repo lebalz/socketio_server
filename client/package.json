@@ -12,7 +12,7 @@
     "@types/react-transition-group": "^4.4.0",
     "@types/recharts": "^1.8.16",
     "@types/socket.io-client": "^1.4.33",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.21",
     "mobx": "^5.15.7",
     "mobx-react": "^6.3.0",
     "mobx-react-router": "^4.1.0",
